@@ -1,0 +1,10 @@
+{
+  "ownerEmail": "info@kbtrener.pl",
+  "driveRootFolderId": "1jFAX9C5JROxTTrnNRt9QXUMEjsKD88yZ",
+  "driveScope": "root_and_descendants_only",
+  "allowOutsideRoot": false,
+  "allowTemporaryFilesOutsideRoot": false,
+  "followShortcutsOutsideRoot": false,
+  "onUnverifiedAncestry": "deny",
+  "implementationApproved": true
+}

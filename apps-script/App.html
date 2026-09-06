@@ -1,0 +1,305 @@
+<script>
+(() => {
+  "use strict";
+  const app = document.querySelector("#app");
+  const modal = document.querySelector("#modal");
+  const toast = document.querySelector("#toast");
+  const state = { config: null, clients: [], profile: null, assessment: null, report: null, busy: false };
+  const names = { toe_touch: "Toe Touch", shoulder_mobility: "Shoulder Mobility", rotation: "Rotation", balance: "Balance", squat: "Squat" };
+
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+  const call = (method, ...args) => new Promise((resolve, reject) => {
+    const runner = google.script.run.withSuccessHandler(resolve).withFailureHandler(error => reject(new Error(error?.message || String(error))));
+    runner[method](...args);
+  });
+  const loading = message => { app.innerHTML = `<section class="loading-state"><span class="loader"></span><p>${esc(message || "Wczytuję…")}</p></section>`; };
+  const notify = (message, error = false) => {
+    toast.textContent = message; toast.className = `toast is-visible${error ? " is-error" : ""}`;
+    clearTimeout(notify.timer); notify.timer = setTimeout(() => toast.className = "toast", 4200);
+  };
+  const fail = error => { console.error(error); notify(error.message || String(error), true); };
+  const setNav = route => document.querySelectorAll(".nav-link").forEach(button => button.classList.toggle("is-active", button.dataset.action === route));
+  const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Warsaw" });
+  const fieldMap = seed => Object.fromEntries(seed.testFields.map(field => [field.testFieldId, field]));
+  const optionMap = seed => Object.fromEntries(seed.answerSets.flatMap(set => set.options.map(option => [option.answerOptionId, option])));
+  const answerSet = (seed, code) => seed.answerSets.find(set => set.code === code);
+  const testModel = seed => {
+    const tests = Object.fromEntries(seed.tests.map(test => [test.testId, test]));
+    return seed.screenTests.filter(item => item.isActive).sort((a,b) => a.sortOrder - b.sortOrder).map(item => ({
+      ...item, ...tests[item.testId], fields: seed.testFields.filter(field => field.screenTestId === item.screenTestId).sort((a,b) => a.sortOrder-b.sortOrder),
+    }));
+  };
+  const keyFor = (fieldCode, side) => `${fieldCode}:${side}`;
+  const sideName = side => side === "left" ? "Lewa strona" : side === "right" ? "Prawa strona" : "";
+
+  async function boot() {
+    try {
+      state.config = await call("getInitialConfiguration");
+      if (!state.config.initialized) return renderSetup();
+      await showClients();
+    } catch (error) { renderFatal(error); }
+  }
+
+  function renderFatal(error) {
+    app.innerHTML = `<section class="setup-card"><div class="eyebrow">Nie udało się uruchomić</div><h1>Sprawdź konfigurację</h1><p>${esc(error.message)}</p><button class="btn btn-dark" data-action="retry">Spróbuj ponownie</button></section>`;
+  }
+
+  function renderSetup() {
+    setNav("home");
+    app.innerHTML = `<section class="setup-card"><div class="eyebrow">Pierwsze uruchomienie</div><h1>Przygotuj prywatne dane</h1>
+      <p>Aplikacja utworzy arkusz <strong>FMS Quick Screen - Dane</strong> bezpośrednio w zatwierdzonym folderze. Dostęp ma wyłącznie <code>${esc(state.config.ownerEmail)}</code>.</p>
+      <p>Folder oraz położenie projektu zostaną sprawdzone przed utworzeniem pliku.</p>
+      <button class="btn btn-primary" data-action="initialize">Utwórz arkusz danych</button></section>`;
+  }
+
+  async function initialize() {
+    const button = document.querySelector('[data-action="initialize"]');
+    button.disabled = true;
+    try {
+      const result = await call("initializeApplication");
+      notify(result.created ? "Arkusz danych został utworzony." : "Arkusz danych jest już gotowy.");
+      state.config.initialized = true; await showClients();
+    } catch (error) { button.disabled = false; fail(error); }
+  }
+
+  async function showClients(query = "", includeArchived = false) {
+    setNav("home"); loading("Wczytuję klientów…");
+    try {
+      state.clients = await call("searchClients", query, includeArchived);
+      renderClients(query, includeArchived);
+    } catch (error) { renderFatal(error); }
+  }
+
+  function renderClients(query, includeArchived) {
+    app.innerHTML = `<section class="hero"><div><div class="eyebrow">FMS Quick Screen</div><h1>Ruch zapisany jasno.</h1>
+      <p class="hero-copy">Klienci, szybkie badania i historia wyników w jednym spokojnym widoku.</p></div>
+      <button class="btn btn-primary" data-action="new-client">＋ Nowy klient</button></section>
+      <section class="toolbar"><label class="search"><input id="client-search" value="${esc(query)}" placeholder="Szukaj po nazwisku lub e-mailu" autocomplete="off"></label>
+      <label class="check"><input id="archived-clients" type="checkbox" ${includeArchived ? "checked" : ""}> Pokaż archiwalnych</label></section>
+      <section class="client-grid">${state.clients.map((client,index) => `<button class="client-card${client.isArchived ? " archived" : ""}" data-client="${esc(client.clientId)}" style="animation-delay:${index*35}ms">
+        <span class="initials">${esc(client.firstName[0] + client.lastName[0])}</span><strong>${esc(client.firstName)} ${esc(client.lastName)}</strong><small>${esc(client.email)}</small>
+        <footer><span>${client.lastAssessmentDate ? esc(client.lastAssessmentDate) : "Brak badań"}</span><span class="score-pill">${client.lastTotalScreenScore == null ? "—" : `${client.lastTotalScreenScore} / 15`}</span></footer></button>`).join("")}</section>
+      ${state.clients.length ? "" : `<section class="empty-state"><div><h2>Tu pojawią się klienci</h2><p>${query ? "Zmień wyszukiwanie albo dodaj nową osobę." : "Dodaj pierwszą osobę i rozpocznij badanie."}</p></div></section>`}`;
+    let searchTimer;
+    document.querySelector("#client-search").addEventListener("input", event => {
+      clearTimeout(searchTimer); searchTimer = setTimeout(() => showClients(event.target.value, document.querySelector("#archived-clients").checked), 280);
+    });
+    document.querySelector("#archived-clients").addEventListener("change", event => showClients(document.querySelector("#client-search").value, event.target.checked));
+  }
+
+  function openClientForm(client = null) {
+    modal.hidden = false;
+    modal.innerHTML = `<section class="modal" role="dialog" aria-modal="true" aria-labelledby="client-title"><header class="modal-head"><h2 id="client-title">${client ? "Edytuj klienta" : "Nowy klient"}</h2><button class="icon-btn" data-action="close-modal" aria-label="Zamknij">×</button></header>
+      <form id="client-form" class="form-stack"><label class="field">Imię<input name="firstName" required value="${esc(client?.firstName || "")}" autocomplete="given-name"></label>
+      <label class="field">Nazwisko<input name="lastName" required value="${esc(client?.lastName || "")}" autocomplete="family-name"></label>
+      <label class="field">E-mail<input name="email" type="email" required value="${esc(client?.email || "")}" autocomplete="email"></label>
+      <div class="form-actions"><button type="button" class="btn btn-quiet" data-action="close-modal">Anuluj</button><button class="btn btn-primary">Zapisz klienta</button></div></form></section>`;
+    document.querySelector("#client-form").addEventListener("submit", async event => {
+      event.preventDefault(); const button = event.submitter; button.disabled = true;
+      const data = Object.fromEntries(new FormData(event.currentTarget));
+      try {
+        const result = client ? await call("updateClient", client.clientId, data) : await call("createClient", data);
+        closeModal(); notify(result.duplicateWarning || "Dane klienta zapisane.");
+        if (client) await showProfile(client.clientId); else await showProfile(result.clientId);
+      } catch (error) { button.disabled = false; fail(error); }
+    });
+  }
+
+  const closeModal = () => { modal.hidden = true; modal.innerHTML = ""; };
+
+  async function showProfile(clientId, includeArchived = false) {
+    setNav(""); loading("Układam historię klienta…");
+    try { state.profile = await call("getClientProfile", clientId, includeArchived); renderProfile(); }
+    catch (error) { renderFatal(error); }
+  }
+
+  function resultCards(latest) {
+    return Object.entries(names).map(([code,name]) => `<div class="result-chip"><small>${esc(name)}</small><b>${latest.finalScores[code]}</b>${latest.baseScores[code] !== latest.finalScores[code] ? `<small>bazowy ${latest.baseScores[code]}</small>` : ""}</div>`).join("");
+  }
+
+  function statusRows(latest, seed) {
+    const fields = fieldMap(seed), options = optionMap(seed);
+    return latest.statuses.map(answer => {
+      const field = fields[answer.testFieldId], option = options[answer.answerOptionId];
+      const alert = answer.answerCode === "positive" || answer.answerCode === "fail";
+      return `<li><span>${esc(field?.labelPl)}${answer.side !== "none" ? ` · ${esc(sideName(answer.side))}` : ""}</span><b class="${alert ? "is-alert" : ""}">${esc(option?.labelPl || answer.answerCode)}</b></li>`;
+    }).join("");
+  }
+
+  function chartSvg(history) {
+    if (history.length < 2) return `<div class="empty-state" style="min-height:190px"><p>Brak danych historycznych</p></div>`;
+    const width = 620, height = 180, left = 28, right = 18, top = 15, bottom = 34;
+    const x = i => left + i * ((width-left-right)/(history.length-1));
+    const y = score => top + (15-score) * ((height-top-bottom)/15);
+    const guides = [0,5,10,15].map(score => `<line x1="${left}" x2="${width-right}" y1="${y(score)}" y2="${y(score)}" stroke="#d4dcda"/><text x="2" y="${y(score)+3}">${score}</text>`).join("");
+    const line = history.map((point,i) => `${x(i)},${y(point.total)}`).join(" ");
+    const dots = history.map((point,i) => `<circle cx="${x(i)}" cy="${y(point.total)}" r="6" fill="#ef604e" stroke="#fffdf8" stroke-width="3"/><text x="${x(i)}" y="${height-8}" text-anchor="middle">${esc(point.date.slice(5))}</text>`).join("");
+    return `<svg class="chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Wykres Total Screen Score od 0 do 15">${guides}<polyline points="${line}" fill="none" stroke="#142d37" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
+  }
+
+  function renderProfile() {
+    const {client, latestAssessment: latest, assessments, history} = state.profile;
+    app.innerHTML = `<button class="btn btn-quiet" data-action="home">← Lista klientów</button>
+      <section class="profile-head"><div class="profile-name"><div class="eyebrow">Profil klienta</div><h1>${esc(client.firstName)} ${esc(client.lastName)}</h1><p>${esc(client.email)} ${client.isArchived ? "· profil archiwalny" : ""}</p></div>
+      ${latest ? `<div class="score-orbit"><div><b>${latest.totalScreenScore}</b><small>Total / 15</small></div></div>` : ""}</section>
+      <div class="toolbar"><button class="btn btn-primary" data-action="new-assessment" ${client.isArchived ? "disabled" : ""}>＋ Nowe badanie</button>
+      <button class="btn" data-action="edit-client">Edytuj dane</button>${latest ? `<button class="btn btn-dark" data-action="report">Wygeneruj raport</button>` : ""}
+      <button class="btn btn-quiet" data-action="${client.isArchived ? "restore-client" : "archive-client"}">${client.isArchived ? "Przywróć profil" : "Archiwizuj profil"}</button></div>
+      ${latest ? `<section class="profile-layout"><div class="panel"><header class="panel-head"><div><div class="eyebrow">Ostatnie badanie</div><h2>${esc(latest.assessmentDate)}</h2></div><button class="btn btn-quiet" data-edit-assessment="${esc(latest.assessmentId)}">Koryguj</button></header>
+        <div class="result-grid">${resultCards(latest)}</div>${latest.appliedEffects.length ? `<div class="effect-note"><strong>Wynik nadpisany</strong><br>${latest.appliedEffects.map(e=>esc(e.reasonPl)).join("<br>")}</div>` : ""}
+        <ul class="status-list">${statusRows(latest, state.config.seed)}</ul></div>
+        <aside class="panel"><header class="panel-head"><h3>Historia sumy</h3><small>oś 0–15</small></header>${chartSvg(history)}</aside></section>` : `<section class="panel empty-state"><div><h2>Brak badań</h2><p>Rozpocznij pierwsze Quick Screen.</p></div></section>`}
+      <section class="panel" style="margin-top:20px"><header class="panel-head"><h3>Badania</h3><label class="check"><input id="archived-assessments" type="checkbox" ${assessments.some(a=>a.status==='archived') ? "checked" : ""}> Pokaż archiwalne</label></header>
+      <div class="history-list">${assessments.map(item => `<div class="history-row${item.status === "archived" ? " archived" : ""}"><span>${esc(item.assessmentDate)}${item.status === "archived" ? " · archiwalne" : ""}</span><b>${item.totalScreenScore}</b><span>
+        <button class="icon-btn" data-edit-assessment="${esc(item.assessmentId)}" title="Koryguj">✎</button>
+        <button class="icon-btn" data-${item.status === "archived" ? "restore" : "archive"}-assessment="${esc(item.assessmentId)}" title="${item.status === "archived" ? "Przywróć" : "Archiwizuj"}">${item.status === "archived" ? "↺" : "⌁"}</button></span></div>`).join("") || "<p>Brak zapisów.</p>"}</div></section>`;
+    document.querySelector("#archived-assessments").addEventListener("change", event => showProfile(client.clientId, event.target.checked));
+  }
+
+  async function beginAssessment(existing = null) {
+    try {
+      const start = await call("startAssessment", state.profile.client.clientId);
+      const answers = {};
+      (existing?.answers || []).forEach(answer => answers[keyFor(answer.fieldCode, answer.side)] = answer.answerCode);
+      state.assessment = { client: state.profile.client, seed: start.seed, step: 0, answers,
+        assessmentDate: existing?.assessmentDate || start.assessmentDate || today(), note: existing?.note || "",
+        correctionNote: "", assessmentId: existing?.assessmentId || null };
+      if (!existing) restoreDraft();
+      renderAssessment();
+    } catch (error) { fail(error); }
+  }
+
+  function draftKey() { return `fms-draft:${state.assessment.client.clientId}`; }
+  function storeDraft() {
+    if (!state.assessment.assessmentId) localStorage.setItem(draftKey(), JSON.stringify({ answers: state.assessment.answers, assessmentDate: state.assessment.assessmentDate, note: state.assessment.note, step: state.assessment.step }));
+  }
+  function restoreDraft() {
+    try { const draft = JSON.parse(localStorage.getItem(draftKey())); if (draft) Object.assign(state.assessment, draft); } catch (_) {}
+  }
+
+  function testComplete(test) {
+    return test.fields.every(field => (field.sideMode === "bilateral" ? ["left","right"] : ["none"]).every(side => state.assessment.answers[keyFor(field.code,side)]));
+  }
+
+  function renderAssessment() {
+    setNav(""); const data = state.assessment, tests = testModel(data.seed), test = tests[data.step];
+    const completeCount = tests.filter(testComplete).length;
+    app.innerHTML = `<section class="assessment-shell"><header class="assessment-top"><div><div class="eyebrow">${data.assessmentId ? "Korekta badania" : "Nowe badanie"} · ${completeCount}/${tests.length}</div><h1 style="font-size:clamp(34px,6vw,54px)">${esc(data.client.firstName)} ${esc(data.client.lastName)}</h1></div>
+      <button class="btn btn-quiet" data-action="cancel-assessment">Zamknij</button></header>
+      <div class="meta-fields"><label class="field">Data badania<input id="assessment-date" type="date" value="${esc(data.assessmentDate)}"></label><label class="field">Notatka opcjonalna<input id="assessment-note" value="${esc(data.note)}" placeholder="Krótki kontekst badania"></label></div>
+      ${data.assessmentId ? `<label class="field" style="margin-bottom:18px">Powód korekty<input id="correction-note" value="${esc(data.correctionNote)}" placeholder="Co zostało poprawione?" required></label>` : ""}
+      <div class="step-track" aria-label="Postęp">${tests.map((item,index) => `<button class="step-dot ${testComplete(item) ? "is-done" : ""} ${index===data.step ? "is-current" : ""}" data-step="${index}" title="${esc(item.name)}"></button>`).join("")}</div>
+      <article class="test-card"><div class="eyebrow">Test ${data.step+1} z ${tests.length}</div><h2>${esc(test.name)}</h2><p class="description">${esc(test.descriptionShort)}</p>
+      <details class="criteria"><summary>Kryteria oceny</summary><p>${esc(test.criteriaSummary)}<br><strong>${esc(test.sourceReference)}</strong></p></details>
+      <div class="answer-section">${test.fields.map(field => renderField(field,data.seed)).join("")}</div></article>
+      <nav class="assessment-nav"><button class="btn" data-action="previous-step" ${data.step===0 ? "disabled" : ""}>← Wstecz</button>
+      ${data.step < tests.length-1 ? `<button class="btn btn-dark" data-action="next-step">Dalej →</button>` : `<button class="btn btn-primary" data-action="finish-assessment">Zakończ badanie</button>`}</nav></section>`;
+    document.querySelector("#assessment-date").addEventListener("change", e => { data.assessmentDate=e.target.value; storeDraft(); });
+    document.querySelector("#assessment-note").addEventListener("input", e => { data.note=e.target.value; storeDraft(); });
+    document.querySelector("#correction-note")?.addEventListener("input", e => data.correctionNote=e.target.value);
+  }
+
+  function renderField(field, seed) {
+    const sides = field.sideMode === "bilateral" ? ["left","right"] : ["none"];
+    const options = answerSet(seed, field.answerSetCode).options;
+    return sides.map(side => `<section class="answer-group"><div class="answer-label"><span>${esc(field.labelPl)}</span><small>${esc(sideName(side))}</small></div>
+      <div class="answer-options" style="--count:${options.length}">${options.map(option => { const selected = state.assessment.answers[keyFor(field.code,side)] === option.code; return `<button class="answer-btn${selected ? " is-selected" : ""}${option.code === "positive" || option.code === "score_0" ? " is-pain" : ""}" data-answer data-field="${esc(field.code)}" data-side="${side}" data-option="${esc(option.code)}">${esc(option.labelPl)}</button>`; }).join("")}</div></section>`).join("");
+  }
+
+  function validateAllAssessment() {
+    const missing = testModel(state.assessment.seed).findIndex(test => !testComplete(test));
+    if (missing >= 0) { state.assessment.step = missing; renderAssessment(); notify("Uzupełnij wszystkie odpowiedzi w tym teście.", true); return false; }
+    if (!state.assessment.assessmentDate) { notify("Wybierz datę badania.", true); return false; }
+    if (state.assessment.assessmentId && !state.assessment.correctionNote.trim()) { notify("Podaj powód korekty.", true); return false; }
+    return true;
+  }
+
+  async function finishAssessment(button) {
+    if (!validateAllAssessment()) return;
+    button.disabled = true; button.textContent = "Zapisuję…";
+    const data = state.assessment;
+    const input = { clientId: data.client.clientId, assessmentDate: data.assessmentDate, note: data.note, correctionNote: data.correctionNote,
+      answers: Object.entries(data.answers).map(([key,answerCode]) => { const split=key.lastIndexOf(":"); return { fieldCode:key.slice(0,split), side:key.slice(split+1), answerCode }; }) };
+    try {
+      state.profile = data.assessmentId ? await call("updateAssessment", data.assessmentId, input) : await call("saveAssessment", input);
+      localStorage.removeItem(draftKey()); state.assessment = null; notify(data.assessmentId ? "Korekta została zapisana." : "Badanie zapisane."); renderProfile();
+    } catch (error) { button.disabled=false; button.textContent="Zakończ badanie"; fail(error); }
+  }
+
+  async function showReport() {
+    loading("Generuję podgląd raportu…");
+    try { state.report = await call("generateReportData", state.profile.client.clientId); renderReport(); }
+    catch (error) { fail(error); renderProfile(); }
+  }
+
+  function renderReport() {
+    const data=state.report, latest=data.latest;
+    app.innerHTML = `<section class="report-actions toolbar"><button class="btn btn-quiet" data-action="back-profile">← Profil klienta</button><button class="btn" data-action="print-report">Drukuj podgląd</button><button class="btn btn-primary" data-action="download-pdf">Pobierz PDF</button><button class="btn btn-dark" data-action="email-report">Przygotuj e-mail</button></section>
+      <article class="panel"><header class="report-cover"><div><div class="eyebrow">Raport wyników</div><h1 style="font-size:clamp(36px,6vw,58px)">FMS Quick Screen</h1><p>${esc(data.client.firstName)} ${esc(data.client.lastName)} · ${esc(latest.assessmentDate)}</p></div><div class="report-score">${latest.totalScreenScore} / 15</div></header>
+      <h2>Bieżące wyniki</h2><div class="result-grid" style="margin:18px 0 28px">${resultCards(latest)}</div>
+      ${latest.appliedEffects.length ? `<div class="effect-note">${latest.appliedEffects.map(e=>esc(e.reasonPl)+`: ${e.beforeScore} → ${e.afterScore}`).join("<br>")}</div>` : ""}
+      <h2 style="margin-top:32px">Historia</h2><div style="max-width:760px">${chartSvg(data.history)}</div>
+      <h2 style="margin:32px 0 16px">Macierz wyników</h2><div class="matrix-wrap"><table class="matrix"><thead><tr><th>Test</th>${data.assessments.map(a=>`<th>${esc(a.assessmentDate)}</th>`).join("")}</tr></thead><tbody>
+      ${data.numericTests.map(test=>`<tr><th>${esc(test.name)}</th>${data.assessments.map(a=>{const raw=a.rawScores[test.code]||{}; return `<td>${Object.keys(raw).length>1?`L ${raw.left} / P ${raw.right} → `:""}<b>${a.finalScores[test.code]}</b></td>`}).join("")}</tr>`).join("")}
+      ${data.statusTests.map(test=>`<tr><th>${esc(test.name)}</th>${test.values.map(value=>`<td>${esc(value)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+      <p style="margin-top:28px;color:var(--ink-soft);font-size:12px">Raport opisuje zapisane wyniki screeningu. Nie stanowi diagnozy ani zalecenia terapeutycznego.</p></article>`;
+  }
+
+  async function downloadPdf(button) {
+    button.disabled=true; try { const pdf=await call("downloadReportPdf",state.profile.client.clientId); const bytes=Uint8Array.from(atob(pdf.base64), c=>c.charCodeAt(0)); const url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"})); const a=document.createElement("a"); a.href=url;a.download=pdf.filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),3000); notify("PDF został przygotowany."); } catch(error){fail(error)} finally{button.disabled=false}
+  }
+
+  function openEmailForm() {
+    const client=state.profile.client;
+    modal.hidden=false; modal.innerHTML=`<section class="modal"><header class="modal-head"><h2>Przygotuj e-mail</h2><button class="icon-btn" data-action="close-modal">×</button></header>
+      <p>Powstanie niewysłany szkic Gmail z raportem PDF. Odbiorców możesz edytować.</p><form id="email-form"><label class="field">Odbiorcy<input name="recipients" value="${esc(client.email)}, ${esc(state.config.ownerEmail)}"></label>
+      <div class="form-actions"><button type="button" class="btn btn-quiet" data-action="close-modal">Anuluj</button><button class="btn btn-primary">Utwórz szkic</button></div></form></section>`;
+    document.querySelector("#email-form").addEventListener("submit",async event=>{event.preventDefault();event.submitter.disabled=true;try{const values=Object.fromEntries(new FormData(event.currentTarget));const result=await call("createEmailDraft",{clientId:client.clientId,...values});closeModal();notify(`Szkic utworzony dla: ${result.recipients.join(", ")}`)}catch(error){event.submitter.disabled=false;fail(error)}});
+  }
+
+  async function showConfig() {
+    setNav("config"); loading("Wczytuję konfigurację…");
+    try { const config=await call("getAdminConfiguration"); renderConfig(config); } catch(error){renderFatal(error)}
+  }
+  function renderConfig(config) {
+    app.innerHTML=`<section class="hero"><div><div class="eyebrow">Tylko właściciel</div><h1>Konfiguracja protokołu</h1><p class="hero-copy">Reguły wpływu są danymi, a każdy efekt użyty w badaniu zachowuje własny ślad.</p></div></section>
+      <section class="panel"><header class="panel-head"><h2>Reguły clearing</h2><small>${config.effectRules.length} reguły</small></header><div class="rule-list">${config.effectRules.map(rule=>`<div class="rule-card"><div><strong>${esc(rule.reasonTemplate)}</strong><p>${esc(rule.sourceTestFieldId)} → ${esc(rule.targetScreenTestId)} · wynik ${rule.effectValue}</p></div><button class="toggle ${rule.isActive?"is-on":""}" data-rule="${esc(rule.effectRuleId)}" data-active="${rule.isActive}" aria-label="${rule.isActive?"Wyłącz":"Włącz"} regułę"></button></div>`).join("")}</div></section>
+      <section class="panel" style="margin-top:20px"><header class="panel-head"><h2>Katalog testów</h2></header><div class="rule-list">${config.tests.map(test=>`<div class="rule-card"><div><strong>${esc(test.name)}</strong><p>${esc(test.criteriaSummary)} · ${esc(test.sourceReference)}</p></div></div>`).join("")}</div></section>`;
+  }
+
+  document.addEventListener("click", async event => {
+    const button=event.target.closest("button"); if(!button) return;
+    const action=button.dataset.action;
+    try {
+      if(action==="home") return showClients();
+      if(action==="retry") return boot();
+      if(action==="initialize") return initialize();
+      if(action==="config") return showConfig();
+      if(action==="new-client") return openClientForm();
+      if(action==="close-modal") return closeModal();
+      if(button.dataset.client) return showProfile(button.dataset.client);
+      if(action==="edit-client") return openClientForm(state.profile.client);
+      if(action==="new-assessment") return beginAssessment();
+      if(action==="cancel-assessment") { if(confirm("Zamknąć badanie? Wprowadzone odpowiedzi pozostaną tymczasowo w tej przeglądarce.")) return renderProfile(); }
+      if(button.dataset.step!=null) { state.assessment.step=Number(button.dataset.step);storeDraft();return renderAssessment(); }
+      if(button.hasAttribute("data-answer")) { state.assessment.answers[keyFor(button.dataset.field,button.dataset.side)]=button.dataset.option;storeDraft();return renderAssessment(); }
+      if(action==="previous-step") { state.assessment.step--;storeDraft();return renderAssessment(); }
+      if(action==="next-step") { if(!testComplete(testModel(state.assessment.seed)[state.assessment.step])) return notify("Uzupełnij wszystkie odpowiedzi w tym teście.",true); state.assessment.step++;storeDraft();return renderAssessment(); }
+      if(action==="finish-assessment") return finishAssessment(button);
+      if(button.dataset.editAssessment) { const item=state.profile.assessments.find(a=>a.assessmentId===button.dataset.editAssessment); return beginAssessment(item); }
+      if(action==="archive-client") { if(confirm("Archiwizować profil klienta?")){await call("archiveClient",state.profile.client.clientId);return showProfile(state.profile.client.clientId,true)} }
+      if(action==="restore-client") {await call("restoreClient",state.profile.client.clientId);return showProfile(state.profile.client.clientId,true)}
+      if(button.dataset.archiveAssessment) {if(confirm("Archiwizować to badanie?")){state.profile=await call("archiveAssessment",button.dataset.archiveAssessment);return renderProfile()}}
+      if(button.dataset.restoreAssessment) {state.profile=await call("restoreAssessment",button.dataset.restoreAssessment);return renderProfile()}
+      if(action==="report") return showReport();
+      if(action==="back-profile") return renderProfile();
+      if(action==="print-report") return window.print();
+      if(action==="download-pdf") return downloadPdf(button);
+      if(action==="email-report") return openEmailForm();
+      if(button.dataset.rule) {button.disabled=true;const config=await call("setEffectRuleActive",button.dataset.rule,button.dataset.active!=="true");notify("Reguła została zaktualizowana.");return renderConfig(config)}
+    } catch(error) { fail(error); }
+  });
+  modal.addEventListener("click",event=>{if(event.target===modal)closeModal()});
+  boot();
+})();
+</script>

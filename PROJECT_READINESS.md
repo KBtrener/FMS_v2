@@ -52,8 +52,11 @@ Przegląd: 2026-09-06.
 ## Informacje od właściciela
 
 Przed kodowaniem: zatwierdzenie rozpoczęcia zgodnie z pakietem.
-Najpóźniej przed wdrożeniem: adres konta Google, które ma być właścicielem
-aplikacji i danych, oraz interaktywna zgoda OAuth na tym koncie.
+Właściciel wskazał konto `info@kbtrener.pl` oraz folder
+`1jFAX9C5JROxTTrnNRt9QXUMEjsKD88yZ`. Operacje Google Drive są ograniczone do
+tego folderu i jego podfolderów, zgodnie z `DRIVE_SCOPE.md` i
+`config/deployment.json`. Nie sprawdzono jeszcze dostępu do folderu.
+Przed wdrożeniem będzie potrzebna interaktywna zgoda OAuth na tym koncie.
 Hasła i tokeny nie są potrzebne w rozmowie. Istnienie lokalnego pliku clasp
 nie potwierdza tożsamości konta ani ważności autoryzacji; jego treści nie odczytywano.
 

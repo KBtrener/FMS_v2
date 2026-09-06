@@ -7,6 +7,18 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "verify:fixtures": "node FMS_Quick_Screen_Codex_Package/tools/verify_fixtures.mjs"
+    "build:seed": "node tools/build-seed.mjs",
+    "build:preview": "node tools/build-preview.mjs",
+    "apps:create": "clasp create-script --type webapp --title \"FMS Quick Screen - Aplikacja\" --parentId 1jFAX9C5JROxTTrnNRt9QXUMEjsKD88yZ --rootDir apps-script",
+    "apps:push": "npm run build:seed && clasp push",
+    "apps:status": "clasp show-file-status",
+    "apps:deploy": "clasp create-deployment --description \"FMS Quick Screen production\"",
+    "test": "node --test --test-isolation=none tests/*.test.js",
+    "verify:fixtures": "node FMS_Quick_Screen_Codex_Package/tools/verify_fixtures.mjs",
+    "verify:source": "node tools/verify-source.mjs",
+    "verify": "npm run build:seed && npm run build:preview && npm run verify:source && npm run verify:fixtures && npm test"
+  },
+  "devDependencies": {
+    "@google/clasp": "^3.4.1"
   }
 }

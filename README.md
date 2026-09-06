@@ -5,6 +5,10 @@ Repozytorium: https://github.com/KBtrener/FMS_v2.git
 Status: przygotowany pakiet wejściowy i środowisko repozytorium. Kodowanie
 aplikacji rozpocznie się po zatwierdzeniu przez właściciela.
 
+Przed operacjami Google Drive obowiązkowo przeczytaj [DRIVE_SCOPE.md](DRIVE_SCOPE.md).
+Właściciel i nieprzekraczalna granica folderu: `config/deployment.json`.
+Te późniejsze ustalenia właściciela mają pierwszeństwo przed pakietem źródłowym.
+
 ## Materiały
 
 Oryginalny, rozpakowany pakiet znajduje się w `FMS_Quick_Screen_Codex_Package/`.
@@ -34,3 +38,16 @@ Raport PDF na żądanie, opcjonalny niewysłany szkic Gmail.
 
 Szczegóły przeglądu i kolejność implementacji:
 [PROJECT_READINESS.md](PROJECT_READINESS.md).
+
+## Kod aplikacji
+
+Źródła Apps Script znajdują się w `apps-script/`. Pełna kontrola lokalna:
+
+```powershell
+npm install
+npm run verify
+```
+
+Wdrożenie korzysta z lokalnego `clasp` i tworzy projekt bezpośrednio w
+zatwierdzonym folderze przez jawny parametr `parentId`. Plik `.clasp.json`
+pozostaje lokalny. Szczegóły: [DEPLOYMENT.md](DEPLOYMENT.md).

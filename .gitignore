@@ -3,6 +3,7 @@ dist/
 coverage/
 tmp/
 output/
+preview/
 *.log
 .env
 .env.*

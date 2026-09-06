@@ -1,0 +1,41 @@
+# Wdrożenie FMS Quick Screen
+
+## Zasoby i granica
+
+- Konto właściciela: `info@kbtrener.pl`.
+- Folder nadrzędny: `1jFAX9C5JROxTTrnNRt9QXUMEjsKD88yZ`.
+- Projekt Apps Script i arkusz danych muszą być bezpośrednimi dziećmi folderu.
+- Aplikacja odmawia działania, jeśli projekt lub arkusz zostanie przeniesiony.
+- Kod nie korzysta ze skrótów ani plików tymczasowych na Dysku.
+
+## Przepływ
+
+1. `npm run verify` sprawdza konfigurację, składnię, fixture'y i testy rdzenia.
+2. `npm run apps:create` tworzy samodzielny projekt Apps Script od razu w
+   dozwolonym folderze. Parametr folderu jest zapisany w komendzie.
+3. Lokalny `.clasp.json` otrzymuje `rootDir` wskazujący `apps-script`.
+4. `npm run apps:push` wysyła zweryfikowane źródła.
+5. Wdrożenie testowe i produkcyjne powstaje przez `clasp create-deployment`.
+6. Pierwsze wejście właściciela uruchamia OAuth. Przycisk inicjalizacji tworzy
+   arkusz bezpośrednio w dozwolonym folderze przez Drive API i zapisuje jego ID
+   we właściwościach projektu.
+7. Po testach odbiorowych zachowujemy identyfikatory wdrożenia, numer wersji,
+   link aplikacji, arkusza i projektu w tej instrukcji przekazania.
+
+## Zgody Google
+
+Wersja bazowa wymaga dostępu do tożsamości właściciela, wskazanego folderu
+Drive i utworzonego arkusza. Scope Drive jest technicznie szerszy niż folder;
+Google nie oferuje scope OAuth ograniczonego do pojedynczego folderu.
+`FmsDriveGuard` wymusza granicę po stronie serwera przed każdą operacją.
+
+Szkic Gmail jest oddzielnym etapem. Scope `gmail.compose` zostanie dodany do
+manifestu dopiero przy włączeniu tej funkcji i po osobnej zgodzie właściciela.
+Do tego czasu kliknięcie tworzenia szkicu zakończy się komunikatem o braku zgody.
+
+## Bieżący stan
+
+Próba utworzenia projektu 2026-09-06 zakończyła się przed zapisem błędem Google
+`invalid_rapt`, wymagającym ponownego uwierzytelnienia konta. Żaden projekt ani
+plik nie został wtedy utworzony. Po ponownym logowaniu należy również upewnić
+się, że Apps Script API jest włączone w ustawieniach konta.
