@@ -1,0 +1,296 @@
+{
+  "schemaVersion": "1.0",
+  "notice": "Wszystkie osoby, adresy i dane w tym pliku są fikcyjne. Nie używać jako danych produkcyjnych.",
+  "clients": [
+    {
+      "clientId": "CL-0001",
+      "firstName": "Marta",
+      "lastName": "Nowak",
+      "email": "marta.nowak@example.test"
+    },
+    {
+      "clientId": "CL-0002",
+      "firstName": "Jan",
+      "lastName": "Kowalski",
+      "email": "jan.kowalski@example.test"
+    },
+    {
+      "clientId": "CL-0003",
+      "firstName": "Piotr",
+      "lastName": "Zieliński",
+      "email": "piotr.zielinski@example.test"
+    }
+  ],
+  "assessments": [
+    {
+      "assessmentId": "AS-0001",
+      "clientId": "CL-0001",
+      "screenTypeCode": "quick_screen",
+      "assessmentDate": "2026-01-10",
+      "note": "Pierwsze badanie testowe.",
+      "answers": [
+        ["cervical_flexion_range", "none", "pass"],
+        ["cervical_flexion_pain", "none", "negative"],
+        ["cervical_rotation_range", "left", "pass"],
+        ["cervical_rotation_pain", "left", "negative"],
+        ["cervical_rotation_extension_pain", "left", "negative"],
+        ["cervical_rotation_range", "right", "fail"],
+        ["cervical_rotation_pain", "right", "negative"],
+        ["cervical_rotation_extension_pain", "right", "negative"],
+        ["toe_touch_score", "left", "score_2"],
+        ["toe_touch_score", "right", "score_3"],
+        ["shoulder_mobility_score", "left", "score_2"],
+        ["shoulder_mobility_score", "right", "score_2"],
+        ["shoulder_clearing_pain", "left", "negative"],
+        ["shoulder_clearing_pain", "right", "negative"],
+        ["rotation_score", "left", "score_2"],
+        ["rotation_score", "right", "score_1"],
+        ["balance_score", "left", "score_3"],
+        ["balance_score", "right", "score_2"],
+        ["squat_score", "none", "score_2"],
+        ["spine_extension_clearing_pain", "none", "negative"]
+      ],
+      "expected": {
+        "baseFinalScores": {
+          "toe_touch": 2,
+          "shoulder_mobility": 2,
+          "rotation": 1,
+          "balance": 2,
+          "squat": 2
+        },
+        "finalScores": {
+          "toe_touch": 2,
+          "shoulder_mobility": 2,
+          "rotation": 1,
+          "balance": 2,
+          "squat": 2
+        },
+        "totalScreenScore": 9,
+        "appliedEffects": []
+      }
+    },
+    {
+      "assessmentId": "AS-0002",
+      "clientId": "CL-0001",
+      "screenTypeCode": "quick_screen",
+      "assessmentDate": "2026-03-10",
+      "note": "Drugie badanie testowe.",
+      "answers": [
+        ["cervical_flexion_range", "none", "pass"],
+        ["cervical_flexion_pain", "none", "negative"],
+        ["cervical_rotation_range", "left", "pass"],
+        ["cervical_rotation_pain", "left", "negative"],
+        ["cervical_rotation_extension_pain", "left", "negative"],
+        ["cervical_rotation_range", "right", "pass"],
+        ["cervical_rotation_pain", "right", "negative"],
+        ["cervical_rotation_extension_pain", "right", "negative"],
+        ["toe_touch_score", "left", "score_3"],
+        ["toe_touch_score", "right", "score_3"],
+        ["shoulder_mobility_score", "left", "score_2"],
+        ["shoulder_mobility_score", "right", "score_3"],
+        ["shoulder_clearing_pain", "left", "negative"],
+        ["shoulder_clearing_pain", "right", "negative"],
+        ["rotation_score", "left", "score_2"],
+        ["rotation_score", "right", "score_2"],
+        ["balance_score", "left", "score_3"],
+        ["balance_score", "right", "score_2"],
+        ["squat_score", "none", "score_2"],
+        ["spine_extension_clearing_pain", "none", "negative"]
+      ],
+      "expected": {
+        "baseFinalScores": {
+          "toe_touch": 3,
+          "shoulder_mobility": 2,
+          "rotation": 2,
+          "balance": 2,
+          "squat": 2
+        },
+        "finalScores": {
+          "toe_touch": 3,
+          "shoulder_mobility": 2,
+          "rotation": 2,
+          "balance": 2,
+          "squat": 2
+        },
+        "totalScreenScore": 11,
+        "appliedEffects": []
+      }
+    },
+    {
+      "assessmentId": "AS-0003",
+      "clientId": "CL-0001",
+      "screenTypeCode": "quick_screen",
+      "assessmentDate": "2026-06-10",
+      "note": "Trzecie badanie testowe.",
+      "answers": [
+        ["cervical_flexion_range", "none", "pass"],
+        ["cervical_flexion_pain", "none", "negative"],
+        ["cervical_rotation_range", "left", "pass"],
+        ["cervical_rotation_pain", "left", "negative"],
+        ["cervical_rotation_extension_pain", "left", "negative"],
+        ["cervical_rotation_range", "right", "pass"],
+        ["cervical_rotation_pain", "right", "negative"],
+        ["cervical_rotation_extension_pain", "right", "negative"],
+        ["toe_touch_score", "left", "score_3"],
+        ["toe_touch_score", "right", "score_3"],
+        ["shoulder_mobility_score", "left", "score_2"],
+        ["shoulder_mobility_score", "right", "score_2"],
+        ["shoulder_clearing_pain", "left", "negative"],
+        ["shoulder_clearing_pain", "right", "negative"],
+        ["rotation_score", "left", "score_2"],
+        ["rotation_score", "right", "score_2"],
+        ["balance_score", "left", "score_3"],
+        ["balance_score", "right", "score_3"],
+        ["squat_score", "none", "score_1"],
+        ["spine_extension_clearing_pain", "none", "negative"]
+      ],
+      "expected": {
+        "baseFinalScores": {
+          "toe_touch": 3,
+          "shoulder_mobility": 2,
+          "rotation": 2,
+          "balance": 3,
+          "squat": 1
+        },
+        "finalScores": {
+          "toe_touch": 3,
+          "shoulder_mobility": 2,
+          "rotation": 2,
+          "balance": 3,
+          "squat": 1
+        },
+        "totalScreenScore": 11,
+        "appliedEffects": []
+      }
+    },
+    {
+      "assessmentId": "AS-0004",
+      "clientId": "CL-0002",
+      "screenTypeCode": "quick_screen",
+      "assessmentDate": "2026-06-11",
+      "note": "Przypadek testowy dynamicznej reguły clearing.",
+      "answers": [
+        ["cervical_flexion_range", "none", "pass"],
+        ["cervical_flexion_pain", "none", "negative"],
+        ["cervical_rotation_range", "left", "pass"],
+        ["cervical_rotation_pain", "left", "negative"],
+        ["cervical_rotation_extension_pain", "left", "negative"],
+        ["cervical_rotation_range", "right", "pass"],
+        ["cervical_rotation_pain", "right", "negative"],
+        ["cervical_rotation_extension_pain", "right", "negative"],
+        ["toe_touch_score", "left", "score_3"],
+        ["toe_touch_score", "right", "score_3"],
+        ["shoulder_mobility_score", "left", "score_3"],
+        ["shoulder_mobility_score", "right", "score_3"],
+        ["shoulder_clearing_pain", "left", "negative"],
+        ["shoulder_clearing_pain", "right", "negative"],
+        ["rotation_score", "left", "score_3"],
+        ["rotation_score", "right", "score_3"],
+        ["balance_score", "left", "score_3"],
+        ["balance_score", "right", "score_3"],
+        ["squat_score", "none", "score_3"],
+        ["spine_extension_clearing_pain", "none", "positive"]
+      ],
+      "expectedWithProductionRules": {
+        "finalScores": {
+          "toe_touch": 3,
+          "shoulder_mobility": 3,
+          "rotation": 3,
+          "balance": 3,
+          "squat": 3
+        },
+        "totalScreenScore": 15,
+        "appliedEffects": []
+      },
+      "expectedWithDemoSpineRuleEnabled": {
+        "finalScores": {
+          "toe_touch": 3,
+          "shoulder_mobility": 3,
+          "rotation": 3,
+          "balance": 3,
+          "squat": 0
+        },
+        "totalScreenScore": 12,
+        "appliedEffects": [
+          {
+            "effectRuleId": "effect_rule_demo_spine_extension_to_squat",
+            "targetTestCode": "squat",
+            "beforeScore": 3,
+            "afterScore": 0,
+            "reasonContains": "Spine Extension Clearing"
+          }
+        ]
+      }
+    },
+    {
+      "assessmentId": "AS-0005",
+      "clientId": "CL-0003",
+      "screenTypeCode": "quick_screen",
+      "assessmentDate": "2026-06-12",
+      "note": "Przypadek testowy Shoulder Clearing.",
+      "answers": [
+        ["cervical_flexion_range", "none", "pass"],
+        ["cervical_flexion_pain", "none", "negative"],
+        ["cervical_rotation_range", "left", "pass"],
+        ["cervical_rotation_pain", "left", "negative"],
+        ["cervical_rotation_extension_pain", "left", "negative"],
+        ["cervical_rotation_range", "right", "pass"],
+        ["cervical_rotation_pain", "right", "negative"],
+        ["cervical_rotation_extension_pain", "right", "negative"],
+        ["toe_touch_score", "left", "score_2"],
+        ["toe_touch_score", "right", "score_2"],
+        ["shoulder_mobility_score", "left", "score_3"],
+        ["shoulder_mobility_score", "right", "score_3"],
+        ["shoulder_clearing_pain", "left", "negative"],
+        ["shoulder_clearing_pain", "right", "positive"],
+        ["rotation_score", "left", "score_2"],
+        ["rotation_score", "right", "score_2"],
+        ["balance_score", "left", "score_3"],
+        ["balance_score", "right", "score_3"],
+        ["squat_score", "none", "score_2"],
+        ["spine_extension_clearing_pain", "none", "negative"]
+      ],
+      "expected": {
+        "baseFinalScores": {
+          "toe_touch": 2,
+          "shoulder_mobility": 3,
+          "rotation": 2,
+          "balance": 3,
+          "squat": 2
+        },
+        "finalScores": {
+          "toe_touch": 2,
+          "shoulder_mobility": 0,
+          "rotation": 2,
+          "balance": 3,
+          "squat": 2
+        },
+        "totalScreenScore": 9,
+        "appliedEffects": [
+          {
+            "effectRuleId": "effect_rule_shoulder_clearing_to_shoulder_mobility",
+            "targetTestCode": "shoulder_mobility",
+            "beforeScore": 3,
+            "afterScore": 0,
+            "reasonContains": "Shoulder Clearing"
+          }
+        ]
+      }
+    }
+  ],
+  "reportFixture": {
+    "clientId": "CL-0001",
+    "activeAssessmentIds": ["AS-0001", "AS-0002", "AS-0003"],
+    "expectedChart": [
+      ["2026-01-10", 9],
+      ["2026-03-10", 11],
+      ["2026-06-10", 11]
+    ],
+    "expectedNeutralChanges": [
+      "Toe Touch: 2 -> 3",
+      "Rotation: 1 -> 2",
+      "Balance: 2 -> 3",
+      "Squat: 2 -> 1"
+    ]
+  }
+}

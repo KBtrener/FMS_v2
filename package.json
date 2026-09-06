@@ -1,0 +1,12 @@
+{
+  "name": "fms-v2",
+  "version": "0.0.0",
+  "private": true,
+  "description": "FMS Quick Screen - przygotowanie projektu Google Apps Script i Google Sheets",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "verify:fixtures": "node FMS_Quick_Screen_Codex_Package/tools/verify_fixtures.mjs"
+  }
+}
