@@ -60,4 +60,6 @@ Przed wdrożeniem będzie potrzebna interaktywna zgoda OAuth na tym koncie.
 Hasła i tokeny nie są potrzebne w rozmowie. Istnienie lokalnego pliku clasp
 nie potwierdza tożsamości konta ani ważności autoryzacji; jego treści nie odczytywano.
 
-Nie wdrożono jeszcze aplikacji ani nie utworzono zasobów Google.
+Utworzono projekt Apps Script i prywatne wdrożenie testowe w dozwolonym
+folderze. Arkusz danych zostanie utworzony automatycznie po pierwszej zgodzie
+OAuth właściciela. Wdrożenie nie przeszło jeszcze pełnych testów integracyjnych.

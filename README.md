@@ -2,8 +2,9 @@
 
 Repozytorium: https://github.com/KBtrener/FMS_v2.git
 
-Status: przygotowany pakiet wejściowy i środowisko repozytorium. Kodowanie
-aplikacji rozpocznie się po zatwierdzeniu przez właściciela.
+Status: pierwsza wersja MVP jest zaimplementowana, zweryfikowana lokalnie i
+wysłana do prywatnego wdrożenia testowego Apps Script. Do pełnych testów
+integracyjnych potrzebna jest pierwsza zgoda OAuth właściciela.
 
 Przed operacjami Google Drive obowiązkowo przeczytaj [DRIVE_SCOPE.md](DRIVE_SCOPE.md).
 Właściciel i nieprzekraczalna granica folderu: `config/deployment.json`.

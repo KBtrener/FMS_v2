@@ -190,3 +190,5 @@ var FmsRepository = (function () {
     currentSeed: currentSeed,
   };
 })();
+
+if (typeof module === "object" && module.exports) module.exports = FmsRepository;

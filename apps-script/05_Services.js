@@ -22,10 +22,13 @@ var FmsServices = (function () {
     FmsDriveGuard.assertOwner();
     var properties = PropertiesService.getScriptProperties();
     var spreadsheetId = properties.getProperty(FMS_PROPERTIES.spreadsheetId);
+    if (!spreadsheetId) {
+      spreadsheetId = FmsRepository.initialize().spreadsheetId;
+    }
     return {
       appName: FMS_SETTINGS.applicationName,
       ownerEmail: FMS_SETTINGS.ownerEmail,
-      initialized: Boolean(spreadsheetId),
+      initialized: true,
       seed: FMS_SEED,
     };
   }
@@ -346,3 +349,5 @@ var FmsServices = (function () {
     hydrateAssessment_: hydrateAssessment_,
   };
 })();
+
+if (typeof module === "object" && module.exports) module.exports = FmsServices;

@@ -16,9 +16,9 @@
 3. Lokalny `.clasp.json` otrzymuje `rootDir` wskazujący `apps-script`.
 4. `npm run apps:push` wysyła zweryfikowane źródła.
 5. Wdrożenie testowe i produkcyjne powstaje przez `clasp create-deployment`.
-6. Pierwsze wejście właściciela uruchamia OAuth. Przycisk inicjalizacji tworzy
-   arkusz bezpośrednio w dozwolonym folderze przez Drive API i zapisuje jego ID
-   we właściwościach projektu.
+6. Pierwsze wejście właściciela uruchamia OAuth. Po zgodzie aplikacja
+   automatycznie tworzy arkusz bezpośrednio w dozwolonym folderze przez Drive
+   API i zapisuje jego ID we właściwościach projektu.
 7. Po testach odbiorowych zachowujemy identyfikatory wdrożenia, numer wersji,
    link aplikacji, arkusza i projektu w tej instrukcji przekazania.
 
@@ -35,7 +35,11 @@ Do tego czasu kliknięcie tworzenia szkicu zakończy się komunikatem o braku zg
 
 ## Bieżący stan
 
-Próba utworzenia projektu 2026-09-06 zakończyła się przed zapisem błędem Google
-`invalid_rapt`, wymagającym ponownego uwierzytelnienia konta. Żaden projekt ani
-plik nie został wtedy utworzony. Po ponownym logowaniu należy również upewnić
-się, że Apps Script API jest włączone w ustawieniach konta.
+- Projekt Apps Script: https://script.google.com/d/104KJVLyykpUi3pP0yQs82BS1V6ZnF9NZPitHnB8kcMiTP2R4boEFNFni/edit
+- Wdrożenie testowe, wersja 2: https://script.google.com/macros/s/AKfycbzg3-KXf1YP13qC7cnrA675b7wMbp4dV7onbVzA3ECMQAHMx59qfSzZhsD11bJPxms/exec
+- Dostęp: `MYSELF`, wykonanie jako właściciel wdrożenia.
+- Konto clasp ponownie uwierzytelniono jako `info@kbtrener.pl`.
+- Projekt znajduje się w dozwolonym folderze; odczyt Drive potwierdził, że nie
+  jest udostępniony.
+- Pierwsza zgoda OAuth aplikacji i automatyczna inicjalizacja arkusza pozostają
+  do wykonania. Arkusz danych jeszcze nie istnieje.

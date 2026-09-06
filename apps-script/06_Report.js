@@ -134,3 +134,5 @@ var FmsReport = (function () {
     createEmailDraft: createEmailDraft,
   };
 })();
+
+if (typeof module === "object" && module.exports) module.exports = FmsReport;

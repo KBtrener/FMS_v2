@@ -59,3 +59,5 @@ var FmsDriveGuard = (function () {
     createSpreadsheetInRoot: createSpreadsheetInRoot,
   };
 })();
+
+if (typeof module === "object" && module.exports) module.exports = FmsDriveGuard;
