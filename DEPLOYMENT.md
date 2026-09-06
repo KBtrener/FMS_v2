@@ -36,10 +36,12 @@ Do tego czasu kliknięcie tworzenia szkicu zakończy się komunikatem o braku zg
 ## Bieżący stan
 
 - Projekt Apps Script: https://script.google.com/d/104KJVLyykpUi3pP0yQs82BS1V6ZnF9NZPitHnB8kcMiTP2R4boEFNFni/edit
-- Wdrożenie testowe, wersja 2: https://script.google.com/macros/s/AKfycbzg3-KXf1YP13qC7cnrA675b7wMbp4dV7onbVzA3ECMQAHMx59qfSzZhsD11bJPxms/exec
+- Wdrożenie testowe, wersja 2: https://script.google.com/a/macros/kbtrener.pl/s/AKfycbzg3-KXf1YP13qC7cnrA675b7wMbp4dV7onbVzA3ECMQAHMx59qfSzZhsD11bJPxms/exec
 - Dostęp: `MYSELF`, wykonanie jako właściciel wdrożenia.
 - Konto clasp ponownie uwierzytelniono jako `info@kbtrener.pl`.
 - Projekt znajduje się w dozwolonym folderze; odczyt Drive potwierdził, że nie
   jest udostępniony.
+- Google Workspace zwrócił domenowy adres web app z segmentem
+  `/a/macros/kbtrener.pl/`; tylko ten kanoniczny adres należy przekazywać.
 - Pierwsza zgoda OAuth aplikacji i automatyczna inicjalizacja arkusza pozostają
   do wykonania. Arkusz danych jeszcze nie istnieje.
