@@ -190,7 +190,7 @@
       ${data.assessmentId ? `<label class="field" style="margin-bottom:18px">Powód korekty<input id="correction-note" value="${esc(data.correctionNote)}" placeholder="Co zostało poprawione?" required></label>` : ""}
       <div class="step-track" aria-label="Postęp">${tests.map((item,index) => `<button class="step-dot ${testComplete(item) ? "is-done" : ""} ${index===data.step ? "is-current" : ""}" data-step="${index}" title="${esc(item.name)}"></button>`).join("")}</div>
       <article class="test-card"><div class="eyebrow">Test ${data.step+1} z ${tests.length}</div><h2>${esc(test.name)}</h2><p class="description">${esc(test.descriptionShort)}</p>
-      <details class="criteria"><summary>Kryteria oceny</summary><p>${esc(test.criteriaSummary)}<br><strong>${esc(test.sourceReference)}</strong></p></details>
+      <details class="criteria"><summary>Kryteria oceny</summary><p>${esc(test.criteriaSummary)}<br><strong>${esc(test.sourceReference)}</strong></p>${(data.seed.manualSections && data.seed.manualSections[test.code]) ? `<div class="manual-copy">${esc(data.seed.manualSections[test.code]).replace(/\n/g,"<br>")}</div>` : ""}</details>
       <div class="answer-section">${test.fields.map(field => renderField(field,data.seed)).join("")}</div></article>
       <nav class="assessment-nav"><button class="btn" data-action="previous-step" ${data.step===0 ? "disabled" : ""}>← Wstecz</button>
       ${data.step < tests.length-1 ? `<button class="btn btn-dark" data-action="next-step">Dalej →</button>` : `<button class="btn btn-primary" data-action="finish-assessment">Zakończ badanie</button>`}</nav></section>`;

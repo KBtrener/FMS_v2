@@ -29,7 +29,7 @@ var FmsServices = (function () {
       appName: FMS_SETTINGS.applicationName,
       ownerEmail: FMS_SETTINGS.ownerEmail,
       initialized: true,
-      seed: FMS_SEED,
+      seed: (function () { var seed = JSON.parse(JSON.stringify(FMS_SEED)); seed.manualSections = FmsManual.all(); return seed; })(),
     };
   }
 
@@ -200,7 +200,19 @@ var FmsServices = (function () {
   }
 
   function hydrateAssessmentFromData_(assessmentId, data) {
-    var seed = FMS_SEED;
+    var hasNewShoulderFields = data.answers.some(function (row) {
+      return row.assessment_id === assessmentId && (row.test_field_id === "field_shoulder_clearing_upper_pain" || row.test_field_id === "field_shoulder_clearing_lower_pain");
+    });
+    var hasLegacyShoulderField = data.answers.some(function (row) {
+      return row.assessment_id === assessmentId && row.test_field_id === "field_shoulder_clearing_pain";
+    });
+    var seed = JSON.parse(JSON.stringify(FMS_SEED));
+    if (!hasNewShoulderFields && hasLegacyShoulderField) {
+      seed.testFields.forEach(function (field) {
+        if (field.code === "shoulder_clearing_pain") field.isScoringInput = true;
+        if (field.code === "shoulder_clearing_upper_pain" || field.code === "shoulder_clearing_lower_pain") field.isScoringInput = false;
+      });
+    }
     var index = FmsCore.indexSeed(seed);
     var assessment = data.assessments.filter(function (row) {
       return row.assessment_id === assessmentId;
@@ -241,6 +253,7 @@ var FmsServices = (function () {
       baseScores: calculation.baseScores, finalScores: calculation.finalScores,
       totalScreenScore: calculation.totalScreenScore,
       statuses: calculation.statuses, appliedEffects: effects,
+      isLegacyShoulderClearing: !hasNewShoulderFields && hasLegacyShoulderField,
     };
   }
 

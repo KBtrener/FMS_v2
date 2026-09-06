@@ -36,6 +36,7 @@ var FmsReport = (function () {
       return {
         code: testCode, name: test.name,
         values: assessments.map(function (assessment) {
+          if (testCode === "shoulder_clearing" && assessment.isLegacyShoulderClearing) return "wynik zapisany w starszej wersji; brak rozróżnienia wzorca górnego i dolnego.";
           return assessment.statuses.filter(function (status) {
             return fields.some(function (field) { return field.testFieldId === status.testFieldId; });
           }).map(function (status) {
@@ -56,6 +57,8 @@ var FmsReport = (function () {
       changes: changes,
       numericTests: NUMERIC_TESTS.map(function (test) { return { code: test[0], name: test[1] }; }),
       statusTests: statusTests,
+      manualCommon: typeof FmsManual !== "undefined" ? FmsManual.common() : "",
+      manualSections: typeof FmsManual !== "undefined" ? FmsManual.all() : {},
     };
   }
 
@@ -65,7 +68,23 @@ var FmsReport = (function () {
     });
   }
 
+  function markdownToHtml_(text) {
+    var lines = String(text || "").split(/\r?\n/), html = "", list = false, table = [];
+    function flushTable() { if (!table.length) return; html += "<table>" + table.map(function (row, i) { return "<tr>" + row.split("|").slice(1, -1).map(function (cell) { var tag = i === 0 ? "th" : "td"; return "<" + tag + ">" + escapeHtml_(cell.trim()) + "</" + tag + ">"; }).join("") + "</tr>"; }).join("") + "</table>"; table = []; }
+    lines.forEach(function (line) {
+      if (/^\|.*\|$/.test(line)) { if (/^\|\s*-+/.test(line)) return; table.push(line); return; }
+      if (table.length) flushTable();
+      if (/^- /.test(line)) { if (!list) { html += "<ul>"; list = true; } html += "<li>" + escapeHtml_(line.slice(2)) + "</li>"; return; }
+      if (list) { html += "</ul>"; list = false; }
+      if (/^### /.test(line)) html += "<h4>" + escapeHtml_(line.slice(4)) + "</h4>";
+      else if (/^## /.test(line)) html += "<h3>" + escapeHtml_(line.slice(3)) + "</h3>";
+      else if (line.trim()) html += "<p>" + escapeHtml_(line) + "</p>";
+    });
+    if (table.length) flushTable(); if (list) html += "</ul>"; return html;
+  }
+
   function reportHtml_(data) {
+    var manualHtml = "<h2>Co obejmowało badanie i kryteria oceny</h2><div class='manual'>" + markdownToHtml_(data.manualCommon) + Object.keys(data.manualSections || {}).map(function (code) { return "<section>" + markdownToHtml_(data.manualSections[code]) + "</section>"; }).join("") + "</div>";
     var matrixHead = data.assessments.map(function (a) { return "<th>" + escapeHtml_(a.assessmentDate) + "</th>"; }).join("");
     var numericRows = data.numericTests.map(function (test) {
       return "<tr><th>" + escapeHtml_(test.name) + "</th>" + data.assessments.map(function (a) {
@@ -90,7 +109,7 @@ var FmsReport = (function () {
       "@page{size:A4;margin:18mm}body{font-family:Arial,sans-serif;color:#142b35;font-size:10pt}" +
       "h1{font-size:25pt;margin:0 0 4mm}h2{font-size:14pt;margin:9mm 0 3mm}.meta{color:#52656c}" +
       ".score{font-size:34pt;font-weight:700;color:#ef5b49;margin:5mm 0}.grid{display:flex;gap:4mm;flex-wrap:wrap}" +
-      ".card{border:1px solid #ccd7d9;border-radius:4mm;padding:4mm;min-width:27mm}.card b{font-size:16pt;display:block}" +
+      ".card{border:1px solid #ccd7d9;border-radius:4mm;padding:4mm;min-width:27mm}.card b{font-size:16pt;display:block}.manual section{page-break-before:always}.manual table{margin:3mm 0}.manual h3{font-size:13pt}.manual h4{font-size:11pt}" +
       "table{border-collapse:collapse;width:100%;page-break-inside:auto}th,td{border:1px solid #ccd7d9;padding:2.5mm;text-align:left}" +
       "thead{background:#142b35;color:white}tr{page-break-inside:avoid}.note{background:#f4f0e6;padding:4mm;border-radius:3mm}" +
       "footer{margin-top:10mm;color:#6b7c82;font-size:8pt}</style></head><body>" +
@@ -102,7 +121,7 @@ var FmsReport = (function () {
       }).join("") + "</div><h2>Clearing tests</h2><ul>" + effectRows + "</ul>" +
       "<h2>Historia</h2><div class='note'><ul>" + changes + "</ul></div>" +
       "<h2>Macierz wyników</h2><table><thead><tr><th>Test</th>" + matrixHead + "</tr></thead><tbody>" + matrixRows + "</tbody></table>" +
-      "<footer>Raport opisuje zapisane wyniki screeningu. Nie stanowi diagnozy ani zalecenia terapeutycznego. Wygenerowano " +
+      manualHtml + "<footer>Raport opisuje zapisane wyniki screeningu. Nie stanowi diagnozy ani zalecenia terapeutycznego. Wygenerowano " +
       escapeHtml_(data.generatedAt.slice(0, 10)) + ".</footer></body></html>";
   }
 

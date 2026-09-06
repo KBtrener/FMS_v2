@@ -165,7 +165,7 @@
           targetTestCode: testCode,
           beforeScore: before,
           afterScore: rule.effectValue,
-          reasonPl: String(rule.reasonTemplate).replace("{side}", sideLabel(source.side)),
+          reasonPl: String(rule.reasonTemplate).replace("{side}", sideLabel(source.side)).replace("{pattern}", patternLabel(field.code)),
         });
       });
     });
@@ -184,6 +184,10 @@
 
   function sideLabel(side) {
     return side === "left" ? "lewej" : side === "right" ? "prawej" : "bez wskazania strony";
+  }
+
+  function patternLabel(fieldCode) {
+    return fieldCode.indexOf("upper") >= 0 ? "górny" : fieldCode.indexOf("lower") >= 0 ? "dolny" : "";
   }
 
   function validateAssessmentInput(input, seed) {

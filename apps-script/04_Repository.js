@@ -80,6 +80,8 @@ var FmsRepository = (function () {
       if (!properties.getProperty(FMS_PROPERTIES.initializedAt)) {
         prepareSpreadsheet_(existingBook);
         properties.setProperty(FMS_PROPERTIES.initializedAt, nowIso());
+      } else {
+        migrateConfiguration_();
       }
       return { spreadsheetId: existing, spreadsheetUrl: existingBook.getUrl(), created: false };
     }
@@ -89,6 +91,37 @@ var FmsRepository = (function () {
     prepareSpreadsheet_(book);
     properties.setProperty(FMS_PROPERTIES.initializedAt, nowIso());
     return { spreadsheetId: id, spreadsheetUrl: book.getUrl(), created: true };
+  }
+
+  function migrateConfiguration_() {
+    var fieldCodes = {};
+    rows("test_fields").forEach(function (row) { fieldCodes[row.code] = true; });
+    var shoulder = FMS_SEED.testFields.filter(function (field) {
+      return field.code === "shoulder_clearing_upper_pain" || field.code === "shoulder_clearing_lower_pain";
+    });
+    var optionSetId = {};
+    FMS_SEED.answerSets.forEach(function (set) { optionSetId[set.code] = set.answerSetId; });
+    var missingFields = shoulder.filter(function (field) { return !fieldCodes[field.code]; }).map(function (field) {
+      return {
+        test_field_id: field.testFieldId, screen_test_id: field.screenTestId, code: field.code,
+        label_pl: field.labelPl, answer_set_id: optionSetId[field.answerSetCode], side_mode: field.sideMode,
+        attempt_mode: field.attemptMode, is_scoring_input: true, help_text: field.helpText || "", sort_order: field.sortOrder,
+      };
+    });
+    append("test_fields", missingFields);
+    var rules = rows("effect_rules").map(function (row) { return row.effect_rule_id; });
+    var index = FmsCore.indexSeed(FMS_SEED);
+    var missingRules = FMS_SEED.effectRules.filter(function (rule) {
+      return rules.indexOf(rule.effectRuleId) < 0;
+    }).map(function (rule) {
+      return {
+        effect_rule_id: rule.effectRuleId, screen_type_id: rule.screenTypeId, source_test_field_id: rule.sourceTestFieldId,
+        trigger_answer_option_id: index.optionsByCode[rule.triggerAnswerCode].answerOptionId,
+        source_side_condition: rule.sourceSideCondition, target_screen_test_id: rule.targetScreenTestId,
+        effect_type: rule.effectType, effect_value: rule.effectValue, is_active: rule.isActive, reason_template: rule.reasonTemplate,
+      };
+    });
+    append("effect_rules", missingRules);
   }
 
   function prepareSpreadsheet_(book) {
@@ -174,6 +207,7 @@ var FmsRepository = (function () {
         reasonTemplate: row.reason_template,
       };
     });
+    seed.manualSections = FmsManual.all();
     return seed;
   }
 

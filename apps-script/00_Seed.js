@@ -329,8 +329,30 @@ var FMS_SEED = {
       "answerSetCode": "pain_status",
       "sideMode": "bilateral",
       "attemptMode": "single",
-      "isScoringInput": true,
+      "isScoringInput": false,
       "sortOrder": 1
+    },
+    {
+      "testFieldId": "field_shoulder_clearing_upper_pain",
+      "screenTestId": "screen_test_shoulder_clearing",
+      "code": "shoulder_clearing_upper_pain",
+      "labelPl": "Ból - wzorzec górny",
+      "answerSetCode": "pain_status",
+      "sideMode": "bilateral",
+      "attemptMode": "single",
+      "isScoringInput": true,
+      "sortOrder": 2
+    },
+    {
+      "testFieldId": "field_shoulder_clearing_lower_pain",
+      "screenTestId": "screen_test_shoulder_clearing",
+      "code": "shoulder_clearing_lower_pain",
+      "labelPl": "Ból - wzorzec dolny",
+      "answerSetCode": "pain_status",
+      "sideMode": "bilateral",
+      "attemptMode": "single",
+      "isScoringInput": true,
+      "sortOrder": 3
     },
     {
       "testFieldId": "field_rotation_score",
@@ -387,8 +409,32 @@ var FMS_SEED = {
       "targetScreenTestId": "screen_test_shoulder_mobility",
       "effectType": "set_final_score",
       "effectValue": 0,
-      "isActive": true,
+      "isActive": false,
       "reasonTemplate": "Shoulder Clearing - Ból po stronie {side}"
+    },
+    {
+      "effectRuleId": "effect_rule_shoulder_upper_clearing_to_shoulder_mobility",
+      "screenTypeId": "screen_quick_screen",
+      "sourceTestFieldId": "field_shoulder_clearing_upper_pain",
+      "triggerAnswerCode": "positive",
+      "sourceSideCondition": "any",
+      "targetScreenTestId": "screen_test_shoulder_mobility",
+      "effectType": "set_final_score",
+      "effectValue": 0,
+      "isActive": true,
+      "reasonTemplate": "Shoulder Clearing - ból: {side} strona, wzorzec górny"
+    },
+    {
+      "effectRuleId": "effect_rule_shoulder_lower_clearing_to_shoulder_mobility",
+      "screenTypeId": "screen_quick_screen",
+      "sourceTestFieldId": "field_shoulder_clearing_lower_pain",
+      "triggerAnswerCode": "positive",
+      "sourceSideCondition": "any",
+      "targetScreenTestId": "screen_test_shoulder_mobility",
+      "effectType": "set_final_score",
+      "effectValue": 0,
+      "isActive": true,
+      "reasonTemplate": "Shoulder Clearing - ból: {side} strona, wzorzec dolny"
     }
   ],
   "demoOnlyEffectRules": [
