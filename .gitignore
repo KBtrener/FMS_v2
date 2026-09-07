@@ -9,6 +9,7 @@ preview/
 .env.local
 .env.*
 !.env.example
+web/config.js
 .clasprc.json
 .clasprc.*.json
 .clasp.json

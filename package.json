@@ -16,9 +16,15 @@
     "test": "node --test --test-isolation=none tests/*.test.js",
     "verify:fixtures": "node FMS_Quick_Screen_Codex_Package/tools/verify_fixtures.mjs",
     "verify:source": "node tools/verify-source.mjs",
+    "build:web": "node tools/build-web.mjs",
+    "seed:supabase": "node tools/seed-supabase.mjs",
+    "import:google": "node tools/import-google-export.mjs",
     "verify": "npm run build:seed && npm run build:preview && npm run verify:source && npm run verify:fixtures && npm test"
   },
   "devDependencies": {
     "@google/clasp": "^3.4.1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.115.0"
   }
 }
