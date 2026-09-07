@@ -69,6 +69,14 @@ try {
     const remote = posix.join(quick, remoteName.replaceAll('\\', '/'));
     const parent = posix.dirname(remote); if (!(await client.exists(parent))) await client.mkdir(parent, true);
     await client.fastPut(local, remote); console.log(JSON.stringify({ uploaded: basename(local), remote }));
+  } else if (command === 'patch-service-worker') {
+    const remote = posix.join(target, 'sw.js');
+    const source = (await client.get(remote)).toString('utf8');
+    const needle = 'new e.NavigationRoute(e.createHandlerBoundToURL("index.html"))';
+    const replacement = 'new e.NavigationRoute(e.createHandlerBoundToURL("index.html"),{denylist:[/^\\/quickscreen(?:\\/|$)/]})';
+    if (!source.includes(needle)) throw new Error('Nie znaleziono oczekiwanej reguły nawigacji service workera.');
+    await client.put(Buffer.from(source.replace(needle, replacement), 'utf8'), remote);
+    console.log(JSON.stringify({ patched: remote, excludedPath: '/quickscreen/' }));
   } else if (command === 'upload-home') {
     const local = process.argv[3]; const remoteName = process.argv[4];
     if (!local || !['index.html', 'index.htm', 'index.php'].includes(remoteName)) throw new Error('Dozwolona jest wyłącznie aktualizacja pliku startowego.');
