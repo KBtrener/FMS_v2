@@ -19,12 +19,17 @@
     "build:web": "node tools/build-web.mjs",
     "seed:supabase": "node tools/seed-supabase.mjs",
     "import:google": "node tools/import-google-export.mjs",
-    "verify": "npm run build:seed && npm run build:preview && npm run verify:source && npm run verify:fixtures && npm test"
+    "test:supabase:e2e": "node tools/test-supabase-e2e.mjs",
+    "verify": "npm run build:seed && npm run build:preview && npm run build:web && npm run verify:source && npm run verify:fixtures && npm test"
   },
   "devDependencies": {
-    "@google/clasp": "^3.4.1"
+    "@google/clasp": "^3.4.1",
+    "basic-ftp": "^6.2.1",
+    "esbuild": "^0.28.2",
+    "ssh2-sftp-client": "^12.1.1"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.115.0"
+    "@supabase/supabase-js": "^2.115.0",
+    "pdfmake": "^0.3.11"
   }
 }

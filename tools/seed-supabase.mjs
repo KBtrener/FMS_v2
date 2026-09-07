@@ -4,7 +4,7 @@ import seed from "../FMS_Quick_Screen_Codex_Package/config/quick_screen_seed.jso
 const url = process.env.SUPABASE_PROJECT_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !key) throw new Error("Wymagane są SUPABASE_PROJECT_URL i SUPABASE_SERVICE_ROLE_KEY w środowisku.");
-const client = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+const client = createClient(url.replace(/\/(?:rest|auth|storage)\/v1\/?$/, '').replace(/\/+$/, ''), key, { auth: { autoRefreshToken: false, persistSession: false } });
 const fail = ({ data, error }, label) => { if (error) throw new Error(`${label}: ${error.message}`); return data; };
 
 fail(await client.from("screen_types").upsert(seed.screenTypes.map(x => ({ screen_type_id: x.screenTypeId, code: x.code, name: x.name, is_active: x.isActive })), { onConflict: "screen_type_id" }), "screen_types");

@@ -7,6 +7,7 @@ preview/
 *.log
 .env
 .env.local
+.env.deploy.local
 .env.*
 !.env.example
 web/config.js

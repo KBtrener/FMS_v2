@@ -49,7 +49,7 @@ insert into public.test_fields (test_field_id,screen_test_id,code,label_pl,answe
 ('field_shoulder_mobility_score','screen_test_shoulder_mobility','shoulder_mobility_score','Wynik','answer_set_score_0_3','bilateral','best_of_up_to_three',true,'',1),
 ('field_shoulder_clearing_upper_pain','screen_test_shoulder_clearing','shoulder_clearing_upper_pain','Ból - wzorzec górny','answer_set_pain_status','bilateral','single',true,'',1),
 ('field_shoulder_clearing_lower_pain','screen_test_shoulder_clearing','shoulder_clearing_lower_pain','Ból - wzorzec dolny','answer_set_pain_status','bilateral','single',true,'',2),
-('field_shoulder_clearing_pain','screen_test_shoulder_clearing','shoulder_clearing_pain','Ból','answer_set_pain_status','bilateral','single',true,'',3),
+('field_shoulder_clearing_pain','screen_test_shoulder_clearing','shoulder_clearing_pain','Ból','answer_set_pain_status','bilateral','single',false,'',3),
 ('field_rotation_score','screen_test_rotation','rotation_score','Wynik','answer_set_score_0_3','bilateral','best_of_up_to_three',true,'',1),
 ('field_balance_score','screen_test_balance','balance_score','Wynik','answer_set_score_0_3','bilateral','best_of_up_to_three',true,'',1),
 ('field_squat_score','screen_test_squat','squat_score','Wynik','answer_set_score_0_3','none','best_of_up_to_three',true,'',1),
