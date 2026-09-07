@@ -74,9 +74,15 @@ try {
     const source = (await client.get(remote)).toString('utf8');
     const needle = 'new e.NavigationRoute(e.createHandlerBoundToURL("index.html"))';
     const replacement = 'new e.NavigationRoute(e.createHandlerBoundToURL("index.html"),{denylist:[/^\\/quickscreen(?:\\/|$)/]})';
-    if (!source.includes(needle)) throw new Error('Nie znaleziono oczekiwanej reguły nawigacji service workera.');
-    await client.put(Buffer.from(source.replace(needle, replacement), 'utf8'), remote);
-    console.log(JSON.stringify({ patched: remote, excludedPath: '/quickscreen/' }));
+    if (!source.includes(needle) && !source.includes('/^\\/quickscreen(?:\\/|$)/')) throw new Error('Nie znaleziono oczekiwanej reguły nawigacji service workera.');
+    const revision = process.argv[3];
+    if (!revision || !/^[a-f0-9]{32}$/i.test(revision)) throw new Error('Wymagany jest poprawny hash rewizji index.html.');
+    const revisionPattern = /\{url:"index\.html",revision:"[^"]+"\}/;
+    const withRoute = source.replace(needle, replacement);
+    if (!revisionPattern.test(withRoute)) throw new Error('Nie znaleziono rewizji index.html w service workerze.');
+    const updated = withRoute.replace(revisionPattern, `{url:"index.html",revision:"${revision.toLowerCase()}"}`);
+    await client.put(Buffer.from(updated, 'utf8'), remote);
+    console.log(JSON.stringify({ patched: remote, excludedPath: '/quickscreen/', indexRevision: revision.toLowerCase() }));
   } else if (command === 'upload-home') {
     const local = process.argv[3]; const remoteName = process.argv[4];
     if (!local || !['index.html', 'index.htm', 'index.php'].includes(remoteName)) throw new Error('Dozwolona jest wyłącznie aktualizacja pliku startowego.');
