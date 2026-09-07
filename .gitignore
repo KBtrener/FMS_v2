@@ -6,6 +6,7 @@ output/
 preview/
 *.log
 .env
+.env.local
 .env.*
 !.env.example
 .clasprc.json
