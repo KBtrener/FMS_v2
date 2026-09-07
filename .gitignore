@@ -14,6 +14,7 @@ web/config.js
 .clasprc.json
 .clasprc.*.json
 .clasp.json
+backups/
 .clasp.*.json
 credentials*.json
 client_secret*.json
