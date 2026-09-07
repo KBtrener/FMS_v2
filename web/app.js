@@ -17,7 +17,14 @@ const dateToday = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Euro
 const fileSafe = value => String(value).normalize('NFKD').replace(/[^a-zA-Z0-9._-]/g, '_');
 const loading = message => { app.innerHTML = `<section class="loading-state"><span class="loader"></span><p>${esc(message || 'Wczytuję…')}</p></section>`; };
 const notify = (message, error = false) => { toast.textContent = message; toast.className = `toast is-visible${error ? ' is-error' : ''}`; clearTimeout(notify.timer); notify.timer = setTimeout(() => { toast.className = 'toast'; }, 4200); };
-const fail = error => { console.error(error); notify(error?.message || String(error), true); };
+const authMessage = error => {
+  const code = String(error?.code || '');
+  const message = String(error?.message || '').toLowerCase();
+  if (code === 'over_email_send_rate_limit' || message.includes('email rate limit') || message.includes('rate limit exceeded')) return 'Limit wiadomości e-mail Supabase został chwilowo wyczerpany. Odczekaj do godziny albo skonfiguruj własny SMTP w Supabase Auth.';
+  if (message.includes('user already registered')) return 'Konto z tym adresem już istnieje. Zaloguj się albo użyj opcji resetowania hasła.';
+  return error?.message || String(error);
+};
+const fail = error => { console.error(error); notify(authMessage(error), true); };
 const closeModal = () => { modal.hidden = true; modal.innerHTML = ''; };
 const setNav = route => { state.route = route; nav.hidden = !state.user; document.querySelectorAll('.nav-link').forEach(button => button.classList.toggle('is-active', button.dataset.action === route)); };
 async function query(request, message = 'Operacja Supabase nie powiodła się.') { const { data, error } = await request; if (error) { if (error.status === 401 || /JWT|session/i.test(error.message)) await sb.auth.signOut(); throw new Error(error.message || message); } return data; }
