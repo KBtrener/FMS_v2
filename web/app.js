@@ -39,8 +39,40 @@ async function loadManual() { try { return await fetch('./manual.md').then(respo
 function manualSections(source) {
   const result = {};
   const codes = ['cervical_flexion','cervical_rotation_extension','toe_touch','shoulder_mobility','shoulder_clearing','rotation','balance','squat','spine_extension_clearing'];
-  codes.forEach((code, index) => { const match = source.match(new RegExp(`^## ${index + 1}\\. [^\\n]+\\n([\\s\\S]*?)(?=^## \\d+\\. |^## Układ|$)`, 'm')); result[code] = match?.[1]?.trim() || ''; });
+  const block = (text, headings) => {
+    for (const heading of headings) { const match = text.match(new RegExp(`^### ${heading}\\s*\\n([\\s\\S]*?)(?=^### |^## |$)`, 'mi')); if (match) return match[1].trim(); }
+    return '';
+  };
+  codes.forEach((code, index) => {
+    const match = source.match(new RegExp(`^## ${index + 1}\\. [^\\n]+\\n([\\s\\S]*?)(?=^## \\d+\\. |^## Układ|$)`, 'm'));
+    const text = match?.[1]?.trim() || '';
+    result[code] = text;
+  });
   return result;
+}
+
+function manualMarkup(source) {
+  if (!source) return '<p class="manual-empty">Brak opisu w manualu.</p>';
+  const lines = source.split(/\r?\n/).map(line => line.trim()).filter(Boolean), html = [];
+  for (let index = 0; index < lines.length;) {
+    if (lines[index].startsWith('|')) {
+      const rows = [];
+      while (index < lines.length && lines[index].startsWith('|')) { if (!/^\|\s*:?-{2,}/.test(lines[index])) rows.push(lines[index].split('|').slice(1,-1).map(cell => esc(cell.trim()))); index++; }
+      if (rows.length) html.push(`<div class="manual-table-wrap"><table class="manual-table"><tbody>${rows.map((row, rowIndex) => `<tr>${row.map(cell => `<${rowIndex === 0 ? 'th' : 'td'}>${cell}</${rowIndex === 0 ? 'th' : 'td'}>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+    } else if (/^[-*]\s+/.test(lines[index])) {
+      const items = []; while (index < lines.length && /^[-*]\s+/.test(lines[index])) items.push(`<li>${esc(lines[index].replace(/^[-*]\s+/, ''))}</li>`), index++;
+      html.push(`<ul>${items.join('')}</ul>`);
+    } else if (/^\d+\.\s+/.test(lines[index])) {
+      const items = []; while (index < lines.length && /^\d+\.\s+/.test(lines[index])) items.push(`<li>${esc(lines[index].replace(/^\d+\.\s+/, ''))}</li>`), index++;
+      html.push(`<ol>${items.join('')}</ol>`);
+    } else { html.push(`<p>${esc(lines[index])}</p>`); index++; }
+  }
+  return html.join('');
+}
+
+function manualPanel(test) {
+  const manual = state.cfg.manualSections[test.code] || {};
+  return `<details class="criteria" open><summary>Opis i kryteria oceny z podręcznika</summary><p class="criteria-summary">${esc(test.criteriaSummary)} <strong>${esc(test.sourceReference)}</strong></p><div class="manual-grid"><section><h4>Opis testu</h4>${manualMarkup(manual.report)}</section><section><h4>Wykonanie</h4>${manualMarkup(manual.procedure)}</section>${manual.side ? `<section class="manual-side"><h4>Jak rozpoznać stronę</h4>${manualMarkup(manual.side)}</section>` : ''}<section><h4>Punktacja i odpowiedzi</h4>${manualMarkup(manual.criteria)}</section></div></details>`;
 }
 
 async function loadConfiguration() {
@@ -116,7 +148,7 @@ function renderProfile(includeArchived = false) {
   document.querySelector('#archived-assessments').addEventListener('change', event => showProfile(client.clientId, event.target.checked));
 }
 
-function testModel() { return state.cfg.screenTests.filter(x=>x.isActive).sort((a,b)=>a.sortOrder-b.sortOrder).map(item=>({ ...item, ...state.cfg.testsById[item.testId], fields: state.cfg.fields.filter(field=>field.screenTestId===item.screenTestId && field.isScoringInput).sort((a,b)=>a.sortOrder-b.sortOrder) })); }
+function testModel() { return state.cfg.screenTests.filter(x=>x.isActive).sort((a,b)=>a.sortOrder-b.sortOrder).map(item=>({ ...item, ...state.cfg.testsById[item.testId], fields: state.cfg.fields.filter(field=>field.screenTestId===item.screenTestId && (field.isScoringInput || (field.code.startsWith('shoulder_clearing_') && field.code !== 'shoulder_clearing_pain'))).sort((a,b)=>a.sortOrder-b.sortOrder) })); }
 const keyFor = (fieldCode, side) => `${fieldCode}:${side}`;
 function draftKey() { return `quickscreen-draft:${state.user.id}:${state.assessment.client.clientId}`; }
 function storeDraft() { if (!state.assessment.assessmentId) localStorage.setItem(draftKey(), JSON.stringify({ answers: state.assessment.answers, assessmentDate: state.assessment.assessmentDate, note: state.assessment.note, step: state.assessment.step })); }

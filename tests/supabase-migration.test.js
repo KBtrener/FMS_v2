@@ -21,6 +21,26 @@ test('Supabase migration defines relational schema, RLS, storage and RPCs', () =
   assert.doesNotMatch(sql, /SUPABASE_SERVICE_ROLE_KEY|postgres(ql)?:\/\//i);
 });
 
+test('Shoulder Clearing has informational bilateral range fields without changing score rules', () => {
+  const migration = fs.readFileSync('supabase/migrations/20260907180000_shoulder_clearing_range.sql', 'utf8');
+  const seed = JSON.parse(fs.readFileSync('FMS_Quick_Screen_Codex_Package/config/quick_screen_seed.json', 'utf8'));
+  for (const code of ['shoulder_clearing_upper_range', 'shoulder_clearing_lower_range']) {
+    assert.match(migration, new RegExp(code));
+    const field = seed.testFields.find(item => item.code === code);
+    assert.equal(field.sideMode, 'bilateral');
+    assert.equal(field.answerSetCode, 'pass_fail');
+    assert.equal(field.isScoringInput, false);
+  }
+  assert.match(fs.readFileSync('web/app.js', 'utf8'), /shoulder_clearing_.*field\.code !== 'shoulder_clearing_pain'/);
+});
+
+test('wizard enhancements provide bilateral layout and structured manual criteria', () => {
+  const source = fs.readFileSync('web/wizard-enhancements.js', 'utf8');
+  assert.match(source, /bilateral-layout/);
+  assert.match(source, /manual-table/);
+  assert.match(source, /Kryteria|manual-section/);
+});
+
 test('legacy importer and web frontend do not use google.script.run', () => {
   assert.doesNotMatch(fs.readFileSync('web/app.js', 'utf8'), /google\.script\.run/);
   assert.match(fs.readFileSync('tools/import-google-export.mjs', 'utf8'), /legacy_client_id/);

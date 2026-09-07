@@ -251,7 +251,7 @@
       "sideMode": "none",
       "attemptMode": "single",
       "isScoringInput": true,
-      "sortOrder": 1
+      "sortOrder": 5
     },
     {
       "testFieldId": "field_cervical_flexion_pain",
@@ -262,7 +262,7 @@
       "sideMode": "none",
       "attemptMode": "single",
       "isScoringInput": true,
-      "sortOrder": 2
+      "sortOrder": 1
     },
     {
       "testFieldId": "field_cervical_rotation_range",
@@ -295,7 +295,29 @@
       "sideMode": "bilateral",
       "attemptMode": "single",
       "isScoringInput": true,
+      "sortOrder": 2
+    },
+    {
+      "testFieldId": "field_shoulder_clearing_upper_range",
+      "screenTestId": "screen_test_shoulder_clearing",
+      "code": "shoulder_clearing_upper_range",
+      "labelPl": "Odpowiedni zakres - ręka nad głową",
+      "answerSetCode": "pass_fail",
+      "sideMode": "bilateral",
+      "attemptMode": "single",
+      "isScoringInput": false,
       "sortOrder": 3
+    },
+    {
+      "testFieldId": "field_shoulder_clearing_lower_range",
+      "screenTestId": "screen_test_shoulder_clearing",
+      "code": "shoulder_clearing_lower_range",
+      "labelPl": "Odpowiedni zakres - ręka za plecami",
+      "answerSetCode": "pass_fail",
+      "sideMode": "bilateral",
+      "attemptMode": "single",
+      "isScoringInput": false,
+      "sortOrder": 4
     },
     {
       "testFieldId": "field_toe_touch_score",
@@ -328,7 +350,7 @@
       "sideMode": "bilateral",
       "attemptMode": "single",
       "isScoringInput": false,
-      "sortOrder": 1
+      "sortOrder": 5
     },
     {
       "testFieldId": "field_shoulder_clearing_upper_pain",
@@ -339,7 +361,7 @@
       "sideMode": "bilateral",
       "attemptMode": "single",
       "isScoringInput": true,
-      "sortOrder": 2
+      "sortOrder": 1
     },
     {
       "testFieldId": "field_shoulder_clearing_lower_pain",
@@ -350,7 +372,7 @@
       "sideMode": "bilateral",
       "attemptMode": "single",
       "isScoringInput": true,
-      "sortOrder": 3
+      "sortOrder": 2
     },
     {
       "testFieldId": "field_rotation_score",

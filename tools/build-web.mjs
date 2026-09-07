@@ -16,7 +16,7 @@ if (!projectUrl || !key) throw new Error('Brak SUPABASE_API_URL/SUPABASE_PROJECT
 const out = resolve('dist/web');
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
-await Promise.all(['index.html', 'styles.css', '.htaccess'].map(name => cp(resolve('web', name), resolve(out, name))));
+await Promise.all(['index.html', 'styles.css', '.htaccess', 'wizard-enhancements.js'].map(name => cp(resolve('web', name), resolve(out, name))));
 await cp(resolve('08_manual_criteria_and_report_text.md'), resolve(out, 'manual.md'));
 await build({ entryPoints: [resolve('web/app.js')], outfile: resolve(out, 'app.js'), bundle: true, minify: true, sourcemap: false, format: 'esm', target: ['es2022'], define: { 'process.env.NODE_ENV': '"production"' } });
 await writeFile(resolve(out, 'config.js'), `window.__SUPABASE_CONFIG__=${JSON.stringify({ url: projectUrl, key })};\n`);

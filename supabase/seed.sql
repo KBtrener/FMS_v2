@@ -49,12 +49,14 @@ insert into public.test_fields (test_field_id,screen_test_id,code,label_pl,answe
 ('field_shoulder_mobility_score','screen_test_shoulder_mobility','shoulder_mobility_score','Wynik','answer_set_score_0_3','bilateral','best_of_up_to_three',true,'',1),
 ('field_shoulder_clearing_upper_pain','screen_test_shoulder_clearing','shoulder_clearing_upper_pain','Ból - wzorzec górny','answer_set_pain_status','bilateral','single',true,'',1),
 ('field_shoulder_clearing_lower_pain','screen_test_shoulder_clearing','shoulder_clearing_lower_pain','Ból - wzorzec dolny','answer_set_pain_status','bilateral','single',true,'',2),
-('field_shoulder_clearing_pain','screen_test_shoulder_clearing','shoulder_clearing_pain','Ból','answer_set_pain_status','bilateral','single',false,'',3),
+('field_shoulder_clearing_pain','screen_test_shoulder_clearing','shoulder_clearing_pain','Ból','answer_set_pain_status','bilateral','single',false,'',5),
+('field_shoulder_clearing_upper_range','screen_test_shoulder_clearing','shoulder_clearing_upper_range','Odpowiedni zakres - ręka nad głową','answer_set_pass_fail','bilateral','single',false,'Czy ręka osiąga wymaganą pozycję nad głową i przy łopatce?',3),
+('field_shoulder_clearing_lower_range','screen_test_shoulder_clearing','shoulder_clearing_lower_range','Odpowiedni zakres - ręka za plecami','answer_set_pass_fail','bilateral','single',false,'Czy ręka osiąga wymaganą pozycję za plecami i przy łopatce?',4),
 ('field_rotation_score','screen_test_rotation','rotation_score','Wynik','answer_set_score_0_3','bilateral','best_of_up_to_three',true,'',1),
 ('field_balance_score','screen_test_balance','balance_score','Wynik','answer_set_score_0_3','bilateral','best_of_up_to_three',true,'',1),
 ('field_squat_score','screen_test_squat','squat_score','Wynik','answer_set_score_0_3','none','best_of_up_to_three',true,'',1),
 ('field_spine_extension_clearing_pain','screen_test_spine_extension_clearing','spine_extension_clearing_pain','Ból','answer_set_pain_status','none','single',true,'',1)
-on conflict (test_field_id) do update set label_pl=excluded.label_pl,answer_set_id=excluded.answer_set_id,side_mode=excluded.side_mode,is_scoring_input=excluded.is_scoring_input;
+on conflict (test_field_id) do update set label_pl=excluded.label_pl,answer_set_id=excluded.answer_set_id,side_mode=excluded.side_mode,is_scoring_input=excluded.is_scoring_input,sort_order=excluded.sort_order;
 
 insert into public.effect_rules values
 ('effect_rule_shoulder_upper_clearing_to_shoulder_mobility','screen_quick_screen','field_shoulder_clearing_upper_pain','option_positive','any','screen_test_shoulder_mobility','set_final_score',0,true,'Shoulder Clearing - ból: {side} strona, wzorzec górny'),
