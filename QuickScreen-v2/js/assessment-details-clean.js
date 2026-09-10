@@ -21,7 +21,7 @@
   };
   const badge=(text,kind)=>`<span class="badge badge-${kind||'info'}">${text}</span>`;
   const scoreCard=(side,value)=>`<div class="assessment-side-result-card ${value===0?'pain':value===1?'attention':'pass'}"><span>${side}</span><strong>${value} /3</strong><em>${scoreLabel[value]}</em></div>`;
-  const finalCard=(value,kind)=>`<aside class="assessment-final-card ${kind}"><span>Punkt ostateczny</span><strong>${value}</strong><em>${kind==='pain'?'Po uwzględnieniu clearingu': 'Końcowa odpowiedź'}</em></aside>`;
+  const finalCard=(value,kind)=>`<aside class="assessment-final-card ${kind}"><span>Punkt ostateczny</span><strong>${value}</strong></aside>`;
   const parentHead=(number,name)=>`<div class="assessment-test-head"><span class="assessment-test-number">${number}</span><div><h3>${name}</h3></div></div>`;
   const bilateralScore=(number,name,data)=>`<article class="assessment-group-card"><div class="assessment-group-main">${parentHead(number,name)}<div class="assessment-side-results">${scoreCard('Lewa strona',data.left)}${scoreCard('Prawa strona',data.right)}</div></div>${finalCard(data.final,data.kind)}</article>`;
   const singleScore=(number,name,data)=>`<article class="assessment-group-card"><div class="assessment-group-main">${parentHead(number,name)}</div>${finalCard(data.final,data.kind)}</article>`;
