@@ -12,7 +12,7 @@
     'Cervical Rotation and Extension':{left:'Pass',right:'Pass',painLeft:'Brak bólu',painRight:'Brak bólu',kind:'pass'}
   };
   const clearingData={
-    'Neck Extension Clearing':{parent:'Cervical Rotation and Extension',mode:'pain',left:'Brak bólu',right:'Ból',final:'0 / 1 · Ból',kind:'pain'},
+    'Neck Extension Clearing':{parent:'Cervical Rotation and Extension',mode:'pain',left:'Brak bólu',right:'Ból',final:'Fail · Ból',kind:'pain'},
     'Shoulder Clearing':{parent:'Shoulder Mobility',mode:'patterns',patterns:[
       {name:'Wzorzec górny',left:['Brak bólu','Pass'],right:['Brak bólu','Pass']},
       {name:'Wzorzec dolny',left:['Brak bólu','Pass'],right:['Ból','Fail']}
