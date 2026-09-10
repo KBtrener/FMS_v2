@@ -1,0 +1,7 @@
+.teal-text{color:var(--teal)}
+.wizard-progress-card{padding:16px}
+.wizard-progress-card .card-head{margin-bottom:14px}
+.wizard-card .options{grid-template-columns:repeat(2,minmax(0,1fr))}
+.wizard-card .option small{display:block;font-size:11px;font-weight:400;margin-top:2px}
+.wizard-card .option.fail.selected{background:var(--attention);border-color:var(--attention)}
+.wizard-card .option.pain.selected{background:var(--pain);border-color:var(--pain)}
