@@ -1,5 +1,5 @@
 ---
-name: Studio Biomechanics
+name: KB Trener / QuickScreen Design System
 colors:
   surface: '#f8f9ff'
   surface-dim: '#cbdbf5'
@@ -139,10 +139,10 @@ spacing:
   sticky-bar-height: 76px
 ---
 
-# FMS Quick Screen & KB Trener — System Projektowania UX/UI
+# KB Trener / QuickScreen — System Projektowania UX/UI
 
 ## 1. Filozofia i kierunek wizualny
-- **Kontekst:** Prywatne narzędzie pracy trenera na sali treningowej (obsługa jedną ręką na smartfonie 390px, tablecie lub desktopie).
+- **Kontekst:** Prywatny moduł QuickScreen w systemie KB Trener, przeznaczony do pracy trenera na sali treningowej (obsługa jedną ręką na smartfonie 390px, tablecie lub desktopie).
 - **Stylistyka:** Nowoczesne studio treningowe i precyzyjna analiza ruchu (biomechanika, ergonomia, spokój). Wykluczamy estetykę chłodnego szpitala/medycyny oraz generyczny panel SaaS.
 - **Hierarchia:** Czysta, wysokokontrastowa (WCAG AA), zoptymalizowana pod kątem ergonomii dotyku (targety min. 48x48px).
 

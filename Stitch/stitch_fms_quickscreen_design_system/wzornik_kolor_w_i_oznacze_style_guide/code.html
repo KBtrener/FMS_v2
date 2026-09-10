@@ -16,7 +16,7 @@
 <div class="flex flex-col gap-1 max-w-2xl">
 <div class="flex items-center gap-2">
 <span class="px-2.5 py-0.5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm uppercase tracking-wider">Specyfikacja v2.4</span>
-<span class="text-on-surface-variant font-label-sm text-label-sm">KB Biomechanics Studio</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">KB Trener</span>
 </div>
 <h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">System Oznaczeń &amp; Color Coding FMS Quick Screen</h1>
 <p class="font-body-md text-body-md text-on-surface-variant">Kompendium stanów, interaktywnych selektorów punktacji (0–3), flag clearing testów, asymetrii oraz wzorców wizualnych zintegrowanych z certyfikowanym generatorem PDF.</p>
@@ -25,7 +25,7 @@
 <div class="flex flex-col sm:flex-row md:flex-col items-stretch md:items-end gap-2 w-full md:w-auto shrink-0 z-10">
 <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-base text-on-surface">
 <span class="w-2.5 h-2.5 rounded-full bg-state-pass animate-pulse"></span>
-<span class="font-label-sm text-label-sm">Standard Walidacji: FMS Pro</span>
+<span class="font-label-sm text-label-sm">System statusów QuickScreen</span>
 </div>
 <div class="text-on-surface-variant font-label-sm text-label-sm sm:text-right">
 <span>WCAG 2.1 AA Compliant</span>
@@ -37,7 +37,7 @@
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-2">
 <span class="material-symbols-outlined text-secondary text-[24px]">palette</span>
-<h2 class="font-headline-md text-headline-md text-on-surface">System Trzech Poziomów Rygoru Biomechanicznego</h2>
+<h2 class="font-headline-md text-headline-md text-on-surface">System statusów QuickScreen</h2>
 </div>
 <span class="font-label-sm text-label-sm text-on-surface-variant hidden sm:inline-block">Reguła Minimalnego Wyniku • Priorytet Bezpieczeństwa</span>
 </div>
@@ -151,7 +151,7 @@
 </div>
 <div>
 <h3 class="font-headline-sm text-headline-sm text-on-surface leading-tight">Wynik 0 • Ból (Red Flag)</h3>
-<span class="font-label-sm text-label-sm text-state-pain">Wyzerowanie testu • Pilna uwaga medyczna</span>
+<span class="font-label-sm text-label-sm text-state-pain">Wyzerowanie testu • Wymaga uwagi</span>
 </div>
 </div>
 </div>
@@ -213,17 +213,17 @@
 <!-- Przycisk 1 -->
 <button class="score-btn h-20 rounded-xl bg-surface-base text-on-surface flex flex-col items-center justify-center gap-1 transition-all duration-150 active:scale-95" id="btn-score-1" onclick="selectScore(1)" type="button">
 <span class="font-numeric-score text-numeric-score text-state-fail">1</span>
-<span class="font-label-sm text-label-sm text-on-surface-variant">Dysfunkcja</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Słabo</span>
 </button>
 <!-- Przycisk 2 (Domyślnie zaznaczony dla podglądu) -->
 <button class="score-btn h-20 rounded-xl bg-state-pass text-on-primary flex flex-col items-center justify-center gap-1 shadow-md transition-all duration-150 active:scale-95" id="btn-score-2" onclick="selectScore(2)" type="button">
 <span class="font-numeric-score text-numeric-score">2</span>
-<span class="font-label-sm text-label-sm text-on-primary/90">Kompensacja</span>
+<span class="font-label-sm text-label-sm text-on-primary/90">W normie</span>
 </button>
 <!-- Przycisk 3 -->
 <button class="score-btn h-20 rounded-xl bg-surface-base text-on-surface flex flex-col items-center justify-center gap-1 transition-all duration-150 active:scale-95" id="btn-score-3" onclick="selectScore(3)" type="button">
 <span class="font-numeric-score text-numeric-score text-state-pass">3</span>
-<span class="font-label-sm text-label-sm text-on-surface-variant">Optymalny</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Super!</span>
 </button>
 </div>
 <div class="p-3 bg-state-pass-bg rounded-lg text-state-pass font-body-sm text-body-sm flex items-center gap-2" id="score-info-box">
@@ -274,7 +274,7 @@
 <span>Wstecz</span>
 </button>
 <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-card text-on-surface-variant font-label-sm text-label-sm">
-<span>Krok 4 z 7</span>
+<span>Krok 4 z 9</span>
 </div>
 </div>
 <div class="flex items-center gap-3">
@@ -297,7 +297,7 @@
 </div>
 <div class="flex flex-col">
 <span class="font-label-md text-label-md text-on-surface font-semibold">Michał Wiśniewski • ID #849</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Ostatnie badanie: 14 dni temu • Poprzedni wynik: 14/21</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ostatnie badanie: 14 dni temu • Poprzedni wynik: 12/15</span>
 </div>
 </div>
 <div class="flex items-center gap-2">
@@ -320,9 +320,9 @@
 <span class="material-symbols-outlined text-secondary text-[24px]">picture_as_pdf</span>
 <h2 class="font-headline-md text-headline-md text-on-surface">Standard Oznaczeń w Certyfikowanym Raporcie PDF A4</h2>
 </div>
-<p class="font-body-sm text-body-sm text-on-surface-variant">Wzorcowy layout sekcji testowej na dokumencie eksportowym dla podopiecznego lub lekarza.</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Wzorcowy layout sekcji testowej w dokumencie dla klienta.</p>
 </div>
-<span class="font-label-sm text-label-sm text-on-surface-variant">Wydruk wektorowy 300 DPI</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Podgląd dokumentu A4</span>
 </div>
 <!-- Symulacja Wycinka Karty Raportu PDF -->
 <div class="bg-surface-base rounded-xl p-6 flex flex-col gap-5 shadow-inner">

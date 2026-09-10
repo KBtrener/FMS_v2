@@ -1,10 +1,10 @@
-# FMS Design System — Studio Biomechanics
+# KB Trener Design System — QuickScreen
 
 Wersja: 2.0 · język produktu: polski · motyw: jasny
 
 Ten dokument jest nadrzędnym źródłem prawdy dla FMS QuickScreen, kolejnych aplikacji FMS, portalu `fms.kbtrener.pl`, ekranów Stitch oraz raportów HTML/PDF. Materiały w `stitch_fms_quickscreen_design_system` są wzorcem wizualnym. Istniejąca aplikacja jest źródłem funkcji, danych i przepływów, lecz nie wyglądu. W razie konfliktu obowiązuje ten dokument.
 
-## 1. Kierunek „Studio Biomechanics”
+## 1. Kierunek wizualny KB Trener / QuickScreen
 
 Interfejs jest spokojnym, precyzyjnym narzędziem studia treningowego. Ma kojarzyć się z ruchem, pomiarem i sprawną pracą trenera, nie ze szpitalem ani generycznym panelem SaaS. Hierarchię budują typografia, rytm i kontrast. Ozdobniki ustępują czytelności, szczególnie podczas badania jedną ręką.
 
@@ -79,12 +79,12 @@ Disclaimer: `Raport opisuje zapisane wyniki screeningu. Nie stanowi diagnozy ani
 
 ## 8. Podział systemu
 
-1. Core tokens — kolory, typografia, spacing, radius, shadow i statusy.
-2. FMS shared components — topbar, app switcher, formularze, selektory, badges, nawigacja, stany.
-3. Report components — okładka, wynik, findings, macierz, metodologia i podpis.
-4. Module configuration — nazwy, kolejność testów, pola i reguły punktacji.
+1. KB Trener Core — branding, shell, topbar, app switcher, formularze, selektory, badges, nawigacja i stany.
+2. QuickScreen Module — wizard, progres, scoring, strony L/P, clearing i status szkicu.
+3. Report components — okładka, wynik, findings, macierz, metodologia i podpis raportu QuickScreen.
+4. Module configuration — nazwy, kolejność testów, pola i reguły punktacji QuickScreen.
 
-Nowa aplikacja FMS importuje warstwy 1–3 i nie definiuje własnej semantyki statusów.
+Przyszłe moduły KB Trener mogą importować warstwy Core i Report, a QuickScreen korzysta z warstwy modułowej. Żaden moduł nie powinien definiować własnej semantyki statusów bez uzasadnienia.
 
 ## 9. Zakazane odstępstwa
 

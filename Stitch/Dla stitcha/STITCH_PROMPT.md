@@ -1,8 +1,8 @@
 # Prompt startowy do Google Stitch
 
-Rozwijaj responsywny system **FMS QuickScreen** na podstawie `design.md` i materiałów `stitch_fms_quickscreen_design_system`.
+Rozwijaj responsywny moduł **QuickScreen** w systemie **KB Trener** na podstawie `design.md` i materiałów `stitch_fms_quickscreen_design_system`.
 
-`design.md` jest nadrzędnym kontraktem UX, dostępności i danych. Materiały w `stitch_fms_quickscreen_design_system` są nowym wzorcem wizualnym „Studio Biomechanics”. Obecna aplikacja i starsze screenshoty dokumentują funkcje, pola i przepływy, ale nie są wzorcem wyglądu.
+`KB_TRENER_DESIGN_SYSTEM.md` i `design.md` są nadrzędnym kontraktem języka wizualnego, UX i dostępności. Materiały w `stitch_fms_quickscreen_design_system` są wzorcem wizualnym KB Trener / QuickScreen. Obecna aplikacja i starsze screenshoty dokumentują funkcje, pola i przepływy, ale nie są wzorcem wyglądu.
 
 Zachowaj polski język, wszystkie odpowiedzi i reguły punktacji. Stosuj dokładnie kanoniczne tokeny (primary `#0F172A`, teal `#0D9488`, Outfit + Inter) oraz globalny system statusów: zielony 2–3/Pass/brak bólu, pomarańczowy 1/Fail/asymetria, czerwony 0/ból/red flag, niebieski szkic/informacja. Każdy status musi mieć ikonę, tekst i dostępny opis.
 
