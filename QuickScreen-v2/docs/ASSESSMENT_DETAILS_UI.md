@@ -44,6 +44,12 @@ Nie wszystkie testy używają skali `0–3`.
 - testy bólu: `Ból / Brak bólu`,
 - testy bilateralne zawsze pokazują pełne nazwy `Lewa strona` i `Prawa strona`.
 
+Kolorowanie odpowiedzi:
+
+- wartości prawidłowe (`Pass`, `Brak bólu`, `2 /3`, `3 /3`, `W normie`, `Super!`) są zielone,
+- wartości wymagające uwagi (`1 /3`, `Słabo`) są żółte, wraz z liczbą,
+- wartości bólowe lub niezaliczone (`Ból`, `Fail`, `0 /3`) są czerwone.
+
 Aktualne przykładowe wyniki:
 
 | Test | Surowe dane | Punkt ostateczny |
@@ -61,19 +67,21 @@ Aktualne przykładowe wyniki:
 
 ## Shoulder Clearing
 
-`Shoulder Clearing` jest jednym testem zależnym, ale zawiera dwa osobne wzorce:
+`Shoulder Clearing` jest jednym testem zależnym. Układ jest organizowany najpierw według stron:
+
+- kafel `Lewa strona`,
+- kafel `Prawa strona`.
+
+W każdym kaflu strony znajdują się osobno:
 
 - `Wzorzec górny`,
-- `Wzorzec dolny`.
-
-Każdy wzorzec musi mieć osobno:
-
-- `Lewa strona`,
-- `Prawa strona`,
+- `Wzorzec dolny`,
 - `Ból`,
 - `Zakres`.
 
 Wynik po clearingu jest pokazany dopiero w karcie `Punkt ostateczny` grupy `Shoulder Mobility`.
+
+Clearingi zawierające wyłącznie ocenę bólu pokazują jedną linię odpowiedzi na stronę: `Ból` albo `Brak bólu`. Nie powielaj etykiety `Ból` i wartości w dwóch osobnych liniach.
 
 ## Notatki i dokumentacja
 

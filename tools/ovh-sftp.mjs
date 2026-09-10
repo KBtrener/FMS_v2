@@ -62,9 +62,10 @@ try {
     if (!(await client.exists(dir))) await client.mkdir(dir, false);
     console.log(JSON.stringify({ directory: dir }));
   } else if (command === 'upload-file') {
-    const local = process.argv[3]; const remoteName = process.argv[4];
+    const local = process.argv[3]; const remoteName = process.argv[4]; const remoteDir = process.argv[5] || 'quickscreen';
     if (!local || !remoteName || remoteName.includes('..')) throw new Error('Nieprawidłowa ścieżka uploadu.');
-    const quick = posix.join(target, 'quickscreen');
+    if (remoteDir.includes('..') || remoteDir.startsWith('/')) throw new Error('Nieprawidłowy katalog uploadu.');
+    const quick = posix.join(target, remoteDir);
     if (!(await client.exists(quick))) await client.mkdir(quick, false);
     const remote = posix.join(quick, remoteName.replaceAll('\\', '/'));
     const parent = posix.dirname(remote); if (!(await client.exists(parent))) await client.mkdir(parent, true);

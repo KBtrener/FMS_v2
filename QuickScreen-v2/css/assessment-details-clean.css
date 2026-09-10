@@ -20,6 +20,9 @@
 .assessment-side-result-card.pass em,.assessment-result-line.pass strong{color:#168267}
 .assessment-side-result-card.attention em,.assessment-result-line.attention strong{color:#b7791f}
 .assessment-side-result-card.pain em,.assessment-result-line.pain strong{color:#c24e5e}
+.assessment-side-result-card.pass strong,.assessment-single-results strong.pass{color:#168267}
+.assessment-side-result-card.attention strong,.assessment-single-results strong.attention{color:#b7791f}
+.assessment-side-result-card.pain strong,.assessment-single-results strong.pain{color:#c24e5e}
 .assessment-single-results{display:grid;gap:5px;align-content:center;justify-items:start;min-height:82px}
 .assessment-single-results strong{font:700 20px/1.2 Outfit,sans-serif}
 .assessment-result-line{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -50,3 +53,16 @@
 @media(max-width:700px){.assessment-detail-page{gap:16px;padding:0 0 28px}.assessment-group-card{grid-template-columns:1fr;gap:14px;padding:14px;border-radius:15px}.assessment-final-card{min-height:0;grid-template-columns:1fr auto;align-items:center}.assessment-clearing-block-clean{margin-left:0;padding:12px}.assessment-side-results,.assessment-pattern-grid{grid-template-columns:1fr}.assessment-test-head h3{font-size:16px}.assessment-final-card strong{font-size:24px}}
 @media(max-width:700px){.assessment-dependent-test{margin-left:18px;padding-left:12px}}
 @media(max-width:700px){.assessment-sidebar-notes{display:none}.assessment-notes-float{display:flex;position:fixed;right:16px;bottom:88px;z-index:25;min-height:48px;padding:0 16px;border:1px solid #b7deda;border-radius:999px;background:#0f766e;color:#fff;box-shadow:0 8px 20px rgba(15,118,110,.24);font:700 13px/1 Inter,sans-serif;align-items:center;justify-content:center}}
+
+.assessment-shoulder-clearing{gap:12px}
+.assessment-clearing-sides{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.assessment-clearing-side{display:grid;gap:8px;padding:10px;border:1px solid #dfeaea;border-radius:12px;background:#fff}
+.assessment-clearing-side-title{color:#354e55;font:700 12px/1.2 Inter,sans-serif}
+.assessment-clearing-pattern{display:grid;gap:5px;padding-top:8px;border-top:1px solid #e5eeee}
+.assessment-clearing-pattern strong{color:#45636a;font:700 12px/1.2 Inter,sans-serif}
+.assessment-clearing-statuses{display:grid;gap:2px;color:#6e7e83;font:500 11px/1.3 Inter,sans-serif}
+.assessment-clearing-statuses em{font:700 11px/1.3 Inter,sans-serif;font-style:normal}
+.assessment-clearing-statuses span.pass,.assessment-single-results span.pass{color:#168267;font-weight:700}
+.assessment-clearing-statuses span.pain,.assessment-single-results span.pain{color:#c24e5e;font-weight:700}
+.assessment-clearing-statuses em.pass{color:#168267}.assessment-clearing-statuses em.pain{color:#c24e5e}
+@media(max-width:700px){.assessment-clearing-sides{grid-template-columns:1fr}.assessment-clearing-side{padding:10px 9px}}
