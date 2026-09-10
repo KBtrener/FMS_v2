@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import seed from "../FMS_Quick_Screen_Codex_Package/config/quick_screen_seed.json" with { type: "json" };
+import { DESCRIPTION_VERSION, loadManualDescriptions } from "./manual-descriptions.mjs";
 
 const url = process.env.SUPABASE_PROJECT_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -17,4 +18,20 @@ fail(await client.from("test_fields").upsert(seed.testFields.map(x => ({ test_fi
 const options = Object.fromEntries(seed.answerSets.flatMap(set => set.options.map(x => [x.code, x.answerOptionId])));
 const rules = [...seed.effectRules, ...(seed.demoOnlyEffectRules || [])].map(x => ({ effect_rule_id: x.effectRuleId, screen_type_id: x.screenTypeId, source_test_field_id: x.sourceTestFieldId, trigger_answer_option_id: options[x.triggerAnswerCode], source_side_condition: x.sourceSideCondition, target_screen_test_id: x.targetScreenTestId, effect_type: x.effectType, effect_value: x.effectValue, is_active: x.isActive, reason_template: x.reasonTemplate }));
 fail(await client.from("effect_rules").upsert(rules, { onConflict: "effect_rule_id" }), "effect_rules");
-console.log(JSON.stringify({ screenTypes: seed.screenTypes.length, tests: seed.tests.length, screenTests: seed.screenTests.length, answerSets: seed.answerSets.length, answerOptions: seed.answerSets.reduce((n, x) => n + x.options.length, 0), testFields: seed.testFields.length, effectRules: rules.length }));
+const descriptions = loadManualDescriptions();
+fail(await client.from("test_descriptions").update({ is_active: false }).neq("manual_version", DESCRIPTION_VERSION), "deactivate old test descriptions");
+fail(await client.from("test_descriptions").upsert(descriptions.map(item => ({
+  test_id: seed.tests.find(test => test.code === item.testCode)?.testId,
+  locale: item.locale,
+  purpose: item.purpose,
+  procedure: item.procedure,
+  verbal_instruction: item.verbalInstruction,
+  side_definition: item.sideDefinition,
+  scoring_criteria: item.scoringCriteria,
+  report_description: item.reportDescription,
+  source_reference: item.sourceReference,
+  manual_version: item.manualVersion,
+  content_hash: item.contentHash,
+  is_active: true,
+})), { onConflict: "test_id,locale,manual_version" }), "test_descriptions");
+console.log(JSON.stringify({ screenTypes: seed.screenTypes.length, tests: seed.tests.length, screenTests: seed.screenTests.length, answerSets: seed.answerSets.length, answerOptions: seed.answerSets.reduce((n, x) => n + x.options.length, 0), testFields: seed.testFields.length, effectRules: rules.length, testDescriptions: descriptions.length, manualVersion: DESCRIPTION_VERSION }));

@@ -37,6 +37,7 @@ create table public.screen_tests (
   sort_order integer not null check (sort_order > 0),
   calculation_type text not null,
   is_active boolean not null default true,
+  parent_screen_test_id text references public.screen_tests(screen_test_id),
   unique (screen_type_id, test_id),
   unique (screen_type_id, sort_order)
 );

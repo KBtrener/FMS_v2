@@ -69,7 +69,7 @@ export function calculateAssessment(answers, cfg, rules = cfg.rules) {
       const testCode = cfg.testsById[target.testId].code;
       const before = finalScores[testCode];
       finalScores[testCode] = rule.effectValue;
-      appliedEffects.push({ effectRuleId: rule.effectRuleId, targetScreenTestId: rule.targetScreenTestId, beforeScore: before, afterScore: rule.effectValue, reasonPl: rule.reasonTemplate.replace('{side}', source.side === 'left' ? 'lewej' : source.side === 'right' ? 'prawej' : 'bez wskazania strony') });
+      appliedEffects.push({ effectRuleId: rule.effectRuleId, targetScreenTestId: rule.targetScreenTestId, affectedTestCode: testCode, sourceFieldCode: field.code, sourceSide: source.side, beforeScore: before, afterScore: rule.effectValue, reasonPl: rule.reasonTemplate.replace('{side}', source.side === 'left' ? 'lewej' : source.side === 'right' ? 'prawej' : 'bez wskazania strony') });
     });
   });
   return { answers: normalized, rawScores, baseScores, finalScores, totalScreenScore: Object.values(finalScores).reduce((sum, value) => sum + value, 0), appliedEffects, statuses: normalized.filter(x => x.numericValue == null) };
@@ -81,9 +81,9 @@ export function hydrateAssessment(row, cfg) {
   const effects = (row.applied_effects || []).map(item => ({ effectRuleId: item.effect_rule_id, targetScreenTestId: item.target_screen_test_id, beforeScore: item.before_score, afterScore: item.after_score, reasonPl: item.reason_pl }));
   effects.forEach(effect => { const target = cfg.screenTestsById[effect.targetScreenTestId]; calculated.finalScores[cfg.testsById[target.testId].code] = effect.afterScore; });
   calculated.totalScreenScore = Object.values(calculated.finalScores).reduce((sum, value) => sum + value, 0);
-  return { assessmentId: row.assessment_id, clientId: row.client_id, assessmentDate: row.assessment_date, note: row.note || '', correctionNote: row.correction_note || '', status: row.status, createdAt: row.created_at, updatedAt: row.updated_at, ...calculated, appliedEffects: effects };
+  return { assessmentId: row.assessment_id, clientId: row.client_id, assessmentDate: row.assessment_date, note: row.note || '', correctionNote: row.correction_note || '', manualVersion: row.manual_version || null, status: row.status, createdAt: row.created_at, updatedAt: row.updated_at, ...calculated, appliedEffects: effects };
 }
 
 export function buildHistory(items) {
-  return items.filter(x => x.status !== 'archived').slice().sort((a, b) => a.assessmentDate.localeCompare(b.assessmentDate)).map(x => ({ assessmentId: x.assessmentId, date: x.assessmentDate, total: x.totalScreenScore }));
+  return items.filter(x => x.status !== 'archived').slice().sort((a, b) => a.assessmentDate.localeCompare(b.assessmentDate) || String(a.updatedAt || a.createdAt || '').localeCompare(String(b.updatedAt || b.createdAt || '')) || String(a.assessmentId).localeCompare(String(b.assessmentId))).map(x => ({ assessmentId: x.assessmentId, date: x.assessmentDate, total: x.totalScreenScore }));
 }

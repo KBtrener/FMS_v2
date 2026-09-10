@@ -3,21 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#142d37">
+  <meta name="theme-color" content="#0F172A">
   <title>QuickScreen · KB Trener</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./design-system.css">
   <script src="./config.js"></script>
   <script type="module" src="./app.js"></script>
-  <script type="module" src="./wizard-enhancements.js"></script>
 </head>
 <body>
-  <div class="page-grain" aria-hidden="true"></div>
   <header class="topbar">
-    <button class="brand" data-action="home" aria-label="Lista klientów"><span class="brand-mark">Q</span><span><strong>QuickScreen</strong><small>notes trenera</small></span></button>
-    <nav class="topnav" aria-label="Główna nawigacja"><button class="nav-link" data-action="home">Klienci</button><button class="nav-link" data-action="config">Konfiguracja</button><button class="nav-link" data-action="profile-user">Konto</button></nav>
+    <button class="brand" data-action="home" aria-label="Lista klientów">
+      <span class="brand-logo-viewport"><img class="brand-logo" src="./assets/kb-logo.png" alt="Karol Bilecki"></span>
+      <span class="brand-copy"><strong>QuickScreen <span aria-hidden="true">⌄</span></strong><small><i></i>Zapisano lokalnie</small></span>
+    </button>
+    <nav class="topnav" aria-label="Główna nawigacja">
+      <button class="nav-link" data-action="home"><span aria-hidden="true">♙</span><em>Klienci</em></button>
+      <button class="nav-link" data-action="new-assessment-nav"><span aria-hidden="true">＋</span><em>Badanie</em></button>
+      <button class="nav-link" data-action="reports"><span aria-hidden="true">▤</span><em>Raporty</em></button>
+      <button class="nav-link" data-action="config"><span aria-hidden="true">☷</span><em>Konfiguracja</em></button>
+    </nav>
+    <button class="account-button" data-action="profile-user" aria-label="Konto trenera"><span class="sync-icon" aria-hidden="true">☁</span><span class="avatar-icon" aria-hidden="true">♙</span></button>
   </header>
   <main id="app" class="app-shell" aria-live="polite"><section class="loading-state"><span class="loader"></span><p>Przygotowuję aplikację…</p></section></main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>

@@ -1,50 +1,34 @@
 # Pakiet wdrożeniowy: FMS Quick Screen
 
-Ten katalog jest kompletnym wejściem dla agenta implementującego. Ma pozwolić
-zbudować i wdrożyć pierwszą wersję aplikacji bez odtwarzania wcześniejszej
-rozmowy.
+Ten pakiet opisuje aktualną aplikację: frontend webowy, Supabase jako bazę,
+autoryzację, RLS, Storage i RPC oraz produkcyjny adres
+`https://fms.kbtrener.pl/quickscreen/`.
 
-## Jak użyć pakietu
-
-1. Przekaż agentowi cały katalog albo plik ZIP.
-2. Dołącz plik AGENT_PROMPT.md jako główną instrukcję.
-3. Umożliw mu jednorazową autoryzację konta Google właściciela przy tworzeniu
-   arkusza, projektu Apps Script i wdrożenia webowego. Nie przekazuj hasła.
-4. Po wdrożeniu odbierz link produkcyjny, link do arkusza danych oraz link do
-   projektu Apps Script.
+Dokumentacja jest częścią procesu wdrożeniowego. Każda przyszła zmiana
+wpływająca na zachowanie, dane, UI, raport, konfigurację, routing lub
+wdrożenie musi być dopisana do planu zmian i do odpowiednich dokumentów.
+Szczegóły opisuje `docs/08_documentation_change_policy.md`.
 
 ## Zawartość
 
-- AGENT_PROMPT.md - gotowy prompt dla Codexu.
-- docs/01_product_specification.md - zakres produktu i zachowanie aplikacji.
-- docs/02_data_model.md - logiczny, znormalizowany model danych dla Google
-  Sheets.
-- docs/03_scoring_and_configuration.md - reguły Quick Screen i konfiguracja
-  powiązań testów.
-- docs/04_ui_and_report_specification.md - ekrany, interakcje i raport.
-- docs/05_technical_deployment.md - architektura Apps Script i warunki
-  przekazania.
-- docs/06_acceptance_tests.md - testy, które muszą przejść przed przekazaniem.
-- docs/07_decisions_and_limits.md - zatwierdzone decyzje i jawne granice.
-- config/quick_screen_seed.json - maszynowo czytelna konfiguracja startowa.
-- fixtures/assessment_fixtures.json - fikcyjni klienci i oczekiwane wyniki.
-- tools/verify_fixtures.mjs - automatyczna kontrola konfiguracji i fixture'ów.
-- references/ - przekazane materiały PDF.
+- `AGENT_PROMPT.md` — instrukcja dla agenta implementującego.
+- `docs/01_product_specification.md` — zakres produktu.
+- `docs/02_data_model.md` — model danych Supabase.
+- `docs/03_scoring_and_configuration.md` — punktacja i reguły clearingowe.
+- `docs/04_ui_and_report_specification.md` — wizard, profil i raport.
+- `docs/05_technical_deployment.md` — architektura i wdrożenie.
+- `docs/06_acceptance_tests.md` — testy odbiorowe.
+- `docs/07_decisions_and_limits.md` — decyzje i ograniczenia.
+- `docs/08_documentation_change_policy.md` — obowiązkowy proces aktualizacji.
+- `09_manual_test_descriptions_bilingual.md` — kanoniczne opisy EN/PL.
 
-## Definicja gotowego projektu
+Konfiguracja startowa znajduje się w `supabase/seed.sql`, a migracje w
+`supabase/migrations/`. Nie traktuj dawnych plików Apps Script/Google Sheets
+jako aktualnej architektury.
 
-Projekt jest gotowy dopiero, gdy działa pod produkcyjnym linkiem Apps Script,
-dostępnym wyłącznie dla właściciela konta Google, zapisuje dane do prywatnego
-Google Sheets i przechodzi wszystkie testy z docs/06_acceptance_tests.md.
+## Gotowy projekt
 
-Raporty nie są trwale zapisywane na Dysku. Aplikacja może pobrać PDF w
-przeglądarce oraz - po osobnej zgodzie na Gmail - utworzyć niewysłany szkic
-wiadomości z PDF-em.
-
-## Materiały źródłowe i prawa
-
-PDF-y są materiałami referencyjnymi przekazanymi przez właściciela projektu.
-Implementacja ma korzystać z ich zasad punktacji, ale nie powinna kopiować
-logo, układu ani pełnych treści podręcznika do aplikacji. Ekrany i raport mają
-mieć własny, neutralny wygląd. Kryteria w interfejsie należy zwięźle
-streścić i podać odwołanie do strony źródła.
+Projekt jest gotowy, gdy migracje i RLS są zastosowane, build przechodzi,
+testy odbiorowe przechodzą, a aplikacja działa na produkcyjnym adresie.
+Raporty są generowane z aktualnych danych; PDF może być przechowywany w
+prywatnym Storage jako dokument raportu zgodnie z bieżącą konfiguracją.

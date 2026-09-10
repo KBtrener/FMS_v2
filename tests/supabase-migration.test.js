@@ -34,14 +34,14 @@ test('Shoulder Clearing has informational bilateral range fields without changin
   assert.match(fs.readFileSync('web/app.js', 'utf8'), /shoulder_clearing_.*field\.code !== 'shoulder_clearing_pain'/);
 });
 
-test('wizard enhancements provide bilateral layout and structured manual criteria', () => {
-  const source = fs.readFileSync('web/wizard-enhancements.js', 'utf8');
-  assert.match(source, /bilateral-layout/);
-  assert.match(source, /manual-table/);
-  assert.match(source, /Kryteria|manual-section/);
+test('wizard renders bilateral layout and structured criteria directly', () => {
+  const source = fs.readFileSync('web/app.js', 'utf8');
+  assert.match(source, /testFieldsMarkup/);
+  assert.match(source, /side-panels/);
+  assert.match(source, /criteria-sheet/);
 });
 
-test('legacy importer and web frontend do not use google.script.run', () => {
+test('web frontend uses Supabase and the legacy importer remains isolated', () => {
   assert.doesNotMatch(fs.readFileSync('web/app.js', 'utf8'), /google\.script\.run/);
   assert.match(fs.readFileSync('tools/import-google-export.mjs', 'utf8'), /legacy_client_id/);
 });
@@ -74,8 +74,67 @@ test('production web build contains subpath config, PDF, attachments and mail wo
   assert.doesNotMatch(app, /google\.script\.run|SpreadsheetApp|DriveApp/);
 });
 
-test('deployment secrets are ignored by Git and clasp', () => {
+test('deployment secrets are ignored by Git', () => {
   assert.match(fs.readFileSync('.gitignore', 'utf8'), /\.env\.deploy\.local/);
-  assert.match(fs.readFileSync('.claspignore', 'utf8'), /\.env\.deploy\.local/);
   assert.ok(path.isAbsolute(path.resolve('dist/web')));
+});
+
+test('test descriptions are database-backed and static manual is not bundled', () => {
+  const migration = fs.readFileSync('supabase/migrations/20260908090000_test_descriptions.sql', 'utf8');
+  const build = fs.readFileSync('tools/build-web.mjs', 'utf8');
+  assert.match(migration, /create table (if not exists )?public\.test_descriptions/i);
+  assert.match(migration, /manual_version/);
+  assert.match(migration, /select test_id from public\.tests where code = 'cervical_flexion'/);
+  assert.match(fs.readFileSync('web/app.js', 'utf8'), /test_descriptions/);
+  assert.doesNotMatch(build, /manual\.md/);
+});
+
+test('reports can reference multiple trainer certifications and client disciplines', () => {
+  const migration = fs.readFileSync('supabase/migrations/20260908100000_trainer_certifications_client_disciplines.sql', 'utf8');
+  assert.match(migration, /create table if not exists public\.trainer_certifications/i);
+  assert.match(migration, /create table if not exists public\.client_disciplines/i);
+  assert.match(migration, /trainer_id uuid .*references public\.profiles/i);
+  assert.match(migration, /client_id uuid .*references public\.clients/i);
+  assert.match(fs.readFileSync('web/app.js', 'utf8'), /trainer_certifications/);
+  assert.match(fs.readFileSync('web/app.js', 'utf8'), /client_disciplines/);
+});
+
+test('team assignments preserve owner access and permit collaborator assessment writes', () => {
+  const migration = fs.readFileSync('supabase/migrations/20260908110000_trainer_client_access.sql', 'utf8');
+  const writes = fs.readFileSync('supabase/migrations/20260908111000_team_assessment_write_access.sql', 'utf8');
+  assert.match(migration, /create table if not exists public\.trainer_client_access/i);
+  assert.match(migration, /list_assignable_trainers/);
+  assert.match(migration, /can_access_client/);
+  assert.match(writes, /save_assessment/);
+  assert.match(writes, /public\.can_access_client\(p_client_id\)/);
+});
+
+test('dynamic reports persist immutable snapshots, sections and protected PDFs', () => {
+  const sql = fs.readFileSync('supabase/migrations/20260908120000_dynamic_reports.sql', 'utf8');
+  for (const table of ['report_profiles','client_services','trainer_recommendations','report_instances','report_instance_sections']) assert.match(sql, new RegExp(`create table if not exists public\\.${table}`,'i'));
+  assert.match(sql, /prevent_final_report_mutation/);
+  assert.match(sql, /public\.can_access_client\(client_id\)/);
+  assert.match(sql, /report-pdfs/);
+  assert.match(fs.readFileSync('web/report-core.js','utf8'), /resolveSections/);
+  assert.match(fs.readFileSync('web/app.js','utf8'), /reportSnapshot/);
+});
+
+test('canonical design tokens, responsive mobile navigation and A4 print rules are bundled', () => {
+  const css=fs.readFileSync('web/design-system.css','utf8');
+  const html=fs.readFileSync('web/index.html','utf8');
+  for(const token of ['#0f172a','#1e293b','#0d9488','#059669','#d97706','#e11d48','#0284c7']) assert.match(css,new RegExp(token,'i'));
+  assert.match(css, /@media\(max-width:620px\)/);
+  assert.match(css, /@page\{size:A4/);
+  assert.match(css, /min-height:48px/);
+  assert.match(html, /assets\/kb-logo\.png/);
+  assert.doesNotMatch(html, /googleusercontent\.com/);
+});
+
+test('per-test notes and photo mapping are protected by RLS', () => {
+  const sql=fs.readFileSync('supabase/migrations/20260908130000_test_notes_and_photo_mapping.sql','utf8');
+  assert.match(sql,/create table if not exists public\.assessment_test_notes/i);
+  assert.match(sql,/attachment_role.*test_photo/is);
+  assert.match(sql,/public\.can_access_client/i);
+  assert.match(fs.readFileSync('web/app.js','utf8'),/assessment_test_notes/);
+  assert.match(fs.readFileSync('web/app.js','utf8'),/test_id:testId/);
 });

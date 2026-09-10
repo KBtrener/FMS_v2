@@ -2,28 +2,21 @@
   "name": "fms-v2",
   "version": "0.0.0",
   "private": true,
-  "description": "FMS Quick Screen - przygotowanie projektu Google Apps Script i Google Sheets",
+  "description": "FMS Quick Screen - webowa aplikacja Supabase",
   "engines": {
     "node": ">=24 <25"
   },
   "scripts": {
-    "build:seed": "node tools/build-seed.mjs",
-    "build:preview": "node tools/build-preview.mjs",
-    "apps:create": "clasp create-script --type webapp --title \"FMS Quick Screen - Aplikacja\" --parentId 1jFAX9C5JROxTTrnNRt9QXUMEjsKD88yZ --rootDir apps-script",
-    "apps:push": "npm run build:seed && clasp push",
-    "apps:status": "clasp show-file-status",
-    "apps:deploy": "clasp create-deployment --description \"FMS Quick Screen production\"",
     "test": "node --test --test-isolation=none tests/*.test.js",
     "verify:fixtures": "node FMS_Quick_Screen_Codex_Package/tools/verify_fixtures.mjs",
-    "verify:source": "node tools/verify-source.mjs",
+    "verify:descriptions": "node tools/verify-descriptions.mjs",
     "build:web": "node tools/build-web.mjs",
     "seed:supabase": "node tools/seed-supabase.mjs",
     "import:google": "node tools/import-google-export.mjs",
     "test:supabase:e2e": "node tools/test-supabase-e2e.mjs",
-    "verify": "npm run build:seed && npm run build:preview && npm run build:web && npm run verify:source && npm run verify:fixtures && npm test"
+    "verify": "npm run verify:descriptions && npm run build:web && npm run verify:fixtures && npm test"
   },
   "devDependencies": {
-    "@google/clasp": "^3.4.1",
     "basic-ftp": "^6.2.1",
     "esbuild": "^0.28.2",
     "ssh2-sftp-client": "^12.1.1"

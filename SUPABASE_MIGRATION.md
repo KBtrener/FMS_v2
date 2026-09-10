@@ -1,58 +1,36 @@
-# Migracja FMS Quick Screen do Supabase
+# Architektura Supabase
 
-## Stan i przepływ
+Frontend `web/index.html` korzysta z Supabase Auth, PostgreSQL/RLS, Storage i RPC. Klucz publishable działa wyłącznie w runtime; klucz service-role jest zarezerwowany dla lokalnych narzędzi administracyjnych.
 
-Przed migracją UI Apps Script wywoływał `google.script.run`, a Apps Script
-czytał i zapisywał znormalizowane karty Google Sheets. Drive przechowywał
-arkusz, a Utilities/Gmail generowały PDF i szkic wiadomości.
+## Zakres danych
 
-Po migracji przepływ jest następujący:
-
-`web/index.html → Supabase Auth → PostgreSQL/RLS → Supabase Storage`
-
-Frontend korzysta z publishable key wyłącznie w runtime. Klucz service-role
-jest używany tylko przez lokalne narzędzia administracyjne i nigdy nie trafia
-do frontendu ani repozytorium.
-
-## Mapowanie funkcji
-
-| Funkcja | Apps Script | Supabase |
-|---|---|---|
-| Logowanie | konto właściciela Web App | Supabase Auth email/password; Google OAuth może być włączony w Dashboard |
-| Klienci | `SpreadsheetApp`/Repository | `clients` + RLS po `owner_id` |
-| Badania i odpowiedzi | Sheets + `LockService` | `save_assessment`/`update_assessment` RPC w transakcji |
-| Katalog testów | seed Sheets | tabele katalogowe + `supabase/seed.sql` |
-| Reguły clearing | `effect_rules` w Sheets | `effect_rules` + `applied_effects` |
-| Pliki | Google Drive | bucket `assessment-files` + `attachments` |
-| Historia | obliczana z arkusza | zapytania PostgreSQL z RLS |
-| Raport | HTML/PDF/Gmail draft | widok danych w UI i drukowanie przeglądarki; wysyłka wymaga osobnej Edge Function |
+- `profiles`, `clients`, `assessments`, odpowiedzi i efekty są chronione RLS po `owner_id`.
+- `test_descriptions` przechowuje wersjonowane opisy EN/PL, kryteria, instrukcje i odwołania do podręcznika.
+- `manual_version` w `assessments` zapisuje wersję katalogu używaną podczas badania.
+- `report_profiles`, `client_services` i `trainer_recommendations` sterują zakresem raportu.
+- `report_instances` oraz `report_instance_sections` przechowują niezmienny snapshot i faktycznie użyte sekcje.
+- Storage `assessment-files` obsługuje załączniki, a prywatny `report-pdfs` przechowuje finalne dokumenty.
 
 ## Migracje i seed
 
-- `supabase/migrations/20260907120000_initial_schema.sql`
-- `supabase/migrations/20260907130000_import_support.sql`
-- `supabase/migrations/20260907140000_assessment_update_rpc.sql`
-- `supabase/seed.sql`
-
-Po wdrożeniu migracji seed katalogu wykonuje się idempotentnie przez CLI:
+Uruchom migracje przez Supabase CLI lub panel SQL, a następnie seed:
 
 ```powershell
 npx supabase db query --linked --file supabase/seed.sql
 ```
 
+Katalog opisów jest generowany z `09_manual_test_descriptions_bilingual.md` przez `node tools/generate-description-migration.mjs`.
+
+Migracja `20260908120000_dynamic_reports.sql` musi zostać zastosowana przed publikacją nowego frontendu. Finalizacja raportu zmienia stan `generating` na `ready`; trigger blokuje późniejszą zmianę snapshotu i gotowego dokumentu. RLS pozwala generować raport wyłącznie trenerowi mającemu dostęp do klienta i kompletnego badania.
+
 ## Import danych
 
-`tools/import-google-export.mjs` przyjmuje katalog z `clients.csv/json`,
-`assessments.csv/json`, `assessment_answers.csv/json` i opcjonalnym katalogiem
-`files/`. Wymaga `SUPABASE_PROJECT_URL`, `SUPABASE_SERVICE_ROLE_KEY` oraz
-`--owner-id`. Zachowuje legacy ID, relacje, daty i raportuje liczbę rekordów.
-Nie usuwa danych źródłowych i można go uruchomić ponownie.
+`tools/import-google-export.mjs` jest opcjonalnym, jednorazowym importerem plików CSV/JSON do Supabase. Wymaga klucza service-role tylko lokalnie i nie jest częścią runtime aplikacji.
 
-Rzeczywisty import nie został uruchomiony, bo repozytorium nie zawiera danych
-produkcyjnych Google.
+Migracje `20260910100000_clearing_hierarchy_and_admin_rules.sql`,
+`20260910110000_neck_extension_clearing.sql` oraz
+`20260910120000_neck_extension_description.sql` muszą być zastosowane, aby
+hierarchia clearingów, osobny Neck Extension i jego opis były kompletne.
 
-## Uruchomienie web
-
-`npm run build:web` kopiuje frontend do `dist/web` i tworzy lokalny runtime
-config z `SUPABASE_PROJECT_URL` oraz `SUPABASE_PUBLISHABLE_KEY`. `web/config.js`
-jest ignorowany przez Git. Nie używaj service-role key w tym pliku.
+Każda zmiana schematu lub konfiguracji wymaga wpisu do planu zmian, migracji,
+aktualizacji dokumentacji i odpowiedniego testu odbiorowego.
