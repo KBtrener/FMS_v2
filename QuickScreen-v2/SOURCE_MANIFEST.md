@@ -18,3 +18,4 @@
 | `references/STUDIO_BIOMECHANICS_DESIGN.md` | `Stitch/stitch_fms_quickscreen_design_system/studio_biomechanics/DESIGN.md` | Kontekst wizualny | Nie |
 
 Pliki `css/` i `js/` są nową implementacją makiety. Nie mają zależności runtime od `web/`, `Stitch/` ani usług zewnętrznych.
+`docs/ASSESSMENT_DETAILS_UI.md` zawiera samodzielną, aktualną specyfikację widoku podglądu badania V2.

@@ -19,3 +19,4 @@ Klikalne karty i akcje nawigacyjne prowadzą do statycznych stanów. `Prototype 
 - `js/` — fixture data, routing, komponenty, widoki i bootstrap aplikacji.
 
 Struktura odpowiada przyszłym komponentom React: `AppShell`, `ClientCard`, `AssessmentWizard`, `ScoreSelector`, `ReportPreview` itd.
+Szczegółowe ustalenia dla widoku podglądu badania znajdują się w `docs/ASSESSMENT_DETAILS_UI.md`.
