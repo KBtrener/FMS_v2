@@ -20,8 +20,8 @@
 .assessment-side-result-card.pass em,.assessment-result-line.pass strong{color:#168267}
 .assessment-side-result-card.attention em,.assessment-result-line.attention strong{color:#b7791f}
 .assessment-side-result-card.pain em,.assessment-result-line.pain strong{color:#c24e5e}
-.assessment-single-results{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px}
-.assessment-single-results strong{font:700 18px/1.2 Outfit,sans-serif}
+.assessment-single-results{display:grid;gap:5px;align-content:center;justify-items:start;min-height:82px}
+.assessment-single-results strong{font:700 20px/1.2 Outfit,sans-serif}
 .assessment-result-line{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .assessment-result-line strong{font:700 17px/1.2 Outfit,sans-serif}
 .assessment-clearing-block-clean{display:grid;gap:12px;margin-left:44px;padding:14px;border:1px solid #d8e7e6;border-radius:14px;background:#f5fbfa}
