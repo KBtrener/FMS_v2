@@ -67,3 +67,16 @@ test("AT-13 historia pomija badania archiwalne", () => {
   ]);
   assert.deepEqual(history.map(item => item.total), [9,12]);
 });
+
+test("nowy test score_0_3 jest liczony z konfiguracji bez listy w kodzie", () => {
+  const cfg = configFromSeed(seed);
+  cfg.testsById.test_hurdle = { testId: "test_hurdle", code: "hurdle", name: "Hurdle" };
+  cfg.screenTestsById.screen_test_hurdle = { screenTestId: "screen_test_hurdle", testId: "test_hurdle", calculationType: "best_attempt_single", isActive: true };
+  cfg.fieldsById.field_hurdle_score = { testFieldId: "field_hurdle_score", screenTestId: "screen_test_hurdle", code: "hurdle_score", answerSetCode: "score_0_3", answerSetId: "answer_set_score_0_3", isScoringInput: true, sideMode: "none", labelPl: "Wynik płotka" };
+  cfg.fieldsByCode.hurdle_score = cfg.fieldsById.field_hurdle_score;
+  const input = asInput(fixtures.assessments[0]);
+  input.push({ fieldCode: "hurdle_score", side: "none", answerCode: "score_2" });
+  const result = core.calculateAssessment(input, cfg);
+  assert.equal(result.baseScores.hurdle, 2);
+  assert.equal(result.finalScores.hurdle, 2);
+});

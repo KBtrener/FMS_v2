@@ -1,15 +1,31 @@
-const NUMERIC_FIELDS = {
-  toe_touch: 'toe_touch_score',
-  shoulder_mobility: 'shoulder_mobility_score',
-  rotation: 'rotation_score',
-  balance: 'balance_score',
-  squat: 'squat_score',
+const NUMERIC_CALCULATIONS = new Set(['best_attempt_single', 'best_attempt_minimum_bilateral']);
+
+const configuredScreens = cfg => Object.values(cfg.screenTestsById || {}).filter(screen => screen.isActive !== false);
+const configuredFields = (cfg, screen) => Object.values(cfg.fieldsById || {}).filter(field => field.screenTestId === screen.screenTestId && field.isScoringInput);
+const isNumericField = (cfg, field) => {
+  const set = cfg.answerSets?.find(item => item.answerSetId === field.answerSetId);
+  return field.answerSetCode === 'score_0_3' || set?.code === 'score_0_3' || Object.values(cfg.optionsById || {}).some(option => option.answerSetId === field.answerSetId && option.numericValue != null);
 };
 
-export const NUMERIC_TESTS = [
-  ['toe_touch', 'Toe Touch'], ['shoulder_mobility', 'Shoulder Mobility'],
-  ['rotation', 'Rotation'], ['balance', 'Balance'], ['squat', 'Squat'],
-];
+export function numericTestDefinitions(cfg) {
+  return configuredScreens(cfg).flatMap(screen => {
+    const test = cfg.testsById?.[screen.testId];
+    const field = configuredFields(cfg, screen).find(item => isNumericField(cfg, item));
+    if (!test || !field || (!NUMERIC_CALCULATIONS.has(screen.calculationType) && !isNumericField(cfg, field))) return [];
+    return [{ code: test.code, name: test.name, testId: test.testId, screenTestId: screen.screenTestId, fieldCode: field.code, calculationType: screen.calculationType }];
+  });
+}
+
+export function statusTestDefinitions(cfg) {
+  return configuredScreens(cfg).flatMap(screen => {
+    const test = cfg.testsById?.[screen.testId];
+    const fields = configuredFields(cfg, screen);
+    if (!test || !fields.length || fields.some(field => isNumericField(cfg, field))) return [];
+    return [{ code: test.code, name: test.name, testId: test.testId, screenTestId: screen.screenTestId, fields }];
+  });
+}
+
+export const NUMERIC_TESTS = [];
 
 export function requiredText(value, label) {
   const text = String(value ?? '').trim();
@@ -55,11 +71,11 @@ export function calculateAssessment(answers, cfg, rules = cfg.rules) {
   const byField = new Map();
   normalized.forEach(answer => byField.set(answer.fieldCode, [...(byField.get(answer.fieldCode) || []), answer]));
   const rawScores = {}, baseScores = {};
-  Object.entries(NUMERIC_FIELDS).forEach(([testCode, fieldCode]) => {
+  numericTestDefinitions(cfg).forEach(({ code: testCode, fieldCode, calculationType }) => {
     const values = byField.get(fieldCode) || [];
     if (!values.length) throw new Error(`Brak wyniku dla testu ${testCode}.`);
     rawScores[testCode] = Object.fromEntries(values.map(x => [x.side, x.numericValue]));
-    baseScores[testCode] = Math.min(...values.map(x => x.numericValue));
+    baseScores[testCode] = calculationType === 'best_attempt_single' ? values[0].numericValue : Math.min(...values.map(x => x.numericValue));
   });
   const finalScores = { ...baseScores }, appliedEffects = [];
   rules.filter(rule => rule.isActive).forEach(rule => {
