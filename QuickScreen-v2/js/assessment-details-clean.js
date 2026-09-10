@@ -5,7 +5,7 @@
     'Shoulder Mobility':{left:1,right:2,base:'1 /3 · Słabo',final:'0 /3 · Ból',kind:'pain'},
     'Rotation':{left:0,right:1,base:'0 /3 · Ból',final:'0 /3 · Ból',kind:'pain'},
     'Balance':{left:1,right:2,base:'1 /3 · Słabo',final:'1 /3 · Słabo',kind:'attention'},
-    'Squat':{single:0,base:'0 /3 · Ból',final:'0 /3 · Ból',kind:'pain'}
+    'Squat':{single:2,base:'2 /3 · W normie',final:'0 /3 · Ból',kind:'pain'}
   };
   const passData={
     'Cervical Flexion':{range:'Pass',pain:'Brak bólu',kind:'pass'},
