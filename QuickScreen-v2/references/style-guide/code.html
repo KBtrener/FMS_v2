@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+
+<html lang="pl"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Outfit:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script type='text/javascript' nonce='TV0GNFVeGrMUMwkkmdeLtQ==' src='https://contribution.usercontent.google.com/sdlKiw2Er85xQUa0zyHUtjE--7zdqlZGDbTmQr63L1dIF-QvUamsNizCgHEfMi7ZLYE04YTNNu8pmwkS_2cxB007wQ_Uul8doH6dEbyT3HtIXiMg-_pKUwCL3VjXOqquj8IZwaEa5F0KzxvIFPvrf52AF4NkQsnOhNUr2WGFAI79oy9akLW9OzKYYFuBPtmQtpN6XW17yqNC45yhKmfP59l_3NYORX5nm6EQYMDOsGLrS-AqgBs-m_cT3HYHGPPZvbGT1UAPqYaKmjxmhWTalcYrcRym7NHVogacYtVJN23LIFMDhv0B2W3N102_WSbQ9p4PAQY32gtqElaCjEBQF9OMN0hftZni6fN8PHB3wIitHtgGRy0EzSNEdebTArHncwq9V32OxARzJOuN32bSX9_r5noMTu-bRQUXZkhSMDCY9bzGEpR7IshQMF9_wY0wfpOLi-WBbnMubb5oJ4_vcGXj3X_R3Opz2YcgI77VExHQUgCySdcoD5il-5RNR_HysJWxS2JjAUb4x3KTbOxyyy580b7FxYsNEYlB7r-PmXbDPXTSiL43thTKVFipaeoNAmJr9t38zsYb7KITPFVp1RBWSHcZlQiUNhipZpV7QpBoR-WRpM3YfikP8DjrRjPOEo-zSQig0BKxf7ZVKWgFUrVfbWegBOj4YlFC78V3hZBVOe5MvHiWy0J3J6yVlr9s_GUmsyfMwfm5m1ypCKeCQnfNPlUJuoWxcX9Kcavsj8zSwwMHrDE09uIRnZeeHSFEtR--CbZAT2Jl-LH3iep_eEsWP_LI-r4r2I9Icw'></script><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#000000", "inverse-surface": "#213145", "surface-container-low": "#eff4ff", "state-draft": "#0284C7", "on-tertiary-fixed": "#111c2d", "surface-container-lowest": "#ffffff", "inverse-on-surface": "#eaf1ff", "surface-bright": "#f8f9ff", "on-error": "#ffffff", "state-fail": "#D97706", "on-primary-container": "#7c839b", "primary-container": "#131b2e", "state-pass": "#059669", "primary-fixed": "#dae2fd", "tertiary-container": "#111c2d", "secondary-fixed": "#89f5e7", "on-primary-fixed-variant": "#3f465c", "state-pain-bg": "#FFF1F2", "on-surface-variant": "#45464d", "error-container": "#ffdad6", "tertiary-fixed-dim": "#bcc7de", "tertiary-fixed": "#d8e3fb", "primary-fixed-dim": "#bec6e0", "surface-base": "#F8FAFC", "on-secondary-container": "#006f66", "state-pain-border": "#FECDD3", "on-surface": "#0b1c30", "surface": "#f8f9ff", "surface-tint": "#565e74", "secondary": "#006a61", "surface-container-highest": "#d3e4fe", "state-pass-bg": "#ECFDF5", "inverse-primary": "#bec6e0", "on-error-container": "#93000a", "surface-variant": "#d3e4fe", "on-background": "#0b1c30", "secondary-container": "#86f2e4", "surface-container": "#e5eeff", "state-pain": "#E11D48", "border-strong": "#CBD5E1", "on-tertiary-container": "#79849a", "error": "#ba1a1a", "secondary-fixed-dim": "#6bd8cb", "on-secondary": "#ffffff", "on-secondary-fixed": "#00201d", "on-primary-fixed": "#131b2e", "surface-container-high": "#dce9ff", "surface-card": "#FFFFFF", "on-primary": "#ffffff", "outline-variant": "#c6c6cd", "surface-muted": "#F1F5F9", "tertiary": "#000000", "outline": "#76777d", "state-pass-border": "#A7F3D0", "border-subtle": "#E2E8F0", "background": "#f8f9ff", "state-fail-bg": "#FFFBEB", "on-secondary-fixed-variant": "#005049", "on-tertiary-fixed-variant": "#3c475a", "surface-dim": "#cbdbf5", "on-tertiary": "#ffffff" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "section-gap": "24px", "gutter-mobile": "16px", "gutter-desktop": "24px", "touch-min": "48px", "element-gap": "12px", "sticky-bar-height": "76px", "padding-card": "16px" }, fontFamily: { "display-lg": ["Outfit"], "body-md": ["Inter"], "body-lg": ["Inter"], "headline-sm": ["Outfit"], "body-sm": ["Inter"], "label-sm": ["Inter"], "numeric-score": ["Inter"], "label-md": ["Inter"], "headline-md": ["Outfit"], "headline-lg": ["Outfit"], "label-lg": ["Inter"] }, fontSize: { "display-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }], "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }], "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }], "headline-sm": ["20px", { lineHeight: "26px", fontWeight: "600" }], "body-sm": ["14px", { lineHeight: "20px", fontWeight: "400" }], "label-sm": ["13px", { lineHeight: "16px", fontWeight: "500" }], "numeric-score": ["24px", { lineHeight: "28px", letterSpacing: "0.02em", fontWeight: "700" }], "label-md": ["14px", { lineHeight: "18px", fontWeight: "500" }], "headline-md": ["22px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "700" }], "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "600" }], "label-lg": ["16px", { lineHeight: "20px", fontWeight: "600" }] } } } };</script></head><body class="bg-surface-base font-body-md text-body-md text-on-surface flex flex-col min-h-screen antialiased selection:bg-secondary/20"><header class="fixed top-0 w-full z-50 pt-safe bg-surface-card/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-gutter-mobile flex items-center justify-between gap-element-gap"><div class="flex items-center gap-element-gap min-w-0"><img alt="KB Trener QuickScreen Logo" class="h-8 w-auto object-contain shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1V8-R6DHMm9tcIJtHOSjlSUnm-dGHeaMjAeYbY7GEt44tW8YSH-tOf-AlP0iH81T0t4FrzN9yE-K_Pz5B5So2URrXKhvyWBIOBKANW1FliKi6K61TIq1tIpLYusiTjcxb0sVZ4veOG3OVLyxp9yEX4giEJ60INnkPWwT8jKIJLGsvwbWoAgxXM-RyaBjI1X7wA5xgNqlfPJ7noNkbHZTRiYPqdJmjIGwvoGGaimTZzLCqbpaiLdyEH0Rg"/><div class="flex flex-col min-w-0"><div class="flex items-center gap-1"><button aria-label="Zmień moduł testowy" class="flex items-center gap-1 text-on-surface hover:text-secondary font-headline-sm text-headline-sm transition-colors" type="button"><span class="truncate">QuickScreen</span><span class="material-symbols-outlined text-[18px] shrink-0">arrow_drop_down</span></button></div><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-state-pass shrink-0 animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface-variant truncate">Zapisano lokalnie</span></div></div></div><div class="flex items-center gap-2 shrink-0"><button aria-label="Status synchronizacji chmury" class="w-touch-min h-touch-min flex items-center justify-center text-state-draft rounded-full hover:bg-surface-muted transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">cloud_done</span></button><button aria-label="Menu profilu trenera" class="w-touch-min h-touch-min flex items-center justify-center" type="button"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.12)]"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></button></div></div></header><main class="flex flex-col relative w-full pt-16 pb-sticky-bar-height bg-surface-base flex-1"><div class="flex flex-col w-full">
+<!-- Subtle Ambient Glow Canvas Decor -->
+<div class="relative w-full overflow-hidden">
+<div class="absolute -top-24 right-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute top-80 -left-20 w-80 h-80 bg-state-pass/5 rounded-full blur-2xl pointer-events-none"></div>
+<div class="w-full max-w-6xl mx-auto px-gutter-mobile md:px-gutter-desktop py-6 flex flex-col gap-section-gap">
+<!-- 1. NAGŁÓWEK ARTIFACT & SYSTEM GUIDE HERO -->
+<section class="relative bg-surface-card rounded-xl shadow-sm p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden">
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 z-10">
+<div class="w-24 h-24 sm:w-28 sm:h-28 bg-surface-container rounded-xl flex items-center justify-center p-3 shadow-inner shrink-0">
+<img alt="KB Trener System Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRMPmAqX89YssE8VwMmYbmypnoR5ozAWImMouPvGgx8hP5SCV5DaM0ZQ_9p5LFl1yxUmQOjMn_hdS0BNyXkC9xeLjslDVZZvUVYihQ6S1Kxc_8g4OCg9kfl9z-Xadn4jsTgptUffdiwb9VCw_MUmhgfgDIucPH-avva-X9i4sj6H6fwGVaZdcOEMs5T9xsTAUezpKHz4ycuyyfUX76r0tI0krRcaMQuko4JeKkp2sNTAN94Xtp9jTKnfoNQxj1AHz3Tw"/>
+</div>
+<div class="flex flex-col gap-1 max-w-2xl">
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-0.5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm uppercase tracking-wider">Specyfikacja v2.4</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">KB Trener</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">System Oznaczeń &amp; Color Coding FMS Quick Screen</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Kompendium stanów, interaktywnych selektorów punktacji (0–3), flag clearing testów, asymetrii oraz wzorców wizualnych zintegrowanych z certyfikowanym generatorem PDF.</p>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row md:flex-col items-stretch md:items-end gap-2 w-full md:w-auto shrink-0 z-10">
+<div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-base text-on-surface">
+<span class="w-2.5 h-2.5 rounded-full bg-state-pass animate-pulse"></span>
+<span class="font-label-sm text-label-sm">System statusów QuickScreen</span>
+</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm sm:text-right">
+<span>WCAG 2.1 AA Compliant</span>
+</div>
+</div>
+</section>
+<!-- 2. KODOWANIE KOLORYSTYCZNE WYNIKÓW (Color Coding Matrix) -->
+<section class="flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[24px]">palette</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">System statusów QuickScreen</h2>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant hidden sm:inline-block">Reguła Minimalnego Wyniku • Priorytet Bezpieczeństwa</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- KARTA: WYNIK 2 & 3 (Zielony / Sukces / Norma) -->
+<div class="bg-surface-card rounded-xl p-5 shadow-sm flex flex-col justify-between gap-5 relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-state-pass"></div>
+<div class="flex flex-col gap-3">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-lg bg-state-pass-bg text-state-pass flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: &#39;FILL&#39; 1;">check_circle</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface leading-tight">Wynik 2 &amp; 3 • Norma / Pass</h3>
+<span class="font-label-sm text-label-sm text-state-pass">Optymalny wzorzec lub akceptowalna kompensacja</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-base p-3 rounded-lg flex flex-col gap-1.5 font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex justify-between items-center"><strong class="text-on-surface">Palieta:</strong><span>Emerald / Green</span></div>
+<div class="flex justify-between items-center"><strong class="text-on-surface">Token Główny:</strong><code class="text-state-pass font-mono text-[12px]">state-pass (#059669)</code></div>
+<div class="flex justify-between items-center"><strong class="text-on-surface">Tło Statusu:</strong><code class="font-mono text-[12px]">state-pass-bg (#ECFDF5)</code></div>
+<div class="flex justify-between items-center"><strong class="text-on-surface">Zastosowanie:</strong><span class="text-right">Wynik 3 (wzorzec), Wynik 2, Pass ✓</span></div>
+</div>
+<div class="flex flex-col gap-2">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Symulacja w interfejsie wizard:</span>
+<div class="flex flex-wrap items-center gap-2">
+<button class="w-12 h-12 rounded-xl bg-state-pass text-on-primary flex flex-col items-center justify-center shadow-sm" type="button">
+<span class="font-numeric-score text-numeric-score">3</span>
+</button>
+<button class="w-12 h-12 rounded-xl bg-state-pass text-on-primary flex flex-col items-center justify-center shadow-sm" type="button">
+<span class="font-numeric-score text-numeric-score">2</span>
+</button>
+<div class="h-12 px-4 rounded-xl bg-state-pass text-on-primary font-label-md text-label-md flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">check</span>
+<span>Pass (Zaliczony)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-3 bg-surface-muted/50 -mx-5 -mb-5 px-5 py-3.5 rounded-b-xl flex flex-col gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Wygląd Plakietki PDF</span>
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-state-pass-bg text-state-pass font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: &#39;FILL&#39; 1;">check_circle</span>
+<span>Wynik: 3</span>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-state-pass-bg text-state-pass font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]">done_all</span>
+<span>Pass ✓</span>
+</span>
+</div>
+</div>
+</div>
+<!-- KARTA: WYNIK 1 (Żółty/Bursztynowy / Asymetria) -->
+<div class="bg-surface-card rounded-xl p-5 shadow-sm flex flex-col justify-between gap-5 relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-state-fail"></div>
+<div class="flex flex-col gap-3">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-lg bg-state-fail-bg text-state-fail flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: &#39;FILL&#39; 1;">warning</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface leading-tight">Wynik 1 • Dysfunkcja / Asymetria</h3>
+<span class="font-label-sm text-label-sm text-state-fail">Wyraźna kompensacja lub brak symetrii</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-base p-3 rounded-lg flex flex-col gap-1.5 font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex justify-between items-center"><strong class="text-on-surface">Palieta:</strong><span>Amber / Warm Gold</span></div>
+<div class="flex justify-between items-center"><strong class="text-on-surface">Token Główny:</strong><code class="text-state-fail font-mono text-[12px]">state-fail (#D97706)</code></div>
+<div class="flex justify-between items-center"><strong class="text-on-surface">Tło Statusu:</strong><code class="font-mono text-[12px]">state-fail-bg (#FFFBEB)</code></div>
+<div class="flex justify-between items-center"><strong class="text-on-surface">Zastosowanie:</strong><span class="text-right">Wynik 1, Różnica L≠P, Uwaga</span></div>
+</div>
+<div class="flex flex-col gap-2">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Symulacja w interfejsie wizard:</span>
+<div class="flex flex-wrap items-center gap-2">
+<button class="w-12 h-12 rounded-xl bg-state-fail text-on-primary flex flex-col items-center justify-center shadow-sm" type="button">
+<span class="font-numeric-score text-numeric-score">1</span>
+</button>
+<div class="h-12 px-3.5 rounded-xl bg-state-fail-bg text-state-fail font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">priority_high</span>
+<span>Asymetria (L:1 / P:2)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-3 bg-surface-muted/50 -mx-5 -mb-5 px-5 py-3.5 rounded-b-xl flex flex-col gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Wygląd Plakietki PDF</span>
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-state-fail-bg text-state-fail font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: &#39;FILL&#39; 1;">warning</span>
+<span>Wynik: 1</span>
+</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-state-fail text-on-primary font-label-sm text-label-sm font-bold">
+                  ! Asymetria
+                </span>
+</div>
+</div>
+</div>
+<!-- KARTA: WYNIK 0 (Czerwony / Ból / Bezwzględna flaga) -->
+<div class="bg-surface-card rounded-xl p-5 shadow-sm flex flex-col justify-between gap-5 relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-state-pain"></div>
+<div class="flex flex-col gap-3">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-lg bg-state-pain-bg text-state-pain flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: &#39;FILL&#39; 1;">report</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface leading-tight">Wynik 0 • Ból (Red Flag)</h3>
+<span class="font-label-sm text-label-sm text-state-pain">Wyzerowanie testu • Wymaga uwagi</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-base p-3 rounded-lg flex flex-col gap-1.5 font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex justify-between items-center"><strong class="text-on-surface">Palieta:</strong><span>Rose / Crimson Red</span></div>
+<div class="flex justify-between items-center"><strong class="text-on-surface">Token Główny:</strong><code class="text-state-pain font-mono text-[12px]">state-pain (#E11D48)</code></div>
+<div class="flex justify-between items-center"><strong class="text-on-surface">Tło Statusu:</strong><code class="font-mono text-[12px]">state-pain-bg (#FFF1F2)</code></div>
+<div class="flex justify-between items-center"><strong class="text-on-surface">Zastosowanie:</strong><span class="text-right">Wynik 0, Ból w clearingu, Fail ✕</span></div>
+</div>
+<div class="flex flex-col gap-2">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Symulacja w interfejsie wizard:</span>
+<div class="flex flex-wrap items-center gap-2">
+<button class="w-12 h-12 rounded-xl bg-state-pain text-on-primary flex flex-col items-center justify-center shadow-sm" type="button">
+<span class="font-numeric-score text-numeric-score">0</span>
+</button>
+<div class="h-12 px-4 rounded-xl bg-state-pain text-on-primary font-label-md text-label-md flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">crisis_alert</span>
+<span>Ból (0)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-3 bg-surface-muted/50 -mx-5 -mb-5 px-5 py-3.5 rounded-b-xl flex flex-col gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-[11px]">Wygląd Plakietki PDF</span>
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-state-pain-bg text-state-pain font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: &#39;FILL&#39; 1;">cancel</span>
+<span>Wynik: 0</span>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-state-pain text-on-primary font-label-md text-label-md font-bold">
+                  Ból (Bariera)
+                </span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. INTERAKTYWNA PRACOWNIA KOMPONENTÓW MOBILNYCH (Interactive Testbed) -->
+<section class="bg-surface-card rounded-xl p-6 shadow-sm flex flex-col gap-6">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-4">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Komponenty Interfejsu &amp; Stany Przycisków Wizarda</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Pomiary touch-target min. 48x48px dostosowane do obsługi jedną ręką w trakcie badania.</p>
+</div>
+<span class="px-3 py-1 bg-surface-container text-on-surface font-label-sm text-label-sm rounded-full self-start md:self-auto">Moduł Interaktywny</span>
+</div>
+<!-- 3A. Selektory punktacji FMS (0, 1, 2, 3) -->
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface">1. Przyciski numeryczne FMS (0–3) • Kliknij aby przetestować stany</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Domyślny • Aktywny • Z kodem koloru</span>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="score-buttons-container">
+<!-- Przycisk 0 -->
+<button class="score-btn h-20 rounded-xl bg-surface-base text-on-surface flex flex-col items-center justify-center gap-1 transition-all duration-150 active:scale-95" id="btn-score-0" onclick="selectScore(0)" type="button">
+<span class="font-numeric-score text-numeric-score text-state-pain">0</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Ból</span>
+</button>
+<!-- Przycisk 1 -->
+<button class="score-btn h-20 rounded-xl bg-surface-base text-on-surface flex flex-col items-center justify-center gap-1 transition-all duration-150 active:scale-95" id="btn-score-1" onclick="selectScore(1)" type="button">
+<span class="font-numeric-score text-numeric-score text-state-fail">1</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Dysfunkcja</span>
+</button>
+<!-- Przycisk 2 (Domyślnie zaznaczony dla podglądu) -->
+<button class="score-btn h-20 rounded-xl bg-state-pass text-on-primary flex flex-col items-center justify-center gap-1 shadow-md transition-all duration-150 active:scale-95" id="btn-score-2" onclick="selectScore(2)" type="button">
+<span class="font-numeric-score text-numeric-score">2</span>
+<span class="font-label-sm text-label-sm text-on-primary/90">Kompensacja</span>
+</button>
+<!-- Przycisk 3 -->
+<button class="score-btn h-20 rounded-xl bg-surface-base text-on-surface flex flex-col items-center justify-center gap-1 transition-all duration-150 active:scale-95" id="btn-score-3" onclick="selectScore(3)" type="button">
+<span class="font-numeric-score text-numeric-score text-state-pass">3</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Optymalny</span>
+</button>
+</div>
+<div class="p-3 bg-state-pass-bg rounded-lg text-state-pass font-body-sm text-body-sm flex items-center gap-2" id="score-info-box">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &#39;FILL&#39; 1;">check_circle</span>
+<span>Wybrano Wynik 2: Zaakceptowano tolerowaną kompensację w płaszczyźnie czołowej. Brak bólu.</span>
+</div>
+</div>
+<!-- 3B. Przełączniki Dwu-Stanowe (Bilateral Clearing & Quick Tests) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+<!-- Test Pass / Fail -->
+<div class="flex flex-col gap-2.5">
+<span class="font-label-lg text-label-lg text-on-surface">2. Walidacja Pass / Fail (np. Rotacja szyjna)</span>
+<div class="grid grid-cols-2 gap-2 bg-surface-base p-1.5 rounded-xl">
+<button class="h-12 rounded-lg bg-state-pass text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm transition-all" id="btn-demo-pass" onclick="togglePassFail(true)" type="button">
+<span class="material-symbols-outlined text-[20px]">check</span>
+<span>Pass (Zaliczony)</span>
+</button>
+<button class="h-12 rounded-lg text-on-surface-variant font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-surface-card transition-all" id="btn-demo-fail" onclick="togglePassFail(false)" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+<span>Fail (Niezaliczony)</span>
+</button>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Wymóg: ≥ 80° rotacji osiowej bez kompensacji barkowej.</span>
+</div>
+<!-- Clearing Ból / Brak bólu -->
+<div class="flex flex-col gap-2.5">
+<span class="font-label-lg text-label-lg text-on-surface">3. Clearing Test (Prowokacja bólowa)</span>
+<div class="grid grid-cols-2 gap-2 bg-surface-base p-1.5 rounded-xl">
+<button class="h-12 rounded-lg bg-surface-card text-on-surface font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm transition-all" id="btn-demo-nopain" onclick="togglePain(false)" type="button">
+<span class="material-symbols-outlined text-state-pass text-[20px]" style="font-variation-settings: &#39;FILL&#39; 1;">sentiment_satisfied</span>
+<span>Brak bólu (-)</span>
+</button>
+<button class="h-12 rounded-lg text-on-surface-variant font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-surface-card transition-all" id="btn-demo-pain" onclick="togglePain(true)" type="button">
+<span class="material-symbols-outlined text-state-pain text-[20px]">crisis_alert</span>
+<span>Ból obecny (+)</span>
+</button>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Ból dodatni (+) natychmiast narzuca wynik 0 w teście powiązanym.</span>
+</div>
+</div>
+<!-- 3C. Dolny pasek akcji wizarda i przyciski nawigacyjne -->
+<div class="flex flex-col gap-3 pt-2">
+<span class="font-label-lg text-label-lg text-on-surface">4. Przyciski Nawigacyjne Wizarda (Desktop &amp; Sticky Mobile Bar)</span>
+<div class="bg-surface-base p-4 rounded-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-inner">
+<div class="flex items-center gap-2">
+<button class="h-touch-min px-5 rounded-xl bg-surface-card text-on-surface font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm hover:bg-surface-muted transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+<span>Wstecz</span>
+</button>
+<div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-card text-on-surface-variant font-label-sm text-label-sm">
+<span>Krok 4 z 9</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="h-touch-min flex-1 sm:flex-none px-6 rounded-xl bg-primary text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-sm hover:bg-primary/90 active:scale-98 transition-all" type="button">
+<span>Dalej</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+<button class="h-touch-min px-5 rounded-xl bg-secondary text-on-secondary font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm hover:bg-secondary/90 transition-all" type="button">
+<span class="material-symbols-outlined text-[20px]">verified</span>
+<span>Zakończ badanie</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 3D. Przycisk z listy klientów [+ Test] -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-surface-base">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined text-[20px]">person</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Michał Wiśniewski • ID #849</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ostatnie badanie: 14 dni temu • Poprzedni wynik: 12/15</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<!-- Półprzezroczysty przycisk [+ Test] z listy klientów -->
+<button class="h-touch-min px-4 rounded-xl bg-secondary/10 hover:bg-secondary/20 text-secondary font-label-md text-label-md flex items-center gap-1.5 transition-all" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>+ Test</span>
+</button>
+<button class="h-touch-min w-touch-min rounded-xl bg-surface-card hover:bg-surface-muted text-on-surface-variant flex items-center justify-center transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[20px]">history</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 4. SYSTEM OZNACZEŃ RAPORTU PDF (A4 Visual Standards) -->
+<section class="bg-surface-card rounded-xl p-6 shadow-sm flex flex-col gap-6">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-2">
+<div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[24px]">picture_as_pdf</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Standard Oznaczeń w Certyfikowanym Raporcie PDF A4</h2>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Wzorcowy layout sekcji testowej w dokumencie dla klienta.</p>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Podgląd dokumentu A4</span>
+</div>
+<!-- Symulacja Wycinka Karty Raportu PDF -->
+<div class="bg-surface-base rounded-xl p-6 flex flex-col gap-5 shadow-inner">
+<!-- PDF Test Item Row (Bilateral Hurdle Step Sample) -->
+<div class="bg-surface-card rounded-xl p-5 shadow-sm flex flex-col gap-4">
+<!-- PDF Test Header Row -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3">
+<div class="flex items-center gap-3">
+<span class="w-7 h-7 rounded-full bg-primary text-on-primary font-numeric-score text-[14px] flex items-center justify-center">2</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Przejście nad Płotkiem (Hurdle Step)</h4>
+</div>
+<!-- Wynik ostateczny testu (zielony badge 2) -->
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Wynik Końcowy:</span>
+<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-state-pass-bg text-state-pass font-headline-sm text-[16px] font-bold">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &#39;FILL&#39; 1;">check_circle</span>
+<span>2</span>
+</span>
+</div>
+</div>
+<!-- PDF Bilateral Breakdown Matrix -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<!-- Lewa Strona -->
+<div class="p-3 rounded-lg bg-surface-base flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded bg-surface-container text-on-surface font-label-sm text-label-sm font-bold flex items-center justify-center">L</span>
+<span class="font-body-sm text-body-sm text-on-surface">Lewa Kończyna</span>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-state-fail-bg text-state-fail font-numeric-score text-[15px] font-bold">1</span>
+</div>
+<!-- Prawa Strona -->
+<div class="p-3 rounded-lg bg-surface-base flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded bg-surface-container text-on-surface font-label-sm text-label-sm font-bold flex items-center justify-center">P</span>
+<span class="font-body-sm text-body-sm text-on-surface">Prawa Kończyna</span>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-state-pass-bg text-state-pass font-numeric-score text-[15px] font-bold">2</span>
+</div>
+</div>
+<!-- PDF Asymmetry Banner -->
+<div class="p-3 rounded-lg bg-state-fail-bg text-state-fail flex items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+<span class="font-label-md text-label-md font-bold">Wykryto Asymetrię Ruchową (L: 1 ≠ P: 2)</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider font-semibold">Priorytet Korekty</span>
+</div>
+<!-- PDF Clearing Test Row -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-surface-muted/60">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">health_and_safety</span>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Test Prowokacji Clearing (Test Oczyszczania)</span>
+</div>
+<span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-state-pass-bg text-state-pass font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-state-pass"></span>
+<span>Negatywny (Brak bólu)</span>
+</span>
+</div>
+<!-- PDF Coach Notes Section -->
+<div class="p-3 rounded-lg bg-surface-container-low text-on-surface flex items-start gap-2.5">
+<span class="material-symbols-outlined text-state-draft text-[20px] shrink-0 mt-0.5">edit_note</span>
+<div class="flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-state-draft font-semibold">Komentarz Trenera:</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Utrata stabilizacji miednicy w fazie przenoszenia lewej kończyny. Zauważalna rotacja tułowia kompensująca deficyt zgięcia grzbietowego skokowego.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Tabela Podsumowująca Reprezentację Cyfrową vs Drukowaną -->
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead>
+<tr class="bg-surface-base text-on-surface font-label-md text-label-md">
+<th class="p-3 rounded-l-lg">Stan Badania</th>
+<th class="p-3">Ikona &amp; Znak</th>
+<th class="p-3">Interfejs Wizard (Mobile)</th>
+<th class="p-3 rounded-r-lg">Eksport PDF (A4)</th>
+</tr>
+</thead>
+<tbody class="text-on-surface-variant divide-y divide-transparent">
+<tr class="hover:bg-surface-base/50 transition-colors">
+<td class="p-3 font-semibold text-on-surface flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-state-pass"></span>
+                  Norma / Optymalny (3, 2, Pass)
+                </td>
+<td class="p-3"><code class="text-state-pass font-mono font-bold">check_circle ✓</code></td>
+<td class="p-3"><span class="px-2 py-0.5 rounded bg-state-pass text-on-primary text-[12px] font-bold">Button [2] / [3]</span></td>
+<td class="p-3"><span class="px-2 py-0.5 rounded-full bg-state-pass-bg text-state-pass text-[12px] font-bold">&lt;Wynik: 2&gt;</span></td>
+</tr>
+<tr class="hover:bg-surface-base/50 transition-colors">
+<td class="p-3 font-semibold text-on-surface flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-state-fail"></span>
+                  Asymetria / Kompensacja (1)
+                </td>
+<td class="p-3"><code class="text-state-fail font-mono font-bold">warning !</code></td>
+<td class="p-3"><span class="px-2 py-0.5 rounded bg-state-fail text-on-primary text-[12px] font-bold">Button [1]</span></td>
+<td class="p-3"><span class="px-2 py-0.5 rounded-full bg-state-fail text-on-primary text-[12px] font-bold">! Asymetria</span></td>
+</tr>
+<tr class="hover:bg-surface-base/50 transition-colors">
+<td class="p-3 font-semibold text-on-surface flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-state-pain"></span>
+                  Ból / Zagrożenie (0, Fail)
+                </td>
+<td class="p-3"><code class="text-state-pain font-mono font-bold">report / cancel ✕</code></td>
+<td class="p-3"><span class="px-2 py-0.5 rounded bg-state-pain text-on-primary text-[12px] font-bold">Button [0 - Ból]</span></td>
+<td class="p-3"><span class="px-2 py-0.5 rounded-full bg-state-pain-bg text-state-pain text-[12px] font-bold">&lt;Wynik: 0&gt; Ból</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</div>
+</div>
+<script>
+  function selectScore(val) {
+    const scores = [0, 1, 2, 3];
+    const infoBox = document.getElementById('score-info-box');
+    
+    scores.forEach(s => {
+      const btn = document.getElementById(`btn-score-${s}`);
+      btn.className = "score-btn h-20 rounded-xl bg-surface-base text-on-surface flex flex-col items-center justify-center gap-1 transition-all duration-150 active:scale-95";
+      const scoreNum = btn.querySelector('.font-numeric-score');
+      const scoreLabel = btn.querySelector('.font-label-sm');
+      
+      if(s === 0) scoreNum.className = "font-numeric-score text-numeric-score text-state-pain";
+      else if(s === 1) scoreNum.className = "font-numeric-score text-numeric-score text-state-fail";
+      else scoreNum.className = "font-numeric-score text-numeric-score text-state-pass";
+      
+      scoreLabel.className = "font-label-sm text-label-sm text-on-surface-variant";
+    });
+
+    const activeBtn = document.getElementById(`btn-score-${val}`);
+    const activeNum = activeBtn.querySelector('.font-numeric-score');
+    const activeLabel = activeBtn.querySelector('.font-label-sm');
+
+    if (val === 0) {
+      activeBtn.className = "score-btn h-20 rounded-xl bg-state-pain text-on-primary flex flex-col items-center justify-center gap-1 shadow-md transition-all duration-150 active:scale-95";
+      infoBox.className = "p-3 bg-state-pain-bg rounded-lg text-state-pain font-body-sm text-body-sm flex items-center gap-2";
+      infoBox.innerHTML = "<span class='material-symbols-outlined text-[20px]' style=\"font-variation-settings: 'FILL' 1;\">report</span><span>Wybrano Wynik 0: Zgłoszono dolegliwość bólową. Test natychmiast przerwany ze wskazaniem konsultacji fizjoterapeutycznej.</span>";
+    } else if (val === 1) {
+      activeBtn.className = "score-btn h-20 rounded-xl bg-state-fail text-on-primary flex flex-col items-center justify-center gap-1 shadow-md transition-all duration-150 active:scale-95";
+      infoBox.className = "p-3 bg-state-fail-bg rounded-lg text-state-fail font-body-sm text-body-sm flex items-center gap-2";
+      infoBox.innerHTML = "<span class='material-symbols-outlined text-[20px]' style=\"font-variation-settings: 'FILL' 1;\">warning</span><span>Wybrano Wynik 1: Wyraźna dysfunkcja lub brak możliwości ukończenia powtórzenia bez istotnych kompensacji.</span>";
+    } else if (val === 2) {
+      activeBtn.className = "score-btn h-20 rounded-xl bg-state-pass text-on-primary flex flex-col items-center justify-center gap-1 shadow-md transition-all duration-150 active:scale-95";
+      infoBox.className = "p-3 bg-state-pass-bg rounded-lg text-state-pass font-body-sm text-body-sm flex items-center gap-2";
+      infoBox.innerHTML = "<span class='material-symbols-outlined text-[20px]' style=\"font-variation-settings: 'FILL' 1;\">check_circle</span><span>Wybrano Wynik 2: Zaakceptowano tolerowaną kompensację w płaszczyźnie czołowej. Brak bólu.</span>";
+    } else {
+      activeBtn.className = "score-btn h-20 rounded-xl bg-state-pass text-on-primary flex flex-col items-center justify-center gap-1 shadow-md transition-all duration-150 active:scale-95";
+      infoBox.className = "p-3 bg-state-pass-bg rounded-lg text-state-pass font-body-sm text-body-sm flex items-center gap-2";
+      infoBox.innerHTML = "<span class='material-symbols-outlined text-[20px]' style=\"font-variation-settings: 'FILL' 1;\">verified</span><span>Wybrano Wynik 3: Wzorzec biomechanicznie optymalny, symetryczny i bezkompensacyjny.</span>";
+    }
+
+    activeNum.className = "font-numeric-score text-numeric-score text-on-primary";
+    activeLabel.className = "font-label-sm text-label-sm text-on-primary/90";
+  }
+
+  function togglePassFail(isPass) {
+    const passBtn = document.getElementById('btn-demo-pass');
+    const failBtn = document.getElementById('btn-demo-fail');
+    if(isPass) {
+      passBtn.className = "h-12 rounded-lg bg-state-pass text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm transition-all";
+      failBtn.className = "h-12 rounded-lg text-on-surface-variant font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-surface-card transition-all";
+    } else {
+      failBtn.className = "h-12 rounded-lg bg-state-pain text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm transition-all";
+      passBtn.className = "h-12 rounded-lg text-on-surface-variant font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-surface-card transition-all";
+    }
+  }
+
+  function togglePain(hasPain) {
+    const noPainBtn = document.getElementById('btn-demo-nopain');
+    const painBtn = document.getElementById('btn-demo-pain');
+    if(hasPain) {
+      painBtn.className = "h-12 rounded-lg bg-state-pain text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm transition-all";
+      noPainBtn.className = "h-12 rounded-lg text-on-surface-variant font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-surface-card transition-all";
+    } else {
+      noPainBtn.className = "h-12 rounded-lg bg-surface-card text-on-surface font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm transition-all";
+      painBtn.className = "h-12 rounded-lg text-on-surface-variant font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-surface-card transition-all";
+    }
+  }
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface-card/95 backdrop-blur-xl shadow-[0_-4px_16px_rgba(0,0,0,0.03)]" data-active-classes="text-secondary font-bold"><div class="h-sticky-bar-height px-gutter-mobile flex items-center justify-around"><a aria-current="page" class="flex flex-col items-center justify-center min-w-touch-min h-touch-min px-2 rounded-xl transition-colors text-secondary font-bold" data-path="klienci" href="#"><span class="material-symbols-outlined text-[24px]">groups</span><span class="font-label-sm text-label-sm mt-0.5">Klienci</span></a><a class="flex flex-col items-center justify-center min-w-touch-min h-touch-min px-2 rounded-xl text-on-surface-variant hover:text-on-surface transition-colors" data-path="nowe-badanie" href="#"><span class="material-symbols-outlined text-[24px]">add_circle</span><span class="font-label-sm text-label-sm mt-0.5">Badanie</span></a><a class="flex flex-col items-center justify-center min-w-touch-min h-touch-min px-2 rounded-xl text-on-surface-variant hover:text-on-surface transition-colors" data-path="raporty" href="#"><span class="material-symbols-outlined text-[24px]">assessment</span><span class="font-label-sm text-label-sm mt-0.5">Raporty</span></a><a class="flex flex-col items-center justify-center min-w-touch-min h-touch-min px-2 rounded-xl text-on-surface-variant hover:text-on-surface transition-colors" data-path="konfiguracja" href="#"><span class="material-symbols-outlined text-[24px]">tune</span><span class="font-label-sm text-label-sm mt-0.5">Konfiguracja</span></a></div></nav></body></html>
