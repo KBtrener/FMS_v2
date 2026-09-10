@@ -5,7 +5,6 @@
 .assessment-group-main{display:grid;gap:14px;min-width:0}
 .assessment-group-card.has-dependent .assessment-group-main{gap:16px}
 .assessment-dependent-test{position:relative;display:grid;gap:12px;margin:0 0 0 44px;padding:14px 14px 14px 16px;border-left:3px solid #9ccfc9;border-radius:0 14px 14px 0;background:#f5fbfa}
-.assessment-dependent-test:before{content:"";position:absolute;left:-3px;top:-16px;width:16px;height:16px;border-left:3px solid #9ccfc9;border-bottom:3px solid #9ccfc9;border-radius:0 0 0 9px}
 .assessment-dependent-test .assessment-test-head{padding-bottom:1px}
 .assessment-dependent-test .assessment-test-head h3{font-size:15px;color:#37616a}
 .assessment-test-head{display:flex;align-items:center;gap:12px;min-width:0}
