@@ -40,7 +40,20 @@
     const group8=bilateralScore(6,'Balance',scoreData.Balance);
     const group9=dependentGroup(`${parentHead(7,'Squat')}<div class="assessment-single-results"><strong class="${scoreData.Squat.kind}">${scoreData.Squat.base}</strong></div>`,spineClearingBody(7,'Spine Extension Clearing',clearingData['Spine Extension Clearing']),finalCard(scoreData.Squat.final,scoreData.Squat.kind));
     const body=`<div class="assessment-detail-page"><div class="page-head"><div><a class="btn btn-ghost btn-sm" href="#/client/demo">← Gaweł Kot</a><div class="eyebrow">Podgląd badania</div><h1>Szczegóły badania</h1><p>07.09.2026 · kompletne badanie QuickScreen</p></div><div>${badge('Ból / red flag','pain')}</div></div><div class="assessment-detail-layout"><main class="assessment-detail-stack"><section class="card"><div class="card-head"><div><h2>Wyniki testów</h2><p class="muted">Testy zależne są pokazane bezpośrednio pod testem nadrzędnym.</p></div><strong class="assessment-total">5 /15</strong></div><div class="assessment-detail-stack">${group1}${group2}${group4}${group5}${group7}${group8}${group9}</div></section><section class="assessment-notes-card"><h3>Notatka trenera</h3><p>Widoczna asymetria w obrębie barku. Po stronie prawej pojawił się ból w wzorcu dolnym clearingu.</p></section></main><aside class="assessment-detail-stack"><section class="assessment-notes-card"><h3>Clearing effects</h3><p>Clearing barku zmienia wynik Shoulder Mobility na 0 /3. Pozostałe efekty są pokazane przy właściwym teście.</p></section><section class="assessment-attachments-empty"><h3>Dokumentacja</h3><p>Brak załączników do tego badania.</p></section></aside></div></div>`;
-    return QSViews.layout(body,'clients');
+    const noteText='Widoczna asymetria w obrębie barku. Po stronie prawej pojawił się ból w wzorcu dolnym clearingu.';
+    const noteCard=`<section class="assessment-notes-card assessment-sidebar-notes"><h3>Notatka trenera</h3><p>${noteText}</p></section>`;
+    const sidebarMatch=body.match(/<aside class="assessment-detail-stack">.*?<\/aside>/);
+    const sidebar=sidebarMatch?sidebarMatch[0]:'';
+    const docs=sidebar.replace(/<section class="assessment-notes-card">.*?<\/section>/,'').replace(/^<aside class="assessment-detail-stack">/,'').replace(/<\/aside>$/,'');
+    const withoutInlineNote=body.replace(/<section class="assessment-notes-card"><h3>Notatka trenera<\/h3>.*?<\/section>/,'');
+    const cleanBody=withoutInlineNote.replace(sidebar,`<aside class="assessment-detail-stack">${noteCard}${docs}</aside>`)+`<button class="assessment-notes-float" type="button" data-clean-notes>Notatki trenera</button>`;
+    return QSViews.layout(cleanBody,'clients');
   }
   QSViews.details=cleanDetails;
+  document.addEventListener('click',function(event){
+    const trigger=event.target.closest('[data-clean-notes]');
+    if(!trigger)return;
+    event.preventDefault();
+    document.body.insertAdjacentHTML('beforeend',QSUI.modal('Notatki trenera','<p>Widoczna asymetria w obrębie barku. Po stronie prawej pojawił się ból w wzorcu dolnym clearingu.</p>'));
+  });
 })();
