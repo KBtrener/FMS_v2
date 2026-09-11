@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <title>FMS Wizard</title>
+    <script type="module" crossorigin src="/assets/index-Cs_-8TJy.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CvuHsyeq.css">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script>
+    <style>
+      .quickscreen-launcher-grid{position:fixed;right:24px;bottom:24px;z-index:20;display:grid;grid-template-columns:repeat(2,minmax(210px,1fr));gap:12px;max-width:470px}
+      .quickscreen-tile{display:flex;align-items:center;gap:14px;min-height:92px;padding:18px;border:1px solid rgba(13,15,18,.1);border-radius:20px;background:#fff;color:#0d0f12;font:600 15px/1.2 'IBM Plex Sans',system-ui,sans-serif;text-decoration:none;box-shadow:0 12px 24px -16px rgba(15,23,42,.35);transition:transform .2s,box-shadow .2s}
+      .quickscreen-tile:before{content:'QS';display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:999px;background:#ff6a3d;color:#fff;font:700 14px/1 'Space Grotesk',system-ui,sans-serif}
+      .quickscreen-tile small{display:block;margin-top:5px;color:#64748b;font:400 12px/1.3 'IBM Plex Sans',system-ui,sans-serif}
+      .quickscreen-tile:hover{transform:translateY(-2px);box-shadow:0 16px 28px -14px rgba(15,23,42,.42)}
+      @media (max-width:640px){.quickscreen-launcher-grid{right:12px;bottom:12px;left:12px;grid-template-columns:1fr;max-width:none}.quickscreen-tile{min-height:68px}}
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <section class="quickscreen-launcher-grid" aria-label="Wybierz wersję QuickScreen">
+      <a class="quickscreen-tile" href="/quick-screen-v2/" aria-label="Otwórz QuickScreen V2"><span>QuickScreen v2<small>Najnowsza makieta aplikacji</small></span><span aria-hidden="true">→</span></a>
+      <a class="quickscreen-tile" href="/quickscreen/" aria-label="Otwórz wcześniejszą wersję QuickScreen"><span>QuickScreen<small>Wcześniejsza wersja</small></span><span aria-hidden="true">→</span></a>
+    </section>
+  </body>
+</html>
