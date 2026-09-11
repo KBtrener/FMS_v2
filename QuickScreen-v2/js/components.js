@@ -12,5 +12,5 @@ const baseShell=QSUI.shell;
 QSUI.shell=function(content,active='clients'){
  const menu=[['clients','Klienci','#/clients'],['assessment','Badanie','#/assessment'],['client-panel','Dashboard klienta','#/client-panel'],['trainer-panel','Panel trenera','#/trainer-panel'],['admin-panel','Panel administratora','#/admin-panel'],['config','Konfiguracja','#/configuration'],['trainer','Profil trenera','#/trainer']];
  const menuMarkup=`<nav class="main-menu" aria-label="Główne menu">${menu.map(x=>`<a class="main-menu-link ${active===x[0]?'active':''}" href="${x[2]}">${x[1]}</a>`).join('')}</nav>`;
- return baseShell.call(this,content,active).replace('<div class="top-actions">',`${menuMarkup}<div class="top-actions">`);
+ return baseShell.call(this,content,active).replace(/<span class="brand-copy">.*?<\/span>/,'').replace(/<span class="module">[\s\S]*?<\/span><\/span>/,'').replace('<div class="top-actions">',`${menuMarkup}<div class="top-actions">`);
 };
