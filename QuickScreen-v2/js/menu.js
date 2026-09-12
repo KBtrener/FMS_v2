@@ -93,7 +93,7 @@ QSUI.shell = function (content, active = 'clients') {
 
   document.body.dataset.previewRole = role;
   return previousShell.call(this, content, active)
-    .replace(/<nav class="main-menu">[\s\S]*?<\/nav>/, menu)
+    .replace(/<nav class="main-menu"[\s\S]*?<\/nav>/, menu)
     .replace(/<nav class="bottom-nav">[\s\S]*?<\/nav>/, bottom)
     .replace(/<button class="nav-fab"[\s\S]*?<\/button>/, '')
     .replace('</header>', `</header>${switcher}`);
