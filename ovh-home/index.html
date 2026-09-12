@@ -12,9 +12,11 @@
     <link rel="stylesheet" crossorigin href="/assets/index-CvuHsyeq.css">
     <link rel="manifest" href="/manifest.webmanifest">
     <script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script>
+    <script>if(location.pathname==='/'||location.pathname===''){document.documentElement.classList.add('home-launcher-only')}</script>
     <style>
       :root{--qs-ink:#0f172a;--qs-teal:#0d9488;--qs-line:#e2e8f0;--qs-muted:#64748b;--qs-base:#f8fafc}
       html,body{min-height:100%;background:var(--qs-base)}
+      .home-launcher-only #root{display:none}
       .quickscreen-launcher-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:min(920px,calc(100% - 48px));margin:clamp(32px,8vh,88px) auto 48px;font-family:Inter,system-ui,sans-serif}
       .quickscreen-tile{position:relative;display:flex;align-items:center;gap:18px;min-height:148px;padding:24px;border:1px solid var(--qs-line);border-radius:16px;background:#fff;color:var(--qs-ink);text-decoration:none;box-shadow:0 4px 20px rgba(15,23,42,.045);overflow:hidden;transition:border-color .2s,background-color .2s}
       .quickscreen-tile:after{content:'→';margin-left:auto;color:var(--qs-teal);font:500 28px/1 Outfit,sans-serif;transition:transform .2s}
@@ -30,12 +32,12 @@
     </style>
   </head>
   <body>
-    <div id="root"></div>
     <section class="quickscreen-launcher-grid" aria-label="Wybierz aplikację">
       <a class="quickscreen-tile" href="/quick-screen-v2/" aria-label="Otwórz QuickScreen v2"><span class="tile-mark teal" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 17.5V6.5M4 12h16M20 6.5v11"/><path d="m8 8 4-4 4 4M8 16l4 4 4-4"/></svg></span><span><b class="tile-kicker">Screening</b><strong>QuickScreen v2</strong><small>Najnowsza wersja screeningu ruchowego</small></span></a>
       <a class="quickscreen-tile" href="/quickscreen/" aria-label="Otwórz QuickScreen"><span class="tile-mark teal" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8M12 8v8"/></svg></span><span><b class="tile-kicker">Screening</b><strong>QuickScreen</strong><small>Klasyczna wersja aplikacji</small></span></a>
       <a class="quickscreen-tile" href="/fms" aria-label="Otwórz FMS"><span class="tile-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v6m0 0-4 7m4-7 4 7M8 10l4 3 4-3"/></svg></span><span><b class="tile-kicker">System oceny</b><strong>FMS</strong><small>Functional Movement Screen</small></span></a>
       <a class="quickscreen-tile" href="/sfma" aria-label="Otwórz SFMA"><span class="tile-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 18V9m7 9V5m7 13v-6"/><path d="M3 18h18M3 6h4M17 6h4"/></svg></span><span><b class="tile-kicker">System oceny</b><strong>SFMA</strong><small>Select Functional Movement Assessment</small></span></a>
     </section>
+    <div id="root"></div>
   </body>
 </html>
