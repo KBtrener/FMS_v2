@@ -92,7 +92,11 @@ QSUI.shell = function (content, active = 'clients') {
   const bottom = `<nav class="bottom-nav"><div class="bottom-nav-inner">${definition.bottom.map(([label, icon, route]) => `<a class="nav-item" href="${route}"><span class="icon">${icon}</span>${label}</a>`).join('')}</div></nav>`;
 
   document.body.dataset.previewRole = role;
-  return previousShell.call(this, content, active)
+  const shell = previousShell.call(this, content, active);
+  const profileLink = role === 'client'
+    ? '<a class="avatar" href="#/client/demo" title="Mój profil">KB</a>'
+    : '<a class="avatar" href="#/trainer" title="Profil trenera">KB</a>';
+  return shell.replace(/<a class="avatar" href="#\/trainer" title="Profil trenera">KB<\/a>/, profileLink)
     .replace(/<nav class="main-menu"[\s\S]*?<\/nav>/, menu)
     .replace(/<nav class="bottom-nav">[\s\S]*?<\/nav>/, bottom)
     .replace(/<button class="nav-fab"[\s\S]*?<\/button>/, '')
