@@ -9,5 +9,19 @@
  function criteria(){document.body.insertAdjacentHTML('beforeend',QSUI.sheet('Kryteria: Shoulder Clearing',`<div class="stack"><div class="status-line info">i Procedura i kryteria są pokazane jako referencja trenerska.</div><div class="card"><h3>Ustawienie</h3><p>Badany stoi stabilnie. Wykonuje wzorzec górny i dolny osobno po lewej oraz prawej stronie.</p></div><div class="card"><h3>Kryteria oceny</h3><ul><li>kontrolowany zakres ruchu</li><li>brak kompensacji tułowiem</li><li>obserwacja bólu i różnicy stron</li></ul></div><button class="btn btn-primary" data-action="close-overlay">Rozumiem, wróć do testu</button></div>`))}
  function toast(text,kind){document.querySelector('.toast')?.remove();document.body.insertAdjacentHTML('beforeend',QSUI.toast(text,kind));setTimeout(()=>document.querySelector('.toast')?.remove(),2800)}
  document.addEventListener('click',e=>{const route=e.target.closest('[data-route]');if(route){e.preventDefault();QSRouter.go(route.dataset.route);return}const action=e.target.closest('[data-action]');if(!action)return;const a=action.dataset.action;if(a==='navigator'){openNavigator();return}if(a==='close-navigator'){document.querySelector('.navigator')?.remove();return}if(a==='criteria'){criteria();return}if(a==='close-overlay'||e.target.classList.contains('modal-backdrop')||e.target.classList.contains('sheet-backdrop')){document.querySelector('.modal-backdrop,.sheet-backdrop')?.remove();return}if(a==='modal'){const type=action.dataset.modal;QSRouter.go(type==='new-client'?'#/clients?modal=new':type==='edit-client'?'#/clients?modal=edit':type==='password'?'#/trainer?modal=password':type==='cert'?'#/trainer?modal=cert':'#/configuration?modal=rule');return}if(a==='select'){action.parentElement.querySelectorAll('.option').forEach(x=>x.classList.remove('selected'));action.classList.add('selected');return}if(a==='toast')toast(action.dataset.toast||'Funkcja nieaktywna w makiecie.',action.dataset.kind||'success')});
+ /* Edycja profilu jest ekranem makiety, bez zapisu danych. */
+ document.addEventListener('click',e=>{
+  const action=e.target.closest('[data-action="modal"]');
+  if(action?.dataset.modal==='edit-client'&&QSRouter.parse().path.startsWith('/client/')){e.preventDefault();e.stopImmediatePropagation();QSRouter.go('#/client/demo?modal=edit')}
+ },true);
+ /* Jedna obsługa przejść w makiecie: linki i przyciski zawsze zmieniają ekran. */
+ document.addEventListener('click',e=>{
+  const link=e.target.closest('a[href^="#/"]');
+  if(link&&!link.hasAttribute('data-preview-role')){e.preventDefault();QSRouter.go(link.getAttribute('href'));return}
+  const route=e.target.closest('[data-route]');
+  if(route){e.preventDefault();QSRouter.go(route.dataset.route);return}
+  const action=e.target.closest('[data-action="modal"]');
+  if(action?.dataset.modal==='edit-client'&&QSRouter.parse().path.startsWith('/client/')){e.preventDefault();QSRouter.go('#/client/demo?modal=edit')}
+ });
  QSRouter.init(render);
 })();
