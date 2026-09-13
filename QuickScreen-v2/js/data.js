@@ -21,6 +21,19 @@ window.QS={
   {name:'Spine Extension Clearing',type:'pain',instruction:'Wykonaj wyprost kręgosłupa i zgłoś ewentualny ból.'}
  ],
  history:[{date:'07.09.2026',score:5,status:'pain',note:'Ból po stronie prawej w Shoulder Clearing.'},{date:'18.07.2026',score:9,status:'attention',note:'Asymetria w rotacji tułowia.'},{date:'02.06.2026',score:12,status:'pass',note:'Dobry wynik bazowy.'}],
+ reportDemo:{
+  user:{profile:'active',sports:['football'],account_exists:true,previous_completed_screens_count:2},
+  screen:{id:'QS-2026-0907',date:'07.09.2026',mode:'in_person',video_quality:'not_applicable'},
+  results:{
+   cervical:{flexion:{rom:'pass',pain:'negative'},rotation:{right:{rom:'pass',pain:'negative'},left:{rom:'pass',pain:'negative'}},rotation_extension:{right:{pain:'positive'},left:{pain:'negative'}}},
+   toe_touch:{right:{raw_score:2},left:{raw_score:1},pain:false},
+   shoulder_mobility:{right:{raw_score:2},left:{raw_score:1},hand_length:19},
+   shoulder_clearing:{right:{overhead:'positive',behind_back:'positive'},left:{overhead:'negative',behind_back:'negative'}},
+   squat:{score:2,pain:false}, balance:{right:{raw_score:2},left:{raw_score:1},pain:false},
+   rotation:{right:{raw_score:2},left:{raw_score:1},pain:false}, spine_extension_clearing:{pain:'negative'}
+  },
+  previous:{primary:'Rotacja całego ciała',results:{toe_touch:[2,1],shoulder_mobility:[1,1],balance:[2,1],rotation:[1,1]}}
+ },
  rules:[{name:'Shoulder Mobility → Shoulder Clearing',when:'Nieudany wzorzec barku',effect:'Wynik powiązanego testu = 0',active:true},{name:'Ból → status Pain',when:'Pain = obecny',effect:'Oznaczenie testu jako ból',active:true},{name:'Asymetria bilateralna',when:'Różnica stron',effect:'Status Attention',active:true}],
  nav:[
   ['Auth',[['Loading','#/loading'],['Logowanie','#/login'],['Rejestracja','#/register'],['Reset hasła','#/reset-password']]],
