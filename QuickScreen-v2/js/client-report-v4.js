@@ -17,4 +17,12 @@
     var html='<main class="report-v4"><div class="r4-top"><a class="r4-back" href="#/client-panel">← Wróć do panelu klienta</a><div><button class="btn btn-outline btn-sm" onclick="window.print()">Drukuj</button><button class="btn btn-teal btn-sm" data-action="toast" data-toast="Pobieranie PDF będzie dostępne po wdrożeniu generatora.">Pobierz PDF</button></div></div>'+selector(key)+'<article class="r4-paper"><header class="r4-head"><div class="r4-brand">KB<span>+</span></div><div><span>RAPORT BADANIA RUCHOWEGO</span><h1>'+x.person+'</h1><p>07.09.2026 · '+x.sport+'</p></div><b>QS-2026-0907</b></header>'+intro+'<section class="r4-answer"><span>CZY MOŻESZ TRENOWAĆ?</span><h2>'+x.status+'</h2></section><section class="r4-priority"><div><span>NAJWAŻNIEJSZE TERAZ</span><h2>'+x.headline+'</h2><p>Główny obszar do pracy: <b>'+x.priority+'</b>.</p></div><div class="r4-priority-mark">01</div></section><section class="r4-actions"><header><span>TWÓJ PLAN</span><h2>Co zrobić po tym badaniu</h2></header><div>'+action('CO ZROBIĆ TERAZ',x.doNow,'now')+action('CO CHWILOWO OGRANICZYĆ',x.limit,'limit')+action('CO MOŻESZ KONTYNUOWAĆ',x.continue,'continue')+'</div></section><section class="r4-why"><span>DLACZEGO TO MA ZNACZENIE?</span><p>'+x.why+'</p></section>'+history+'<section class="r4-results"><header><span>PEŁNY OBRAZ</span><h2>Co pokazują wyniki</h2><p>Protect, Correct i Develop porządkują kolejność działania — nie są diagnozą.</p></header><div class="r4-lanes"><section class="protect"><header><b>Najpierw zatrzymaj i omów</b><span>Protect · ból</span></header>'+x.protect+'</section><section class="correct"><header><b>Potem popraw</b><span>Correct · do pracy</span></header>'+x.correct+'</section><section class="develop"><header><b>To możesz rozwijać</b><span>Develop · dobry wynik</span></header>'+x.develop+'</section></div></section>'+cta+'<footer class="r4-foot"><b>Move well. Move often.</b><p>Badanie ma charakter przesiewowy. Pokazuje, które obszary warto poprawić lub sprawdzić dokładniej, ale nie określa przyczyny bólu ani ograniczenia.</p></footer></article></main>';
     return QSViews.layout(html,'client-panel');
   };
+  /* The application prototype has document-level navigation handlers. Report content is inert by design. */
+  document.addEventListener('click',function(event){
+    var report=event.target.closest('.report-v4');
+    if(!report)return;
+    var allowed=event.target.closest('.r4-back,.r4-selector a,.r4-top button,.r4-cta a');
+    if(allowed)return;
+    event.stopImmediatePropagation();
+  },true);
 }());
