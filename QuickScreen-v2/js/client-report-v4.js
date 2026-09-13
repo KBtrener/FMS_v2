@@ -29,7 +29,8 @@
     html=html.replace('>Drukuj</button>','>Drukuj / zapisz PDF</button>');
     html=html.replace(/data-action="toast"[^>]*>/,'onclick="QSReportDownload()">');
     html=html.replace('>Pobierz PDF</button>','>Pobierz raport</button>');
-    return QSViews.layout(html,'client-panel');
+    /* A report is a self-contained document: do not inherit global app navigation. */
+    return html;
   };
   window.QSReportDownload=function(){
     var paper=document.querySelector('.r4-paper');
