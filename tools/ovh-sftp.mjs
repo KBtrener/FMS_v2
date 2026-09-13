@@ -35,6 +35,10 @@ if (protocol === 'ftp' || protocol === 'ftps') {
     } else if (command === 'upload-file') {
       const local = process.argv[3], remoteName = process.argv[4]; if (!local || !remoteName || remoteName.includes('..')) throw new Error('Nieprawidłowa ścieżka uploadu.');
       const remote = posix.join(target, 'quickscreen', remoteName.replaceAll('\\', '/')); await ftp.ensureDir(posix.dirname(remote)); await ftp.uploadFrom(local, remote); console.log(JSON.stringify({ uploaded: basename(local), remote }));
+    } else if (command === 'delete-file') {
+      const remoteName = process.argv[3], remoteDir = process.argv[4] || 'quickscreen';
+      if (!remoteName || remoteName.includes('..') || remoteDir.includes('..') || remoteDir.startsWith('/')) throw new Error('Invalid deletion path.');
+      const remote = posix.join(target, remoteDir, remoteName.replaceAll('\\', '/')); await ftp.remove(remote); console.log(JSON.stringify({ deleted: remote }));
     } else if (command === 'upload-home') {
       const local = process.argv[3], remoteName = process.argv[4]; if (!local || !['index.html', 'index.htm', 'index.php'].includes(remoteName)) throw new Error('Dozwolona jest wyłącznie aktualizacja pliku startowego.');
       const remote = posix.join(target, remoteName); await ftp.uploadFrom(local, remote); console.log(JSON.stringify({ uploaded: remoteName, remote }));
@@ -70,6 +74,12 @@ try {
     const remote = posix.join(quick, remoteName.replaceAll('\\', '/'));
     const parent = posix.dirname(remote); if (!(await client.exists(parent))) await client.mkdir(parent, true);
     await client.fastPut(local, remote); console.log(JSON.stringify({ uploaded: basename(local), remote }));
+  } else if (command === 'delete-file') {
+    const remoteName = process.argv[3]; const remoteDir = process.argv[4] || 'quickscreen';
+    if (!remoteName || remoteName.includes('..') || remoteDir.includes('..') || remoteDir.startsWith('/')) throw new Error('Invalid deletion path.');
+    const remote = posix.join(target, remoteDir, remoteName.replaceAll('\\', '/'));
+    if (await client.exists(remote)) await client.delete(remote);
+    console.log(JSON.stringify({ deleted: remote }));
   } else if (command === 'patch-service-worker') {
     const remote = posix.join(target, 'sw.js');
     const source = (await client.get(remote)).toString('utf8');
