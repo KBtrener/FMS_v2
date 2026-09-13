@@ -1,5 +1,13 @@
 /* Report v4: deterministic client copy based on FMS_REPORT_ACTION_RULES_DB. */
 (function(){
+  var reportNavigationAllowed=false;
+  var baseRouterGo=QSRouter.go;
+  /* A delayed global redirect must never dismiss an open report. */
+  QSRouter.go=function(route){
+    if(location.hash.indexOf('#/report/')===0&&!reportNavigationAllowed)return;
+    reportNavigationAllowed=false;
+    return baseRouterGo.call(QSRouter,route);
+  };
   function result(title,score,copy){return '<article class="r4-result"><div><h3>'+title+'</h3><p>'+copy+'</p></div><b>'+score+'</b></article>'}
   var cases={
     pain:{label:'Ból w ruchu',person:'Gaweł Kot',sport:'Piłka nożna',status:'Możesz utrzymać aktywność, która nie prowokuje bólu.',headline:'Najpierw wyjaśnij ból w szyi i barku.',priority:'Ból w szyi i obręczy barkowej',doNow:'Utrzymaj trening elementów, które nie prowokują bólu szyi ani barku.',limit:'Ogranicz ruchy szyi oraz pozycje nad głową i za plecami, które odtwarzają ból.',continue:'Pozostałe bezbolesne elementy treningu możesz kontynuować.',why:'W piłce nożnej ma to znaczenie przy kontakcie, szybkiej obserwacji otoczenia i dynamicznej pracy całego ciała.',protect:result('Ruchomość szyi','Ból','Ból przy rotacji z wyprostem po prawej stronie.')+result('Mobilność obręczy barkowej','Ból','Dodatni Shoulder Clearing po prawej stronie.'),correct:result('Skłon i praca bioder','1 / 3','Wróć do tego po wyjaśnieniu bólu.')+result('Równowaga jednonóż','2 / 1','Jedna strona wymaga poprawy.'),develop:result('Przysiad','2 / 3','Dobry wynik — możesz go rozwijać.'),history:'Poprzednio głównym obszarem była rotacja. Dziś najpierw wyjaśniamy ból.'},
@@ -49,8 +57,11 @@
   document.addEventListener('click',function(event){
     var report=event.target.closest('.report-v4');
     if(!report)return;
-    var allowed=event.target.closest('.r4-back,.r4-selector a,.r4-top button,.r4-cta a');
+    var navigation=event.target.closest('.r4-back,.r4-selector a');
+    if(navigation){reportNavigationAllowed=true;return}
+    var allowed=event.target.closest('.r4-top button,.r4-cta a');
     if(allowed)return;
+    event.preventDefault();
     event.stopImmediatePropagation();
   },true);
 }());
