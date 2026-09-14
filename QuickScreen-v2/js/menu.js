@@ -106,12 +106,24 @@ QSViews.trainerPanel = function () {
     <div class="trainer-work-grid">
       <section class="card trainer-rules-card" id="trainer-fms-rules">
         <div class="card-head"><div><span class="eyebrow">Ściąga protokołu</span><h2>Zasady FMS / QuickScreen</h2><p class="muted">Reguły do zastosowania podczas interpretacji — nie automatyczna diagnoza.</p></div><span class="badge badge-info">wersja 4.2</span></div>
-        <div class="trainer-rule-sections">
-          <details open><summary><b>1. Ból ma pierwszeństwo</b><span>PROTECT</span></summary><p>Wynik 0, dodatni clearing lub ból szyi: zapisz bolesny obszar. Nie traktuj bezbolesnego wyniku jako ważniejszego problemu.</p></details>
-          <details><summary><b>2. Wynik 1 i Fail</b><span>CORRECT</span></summary><p>Wynik 1 nie spełnia podstawowego standardu. Przy danych stron zawsze zachowaj zapis L / P.</p></details>
-          <details><summary><b>3. Asymetria</b><span>PORÓWNAJ STRONY</span></summary><p>3/2 to różnica przy spełnionym standardzie; 2/1 i 3/1 wskazują stronę, która go nie spełnia. Wynik 1/1 nie jest asymetrią.</p></details>
-          <details><summary><b>4. Kolejność przeglądu</b><span>HIERARCHIA</span></summary><p>Cervical → Toe Touch → Shoulder Mobility → Squat → Balance → Rotation.</p></details>
+        <div class="trainer-cheatsheets">
+          <section class="trainer-cheatsheet">
+            <span class="eyebrow">Ściąga 1 · najpierw rodzaj problemu</span>
+            <h3>W jakiej kolejności poprawiać problemy?</h3>
+            <ol class="trainer-sort-flow">
+              <li class="protect"><b>Najpierw ból</b><span>Wynik 0, ból szyi, dodatni Shoulder Clearing lub Spine Extension Clearing. Zapisz wszystkie bolesne obszary — żaden bezbolesny wynik nie ma przed nimi pierwszeństwa.</span></li>
+              <li><b>Jeśli nie ma bólu: znajdź kandydatów</b><span>Wynik 1, cervical FAIL, asymetria 3/2, 2/1, 3/1 albo cervical PASS/FAIL.</span></li>
+              <li><b>Wyniki 2 i 3 zostaw do rozwoju</b><span>Same w sobie nie są kandydatami do poprawiania. Wynik 3/2 jest obserwacją, nie automatycznym ograniczeniem treningu.</span></li>
+            </ol>
+          </section>
+          <section class="trainer-cheatsheet">
+            <span class="eyebrow">Ściąga 2 · potem wzorzec</span>
+            <h3>W jakiej kolejności przeglądać wzorce?</h3>
+            <p class="trainer-cheatsheet-intro">Gdy masz już grupę kandydatów, wybierz pierwszy według tej kolejności:</p>
+            <div class="trainer-pattern-order"><b>1. Cervical</b><b>2. Toe Touch</b><b>3. Shoulder Mobility</b><b>4. Squat</b><b>5. Balance</b><b>6. Rotation</b></div>
+          </section>
         </div>
+        <aside class="trainer-retest-rule"><b>Jak pracować z wynikiem?</b><p>Wybierz jeden główny problem, pozostałe zapisz jako obserwacje dodatkowe, potem wykonaj re-test. Poprawa wcześniejszego wzorca może zmienić obraz kolejnych wyników.</p></aside>
       </section>
       <section class="card trainer-actions-card">
         <div class="card-head"><div><span class="eyebrow">Praca z klientem</span><h2>Badania</h2></div></div>
