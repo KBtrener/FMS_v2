@@ -2,6 +2,8 @@
 
 Wersja: 4.1
 
+> **Wydanie UI 4.1 — kontrakt re-testu.** `report.retest_date = date_optional`; `report.retest_default_window = "1–2 tygodnie"`. Data trenera ma pierwszeństwo. Pole nie zmienia punktacji, priorytetu ani Action Rules.
+
 ## 1. Profil użytkownika
 
 ```text

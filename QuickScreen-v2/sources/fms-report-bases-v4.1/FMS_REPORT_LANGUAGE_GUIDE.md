@@ -2,6 +2,8 @@
 
 Wersja: 4.1
 
+> **Wydanie UI 4.1 — obowiązujące uzupełnienie.** Pierwszy ekran ma trzy poziomy: jedna karta decyzji z nazwanym priorytetem, jeden blok `Co robić` (zacznij od / ogranicz / możesz kontynuować) i krótki kontekst z re-testem. Nie powtarzaj priorytetu. Re-test: `Sprawdź ponownie za 1–2 tygodnie.` oraz `Szukamy zmiany w dobrym kierunku, nie od razu idealnego wyniku.` To reguła pracy aplikacji, nie reguła medyczna ani FMS. Przy bólu użyj ustalonego komunikatu o rozmowie 1:1; przy wielu bólach pokaż wszystkie. W pełnych wynikach stosuj małą legendę 3/2/1/0 oraz PASS / FAIL dla Cervical.
+
 ## Cel
 
 Raport ma brzmieć jak rozmowa dobrego trenera z klientem: krótko, konkretnie i naturalnie.

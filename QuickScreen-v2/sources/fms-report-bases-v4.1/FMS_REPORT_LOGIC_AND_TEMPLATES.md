@@ -2,6 +2,8 @@
 
 Wersja: 4.1
 
+> **Wydanie UI 4.1 — obowiązujące uzupełnienie.** Nie zmieniaj hierarchii ani punktacji. Po wyborze PRIMARY renderuj: hero (decyzja + PRIMARY), wspólny blok trzech działań, kontekst i mały re-test, następnie historię, a na końcu zwarte Protect / Correct / Develop. `report.retest_date` trenera ma pierwszeństwo; bez daty renderuj `Sprawdź ponownie za 1–2 tygodnie.` Generator nie generuje ćwiczeń, dawek ani programu treningowego.
+
 Wszystkie teksty użytkowe muszą być zgodne z `FMS_REPORT_LANGUAGE_GUIDE.md`.
 
 # 1. Hierarchia

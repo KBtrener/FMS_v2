@@ -2,6 +2,8 @@
 
 Wersja: 4.1
 
+> **Wydanie UI 4.1 — legenda.** Mała, zwijana legenda przy pełnych wynikach: `3 — BARDZO DOBRZE` (wszystkie kryteria), `2 — W PORZĄDKU, ALE NIE IDEALNIE` (kompensacja lub nie wszystkie kryteria 3), `1 — ŹLE` (wymaga poprawy), `0 — BÓL` (ból podczas ruchu). Cervical: PASS / FAIL i ból.
+
 Ten plik zawiera teksty kierowane do użytkownika. Obowiązują zasady z `FMS_REPORT_LANGUAGE_GUIDE.md`.
 
 ---

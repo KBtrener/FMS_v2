@@ -2,6 +2,8 @@
 
 Wersja: 4.1
 
+> **Wydanie UI 4.1 — układ przykładów.** Każdy przykład ma: decyzję z jednym priorytetem, trzy wiersze działań, jedno zdanie kontekstu i re-test, a dopiero potem pełne wyniki. Przy bólu pokaż wszystkie bolesne obszary oraz komunikat rozmowy 1:1. Pełne wyniki to pojedyncze testy w Protect / Correct / Develop.
+
 # Przykład A — ACTIVE, piłka nożna, Balance L2 / P1
 
 ## Dane

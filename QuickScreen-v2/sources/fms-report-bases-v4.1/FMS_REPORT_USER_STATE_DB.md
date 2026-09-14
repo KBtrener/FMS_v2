@@ -2,6 +2,8 @@
 
 Wersja: 4.1
 
+> **Wydanie UI 4.1 — re-test i historia.** Każdy stan użytkownika ma mały re-test: data trenera ma pierwszeństwo, inaczej `Sprawdź ponownie za 1–2 tygodnie.` Bez porównywalnego badania pokaż `Twój punkt wyjścia — przy kolejnym badaniu porównamy zmianę.` Historia to krótkie wiersze `Test: poprzednio → obecnie` z etykietami, bez `+2 pkt`.
+
 Ta warstwa nie zmienia interpretacji ruchowej. Steruje tylko tym, co raport pokazuje na końcu i czy widoczna jest historia.
 
 ---
