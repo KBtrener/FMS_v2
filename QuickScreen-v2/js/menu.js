@@ -78,6 +78,48 @@ document.addEventListener('click', event => {
 }, true);
 
 QSViews.trainerPanel = function () {
-  const recent = QS.history.slice(0, 3);
-  return QSViews.layout(`<div class="role-dashboard trainer-dashboard"><div class="page-head"><div><div class="eyebrow">QuickScreen · trener</div><h1>Twoja praca</h1><p>Rozpocznij badanie albo dodaj nowego klienta.</p></div></div><section class="trainer-primary-actions" aria-label="Najważniejsze działania"><a class="btn btn-primary trainer-primary-button" href="#/assessment"><span>＋</span><span><b>Nowe badanie</b><small>Wybierz klienta i przejdź do wizarda</small></span></a><a class="btn btn-outline trainer-primary-button" href="#/clients?modal=new"><span>＋</span><span><b>Nowy klient</b><small>Dodaj profil przed rozpoczęciem badania</small></span></a></section><div class="grid-2 trainer-summary"><section class="card stat"><span>Klienci</span><strong>${QS.clients.filter(client => !client.archived).length}</strong><span>aktywnych profili</span></section><section class="card stat"><span>Wykonane badania</span><strong>${QS.history.length}</strong><span>łącznie w systemie</span></section></div><section class="card trainer-recent"><div class="card-head"><div><span class="eyebrow">Ostatnio badani</span><h2>Ostatnie osoby</h2></div><a class="btn btn-ghost btn-sm" href="#/clients">Wszyscy klienci</a></div><div class="list">${recent.map((item, index) => { const client = QS.clients[index] || QS.client; return `<a class="list-row trainer-recent-row" href="#/client/${client.id || 'demo'}"><span class="initials">${client.initials || 'KB'}</span><span><b>${client.name || QS.client.name}</b><small>${item.date} · wynik ${item.score}/15</small></span><strong>→</strong></a>`; }).join('')}</div></section></div>`, 'trainer-panel');
+  const activeClients = QS.clients.filter(client => !client.archived).length;
+  const rawResults = [
+    {client:'Gaweł Kot', initials:'GK', date:'07.09.2026', scores:['F: PASS · R: L PASS / P FAIL','L 1 · P 3','0 · clearing +','2','L 2 · P 1','L 0 · P 1'], status:'pain', route:'#/client/demo'},
+    {client:'Anna Nowak', initials:'AN', date:'04.09.2026', scores:['F: PASS · R: PASS','L 1 · P 3','L 2 · P 2','2','L 3 · P 3','L 3 · P 3'], status:'attention', route:'#/client/anna'},
+    {client:'Katarzyna Wiśniewska', initials:'KW', date:'15.08.2026', scores:['F: PASS · R: PASS','L 3 · P 3','L 2 · P 2','3','L 3 · P 2','L 3 · P 2'], status:'attention', route:'#/client/kasia'}
+  ];
+  return QSViews.layout(`<div class="role-dashboard trainer-dashboard trainer-workbench">
+    <div class="page-head trainer-page-head">
+      <div><div class="eyebrow">QuickScreen · workspace trenera</div><h1>Wyniki i protokół</h1><p>Surowe wyniki wspierają Twoją ocenę — aplikacja nie wybiera za Ciebie priorytetu pracy.</p></div>
+      <div class="trainer-page-actions"><a class="btn btn-outline" href="#/clients">Klienci</a><a class="btn btn-primary" href="#/assessment">＋ Nowe badanie</a></div>
+    </div>
+
+    <section class="trainer-utility-bar">
+      <div><b>${activeClients}</b><span>aktywnych klientów</span></div>
+      <div><b>${QS.history.length}</b><span>zapisane badania demo</span></div>
+      <div><b>9</b><span>elementów QuickScreen</span></div>
+      <a href="#trainer-fms-rules">Zasady FMS / QuickScreen ↓</a>
+    </section>
+
+    <section class="card trainer-results-card">
+      <div class="card-head"><div><span class="eyebrow">Ostatnie kompletne badania</span><h2>Surowe wyniki</h2><p class="muted">Wynik zapisany zgodnie z protokołem. Ocenę znaczenia i kolejność pracy ustala trener.</p></div><a class="btn btn-soft btn-sm" href="#/clients">Pełna lista klientów</a></div>
+      <div class="trainer-results-scroll"><table class="trainer-results-table"><thead><tr><th>Klient / data</th><th>Szyja</th><th>Skłon</th><th>Bark</th><th>Przysiad</th><th>Równowaga</th><th>Rotacja</th><th></th></tr></thead><tbody>${rawResults.map(row => `<tr><td><span class="initials ${row.status}">${row.initials}</span><span><b>${row.client}</b><small>${row.date}</small></span></td>${row.scores.map(score => `<td>${score}</td>`).join('')}<td><a class="btn btn-ghost btn-sm" href="${row.route}">Profil</a></td></tr>`).join('')}</tbody></table></div>
+      <footer class="trainer-table-note"><span class="trainer-status-key pain">0 / ból</span><span class="trainer-status-key attention">1 / różnica stron</span><span>Wyniki 2 i 3 nie są automatycznie problemem.</span></footer>
+    </section>
+
+    <div class="trainer-work-grid">
+      <section class="card trainer-rules-card" id="trainer-fms-rules">
+        <div class="card-head"><div><span class="eyebrow">Ściąga protokołu</span><h2>Zasady FMS / QuickScreen</h2><p class="muted">Reguły do zastosowania podczas interpretacji — nie automatyczna diagnoza.</p></div><span class="badge badge-info">wersja 4.2</span></div>
+        <div class="trainer-rule-sections">
+          <details open><summary><b>1. Ból ma pierwszeństwo</b><span>PROTECT</span></summary><p>Wynik 0, dodatni clearing lub ból szyi: zapisz bolesny obszar. Nie traktuj bezbolesnego wyniku jako ważniejszego problemu.</p></details>
+          <details><summary><b>2. Wynik 1 i Fail</b><span>CORRECT</span></summary><p>Wynik 1 nie spełnia podstawowego standardu. Przy danych stron zawsze zachowaj zapis L / P.</p></details>
+          <details><summary><b>3. Asymetria</b><span>PORÓWNAJ STRONY</span></summary><p>3/2 to różnica przy spełnionym standardzie; 2/1 i 3/1 wskazują stronę, która go nie spełnia. Wynik 1/1 nie jest asymetrią.</p></details>
+          <details><summary><b>4. Kolejność przeglądu</b><span>HIERARCHIA</span></summary><p>Cervical → Toe Touch → Shoulder Mobility → Squat → Balance → Rotation.</p></details>
+        </div>
+      </section>
+      <section class="card trainer-actions-card">
+        <div class="card-head"><div><span class="eyebrow">Praca z klientem</span><h2>Badania</h2></div></div>
+        <a class="trainer-action-link primary" href="#/assessment"><b>＋</b><span>Przeprowadź nowe badanie<small>Wybierz klienta i rozpocznij testy</small></span></a>
+        <a class="trainer-action-link" href="#/assessment/demo/6"><b>↻</b><span>Wznów zapisany szkic<small>Gaweł Kot · Shoulder Clearing</small></span></a>
+        <a class="trainer-action-link" href="#/clients?modal=new"><b>＋</b><span>Dodaj klienta<small>Utwórz profil przed badaniem</small></span></a>
+        <div class="trainer-method-note"><b>Przypomnienie</b><p>QuickScreen jest badaniem przesiewowym. Wynik pokazuje obserwację, nie przyczynę ograniczenia ani diagnozę.</p></div>
+      </section>
+    </div>
+  </div>`, 'trainer-panel');
 };
