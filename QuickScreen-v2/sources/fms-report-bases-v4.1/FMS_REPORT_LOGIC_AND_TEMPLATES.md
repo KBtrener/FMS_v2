@@ -2,6 +2,8 @@
 
 Wersja: 4.1
 
+> **Prezentacja dynamiczna.** Dla wyniku bez bólu: decyzja, PRIMARY, `Co zrobić po badaniu?` (nad czym pracować / czego na razie nie zwiększać / co można robić dalej), kontekst, re-test, historia i pełne wyniki. Ukryj `Czego na razie nie zwiększać`, gdy reguła mówi o braku automatycznego ograniczenia. Dla bólu: `Czy możesz trenować?`, `Co pokazało badanie?`, `Co zrobić teraz?`, `Co możesz robić bez bólu?`, `Dlaczego ten wynik wymaga rozmowy 1:1?`, re-test i wyniki. Nie zmienia to selection PRIMARY ani Action Rules.
+
 > **Wydanie UI 4.1 — obowiązujące uzupełnienie.** Nie zmieniaj hierarchii ani punktacji. Po wyborze PRIMARY renderuj: hero (decyzja + PRIMARY), wspólny blok trzech działań, kontekst i mały re-test, następnie historię, a na końcu zwarte Protect / Correct / Develop. `report.retest_date` trenera ma pierwszeństwo; bez daty renderuj `Sprawdź ponownie za 1–2 tygodnie.` Generator nie generuje ćwiczeń, dawek ani programu treningowego.
 
 Wszystkie teksty użytkowe muszą być zgodne z `FMS_REPORT_LANGUAGE_GUIDE.md`.

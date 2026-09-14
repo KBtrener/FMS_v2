@@ -2,6 +2,8 @@
 
 Wersja: 4.1
 
+> **Nagłówki klientowe.** Nagłówek musi być zrozumiały bez tekstu pod nim. Preferuj: `Czy możesz trenować?` / `Czy możesz normalnie się ruszać?`, `Co jest teraz najważniejsze?`, `Co zrobić po badaniu?`, `Co ten wynik oznacza dla [sportu]?` / `…w codziennym ruchu?`, `Kiedy sprawdzić ponownie?`, `Co zmieniło się od poprzedniego badania?` i `Pełny obraz wyników`. Nie używaj: `Decyzja na dziś`, `Zacznij od`, `Ogranicz`, `Możesz kontynuować` ani `Dlaczego to ważne?` jako samodzielnych nagłówków.
+
 > **Wydanie UI 4.1 — obowiązujące uzupełnienie.** Pierwszy ekran ma trzy poziomy: jedna karta decyzji z nazwanym priorytetem, jeden blok `Co robić` (zacznij od / ogranicz / możesz kontynuować) i krótki kontekst z re-testem. Nie powtarzaj priorytetu. Re-test: `Sprawdź ponownie za 1–2 tygodnie.` oraz `Szukamy zmiany w dobrym kierunku, nie od razu idealnego wyniku.` To reguła pracy aplikacji, nie reguła medyczna ani FMS. Przy bólu użyj ustalonego komunikatu o rozmowie 1:1; przy wielu bólach pokaż wszystkie. W pełnych wynikach stosuj małą legendę 3/2/1/0 oraz PASS / FAIL dla Cervical.
 
 ## Cel

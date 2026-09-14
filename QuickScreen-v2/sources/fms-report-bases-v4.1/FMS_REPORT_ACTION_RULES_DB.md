@@ -2,6 +2,8 @@
 
 Wersja: 4.1
 
+> **Mapowanie prezentacyjne bez zmiany pól.** `do_now` wyświetlaj pod `Nad czym pracować`, `temporarily_limit` pod `Czego na razie nie zwiększać`, a `can_continue` pod `Co możesz robić dalej`. Zachowaj techniczne nazwy i ich znaczenie.
+
 > **Wydanie UI 4.1 — prezentacja działań.** Każdy raport pokazuje tylko `do_now`, `temporarily_limit` i `can_continue` w jednym bloku z trzema krótkimi wierszami. Nie zamieniaj tych reguł na ćwiczenia, serie, powtórzenia, dawkowanie, plan treningowy ani rehabilitacyjny. W stanie bólu `next_step` jest rozmową 1:1.
 
 ## Cel

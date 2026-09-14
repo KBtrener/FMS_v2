@@ -2,6 +2,8 @@
 
 Wersja: 4.1
 
+> **Walidacja nagłówków.** Po ukryciu tekstów pomocniczych same nagłówki muszą tworzyć logiczną kolejność pytań klienta. Ból ma własną sekwencję nagłówków. Nie renderuj pustego ograniczenia, kontekstu sportowego bez sportu ani historii bez porównywalnego badania.
+
 > **Wydanie UI 4.1 — walidacja layoutu.** Hero ma jedną decyzję i jeden PRIMARY; re-test jest zawsze widoczny (z datą trenera, jeśli istnieje); przy wielu bólach widoczne są wszystkie obszary i komunikat rozmowy 1:1; bez porównywalnego badania nie pokazuj historii; pełne wyniki mają pojedyncze testy oraz L/P; disclaimer występuje raz w stopce PDF.
 
 Wszystkie komunikaty użytkowe muszą być zgodne z `FMS_REPORT_LANGUAGE_GUIDE.md`.

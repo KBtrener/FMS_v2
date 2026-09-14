@@ -2,6 +2,8 @@
 
 Wersja: 4.1
 
+> **Nagłówki przykładów.** Przykłady używają pytań klienta: `Czy możesz trenować?`, `Co jest teraz najważniejsze?`, `Co zrobić po badaniu?`, `Co ten wynik oznacza dla [sportu]?`, `Kiedy sprawdzić ponownie?` i `Pełny obraz wyników`. W GENERAL zastąp pytanie sportowe `Co ten wynik oznacza w codziennym ruchu?`. Każdy przykład bólowy dodatkowo pokazuje `Co pokazało badanie?` i `Dlaczego ten wynik wymaga rozmowy 1:1?`.
+
 > **Wydanie UI 4.1 — układ przykładów.** Każdy przykład ma: decyzję z jednym priorytetem, trzy wiersze działań, jedno zdanie kontekstu i re-test, a dopiero potem pełne wyniki. Przy bólu pokaż wszystkie bolesne obszary oraz komunikat rozmowy 1:1. Pełne wyniki to pojedyncze testy w Protect / Correct / Develop.
 
 # Przykład A — ACTIVE, piłka nożna, Balance L2 / P1
