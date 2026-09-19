@@ -20,11 +20,20 @@
 (function(){
   var renderReport=QSViews.clientResult;
   QSViews.clientResult=function(state){
-    return renderReport(state)
+    var html=renderReport(state)
       .replace('<span>BEZPIECZEŃSTWO / BÓL</span><h2>','<span>CZY PODCZAS SCREENINGU POJAWIŁ SIĘ BÓL?</span><h2>')
       .replace('<span>GŁÓWNY PRIORYTET</span><h2>','<span>NA CZYM WARTO SKUPIĆ SIĘ W PIERWSZEJ KOLEJNOŚCI?</span><h2>')
       .replace('<span>CO Z TYM ZROBIĆ?</span><h2>Protect · Correct · Develop</h2>','<span>JAK WYKORZYSTAĆ TEN WYNIK W DALSZEJ PRACY?</span><h2>Co teraz chronić, poprawiać i rozwijać?</h2>')
       .replace('<span>WYNIKI WZORCÓW</span><h2>Pełny obraz</h2><p>','<span>JAK WYPADŁY POSZCZEGÓLNE WZORCE RUCHU?</span><h2>Wyniki całego screeningu</h2><p>')
       .replace('<span>HISTORIA / RE-SCREEN</span><p>','<span>CO PORÓWNAMY PRZY NASTĘPNYM SCREENINGU?</span><small class="qs-section-copy">Ta sekcja pokazuje zmianę między badaniami albo wskazuje punkt wyjścia.</small><p>');
+    if(String(location.hash).indexOf('profile=michal')>-1){
+      html=html.replace('Nie ma jednego obszaru wymagającego pierwszeństwa.','Różnica między stronami wymaga ukierunkowanej pracy.')
+        .replace('Brak pilnego priorytetu','Rotation — prawa strona')
+        .replace('Nie wystąpił ból ani wynik 1. Najniższe wyniki są akceptowalne w kontekście screeningu.','W rotacji lewa strona ma wynik 3, a prawa 2. Każda asymetria jest priorytetem do poprawy, nawet gdy obie strony spełniają podstawowy standard.')
+        .replace('Nie ma dodatkowych ograniczeń wynikających z dzisiejszego badania.','Nie ma automatycznego ograniczenia całego treningu wyłącznie z powodu tej asymetrii.')
+        .replace('Utrzymuj jakość ruchu i kontroluj ewentualne zmiany w kolejnym screeningu.','Skup pracę dodatkową na prawej stronie rotacji i na zmniejszeniu różnicy między stronami.')
+        .replace('Możesz rozwijać siłę, kontrolę, zakres i złożoność zgodnie z celem treningowym.','Pozostałe bezbolesne wzorce możesz nadal rozwijać zgodnie z celem treningowym.');
+    }
+    return html;
   };
 }());
