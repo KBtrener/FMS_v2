@@ -15,3 +15,16 @@
   QSViews.clientResult=function(){var k=key(),p=profiles[k];return '<main class="qs-report"><div class="qs-report-top"><a class="qs-back" href="#/client-panel">← Wróć do panelu klienta</a><button class="btn btn-outline btn-sm" onclick="window.print()">Drukuj</button></div>'+picker(k)+'<article class="qs-sheet"><header class="qs-title"><div><span>QUICKSCREEN · RAPORT</span><h1>'+p.name+'</h1><p>'+p.date+' · '+p.sport+'</p></div><b>'+p.id+'</b></header><section class="qs-safety '+(state(p.safety))+'"><span>BEZPIECZEŃSTWO / BÓL</span><h2>'+p.safety+'</h2><p>'+p.summary+'</p></section><section class="qs-priority"><div><span>GŁÓWNY PRIORYTET</span><h2>'+p.priority+'</h2></div><p><b>Dlaczego teraz?</b> '+p.why+'</p></section><section class="qs-actions"><header><span>CO Z TYM ZROBIĆ?</span><h2>Protect · Correct · Develop</h2></header><div><article><b>PROTECT</b><p>'+p.protect+'</p></article><article><b>CORRECT</b><p>'+p.correct+'</p></article><article><b>DEVELOP</b><p>'+p.develop+'</p></article></div></section><section class="qs-results"><header><span>WYNIKI WZORCÓW</span><h2>Pełny obraz</h2><p>Kliknij wzorzec, aby zobaczyć wynik stron i clearing.</p></header><div class="qs-results-list">'+rows(p)+'</div></section><section class="qs-history"><span>HISTORIA / RE-SCREEN</span><p>'+p.history+'</p></section><footer>QuickScreen ma charakter przesiewowy. Pokazuje obszary wymagające uwagi, ale nie określa przyczyny bólu ani ograniczenia.</footer></article></main>'};
   document.addEventListener('click',function(e){var link=e.target.closest('.qs-report-picker a');if(!link)return;e.preventDefault();e.stopImmediatePropagation();QSRouter.go(link.getAttribute('href'))},true);
 }());
+
+/* Nagłówki raportu odpowiadają na pytania klienta, nie na techniczne nazwy sekcji. */
+(function(){
+  var renderReport=QSViews.clientResult;
+  QSViews.clientResult=function(state){
+    return renderReport(state)
+      .replace('<span>BEZPIECZEŃSTWO / BÓL</span><h2>','<span>CZY PODCZAS SCREENINGU POJAWIŁ SIĘ BÓL?</span><h2>')
+      .replace('<span>GŁÓWNY PRIORYTET</span><h2>','<span>NA CZYM WARTO SKUPIĆ SIĘ W PIERWSZEJ KOLEJNOŚCI?</span><h2>')
+      .replace('<span>CO Z TYM ZROBIĆ?</span><h2>Protect · Correct · Develop</h2>','<span>JAK WYKORZYSTAĆ TEN WYNIK W DALSZEJ PRACY?</span><h2>Co teraz chronić, poprawiać i rozwijać?</h2>')
+      .replace('<span>WYNIKI WZORCÓW</span><h2>Pełny obraz</h2><p>','<span>JAK WYPADŁY POSZCZEGÓLNE WZORCE RUCHU?</span><h2>Wyniki całego screeningu</h2><p>')
+      .replace('<span>HISTORIA / RE-SCREEN</span><p>','<span>CO PORÓWNAMY PRZY NASTĘPNYM SCREENINGU?</span><small class="qs-section-copy">Ta sekcja pokazuje zmianę między badaniami albo wskazuje punkt wyjścia.</small><p>');
+  };
+}());
