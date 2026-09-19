@@ -18,7 +18,7 @@ QSViews.clientPanel = function () {
         <span class="eyebrow">Czy możesz trenować?</span>
         <h2>Możesz utrzymać aktywność, która nie prowokuje bólu.</h2>
         <p><b>Najważniejsze teraz:</b> najpierw zajmij się bólem szyi i barku i omów wynik indywidualnie 1:1.</p>
-        <a class="btn btn-teal" href="#/report/demo?case=pain">Zobacz pełny raport →</a>
+        <a class="btn btn-teal" href="#/report/demo?profile=demo">Zobacz raport →</a>
       </div>
       <div class="client-score-status"><span>Wynik pomocniczy</span><strong>${latest.score}<small>/15</small></strong>${QSUI.status(latest.status, 'Do omówienia')}</div>
     </section>
@@ -32,7 +32,7 @@ QSViews.clientPanel = function () {
     <div class="client-dashboard-grid">
       <section class="card client-history-card">
         <div class="card-head"><div><span class="eyebrow">Historia</span><h2>Co zmienia się w czasie?</h2><p class="muted">Porównuj konkretne obserwacje, nie tylko sumę punktów.</p></div></div>
-        <div class="list">${QS.history.map((item, index) => `<a class="client-history-row" href="#/report/demo?case=${index === 0 ? 'pain' : index === 1 ? 'history' : 'toe'}"><span class="history-dot ${item.status}"></span><span><b>${item.date}</b><small>${historyCopy[index] || item.note}</small></span><strong>${item.score}<small>/15</small></strong><span aria-hidden="true">→</span></a>`).join('')}</div>
+        <div class="list">${QS.history.map((item, index) => `<div class="client-history-row"><span class="history-dot ${item.status}"></span><span><b>${item.date}</b><small>${historyCopy[index] || item.note}</small></span><strong>${item.score}<small>/15</small></strong></div>`).join('')}</div>
       </section>
       <section class="card client-records-card">
         <div class="card-head"><div><span class="eyebrow">Twoje materiały</span><h2>Notatki i pliki</h2><p class="muted">Dodaj informacje, do których chcesz wrócić z trenerem.</p></div></div>
