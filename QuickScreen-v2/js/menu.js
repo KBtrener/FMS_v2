@@ -64,7 +64,8 @@ QSUI.shell = function (content, active = 'clients') {
     .replace('href="#/clients"', `href="${definition.route}"`)
     .replace('</header>', `</header>${switcher}`);
 
-  if (!isAllowed(role, currentPath)) setTimeout(() => QSRouter.go(definition.route), 0);
+  /* W makiecie rola zmienia wyłącznie widok menu. Nie przekierowujemy automatycznie
+     z otwartego ekranu — taki redirect mógł wykonać się po kolejnym kliknięciu. */
   return shell;
 };
 
