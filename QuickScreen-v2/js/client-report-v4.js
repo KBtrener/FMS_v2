@@ -36,7 +36,7 @@
           <p class="client-report__index">01 / Wstęp</p>
           <div class="client-report__copy">
             <h2>Hej! Przesyłam Ci Twój raport z Bazowego Testu Funkcjonalnego.</h2>
-            <p>Szybki Test Ruchowy sprawdza, jak radzisz sobie z podstawowymi wzorcami ruchu, które są bazą dla sportu i codziennej aktywności. Oceniamy ich jakość, asymetrie oraz ewentualny ból, żeby znaleźć obszary, w których organizm może kompensować i które warto poprawić w pierwszej kolejności.</p>
+            <p>Bazowy Test Funkcjonalny sprawdza, jak radzisz sobie z podstawowymi wzorcami ruchu, które są bazą dla sportu i codziennej aktywności. Oceniamy ich jakość, asymetrie oraz ewentualny ból, żeby znaleźć obszary, w których organizm może kompensować i które warto poprawić w pierwszej kolejności.</p>
             <details class="report-intro__details">
               <summary>Pokaż, jak działa test <span aria-hidden="true">↓</span></summary>
               <div>
