@@ -28,25 +28,31 @@
 
         <section class="client-report__hero">
           <p class="client-report__eyebrow">Raport dla Gawła Kota · Piłka nożna</p>
-          <h1>Szybki Test<br>Ruchowy</h1>
+          <h1>Bazowy Test<br>Funkcjonalny</h1>
           <p>Twój osobisty punkt startowy do lepszego, pewniejszego ruchu.</p>
         </section>
 
         <section class="client-report__section report-intro">
           <p class="client-report__index">01 / Wstęp</p>
           <div class="client-report__copy">
-            <h2>Hej! Przesyłam Ci Twój raport z Szybkiego Testu Ruchowego.</h2>
-            <p>Ten test sprawdza, czy na bazowym poziomie jesteś w stanie wykonać podstawowe wzorce ruchowe, takie jak: martwy ciąg / skłon do palców, globalna mobilność barków, rotacja ciała, stabilność na jednej nodze, przysiad oraz podstawowe zakresy ruchu szyi.</p>
-            <p>Wszystkie ruchy, które wykonujemy w sporcie i codziennym życiu, są zbudowane właśnie z takich podstawowych wzorców. Każdy z nich można później rozłożyć na bardziej szczegółowe elementy, np. mobilność i stabilność konkretnych stawów, albo połączyć z innymi wzorcami w bardziej złożone ruchy, takie jak bieganie, skakanie, jazda na łyżwach czy nawet prace w ogrodzie.</p>
-            <p>W tym teście sprawdzamy, czy ruszasz się:</p>
-            <dl class="report-intro__scale">
-              <div><dt>3 pkt</dt><dd>bardzo dobrze</dd></div>
-              <div><dt>2 pkt</dt><dd>dobrze</dd></div>
-              <div><dt>1 pkt</dt><dd>źle</dd></div>
-              <div><dt>0 pkt</dt><dd>z bólem</dd></div>
-            </dl>
-            <p>Jeżeli gdziekolwiek pojawia się wynik 1, ból lub wyraźna asymetria, oznacza to, że Twoje ciało będzie gdzieś kompensować i już na bardzo podstawowym poziomie nie jest w stanie wykonać danego ruchu optymalnie.</p>
-            <p>W sporcie i życiu wyniki 0, 1 oraz asymetrie częściej pojawiają się u osób z kontuzjami, bólem lub problemami z nauczeniem się prawidłowej techniki, mimo wielu prób. Z mojego doświadczenia, zarówno u amatorów, jak i zawodowych sportowców, poprawa tych podstawowych wzorców potrafiła przełożyć się również na poprawę techniki.</p>
+            <h2>Hej! Przesyłam Ci Twój raport z Bazowego Testu Funkcjonalnego.</h2>
+            <p>Szybki Test Ruchowy sprawdza, jak radzisz sobie z podstawowymi wzorcami ruchu, które są bazą dla sportu i codziennej aktywności. Oceniamy ich jakość, asymetrie oraz ewentualny ból, żeby znaleźć obszary, w których organizm może kompensować i które warto poprawić w pierwszej kolejności.</p>
+            <details class="report-intro__details">
+              <summary>Pokaż, jak działa test <span aria-hidden="true">↓</span></summary>
+              <div>
+                <p>Test sprawdza, czy na bazowym poziomie jesteś w stanie wykonać podstawowe wzorce ruchowe, takie jak: martwy ciąg / skłon do palców, globalna mobilność barków, rotacja ciała, stabilność na jednej nodze, przysiad oraz podstawowe zakresy ruchu szyi.</p>
+                <p>Wszystkie ruchy, które wykonujemy w sporcie i codziennym życiu, są zbudowane właśnie z takich podstawowych wzorców. Każdy z nich można później rozłożyć na bardziej szczegółowe elementy, np. mobilność i stabilność konkretnych stawów, albo połączyć z innymi wzorcami w bardziej złożone ruchy, takie jak bieganie, skakanie, jazda na łyżwach czy nawet prace w ogrodzie.</p>
+                <p>W tym teście sprawdzamy, czy ruszasz się:</p>
+                <dl class="report-intro__scale">
+                  <div><dt>3 pkt</dt><dd>bardzo dobrze</dd></div>
+                  <div><dt>2 pkt</dt><dd>dobrze</dd></div>
+                  <div><dt>1 pkt</dt><dd>źle</dd></div>
+                  <div><dt>0 pkt</dt><dd>z bólem</dd></div>
+                </dl>
+                <p>Jeżeli gdziekolwiek pojawia się wynik 1, ból lub wyraźna asymetria, oznacza to, że Twoje ciało będzie gdzieś kompensować i już na bardzo podstawowym poziomie nie jest w stanie wykonać danego ruchu optymalnie.</p>
+                <p>W sporcie i życiu wyniki 0, 1 oraz asymetrie częściej pojawiają się u osób z kontuzjami, bólem lub problemami z nauczeniem się prawidłowej techniki, mimo wielu prób. Z mojego doświadczenia, zarówno u amatorów, jak i zawodowych sportowców, poprawa tych podstawowych wzorców potrafiła przełożyć się również na poprawę techniki.</p>
+              </div>
+            </details>
           </div>
         </section>
 
@@ -54,9 +60,13 @@
           <p class="client-report__index">02 / Twój wynik</p>
           <div class="client-report__copy">
             <h2>Twoja szyja ma dobrą mobilność i jest bez bólu.</h2>
-            <div class="report-result__grid">
-              <div><b>Masz</b><p>3 punkty w testach: skłon do palców i rotacja,<br>2 punkty w balansie,<br>1 punkt w teście globalnej mobilności barków.</p></div>
-              <div><b>Asymetrie występują w</b><p>rotacji,<br>balansie,<br>globalnej mobilności barków.</p></div>
+            <div class="report-score-table" role="region" aria-label="Wyniki testu według strony ciała">
+              <div class="report-score-table__head"><span>Test</span><span>Lewa strona</span><span>Prawa strona</span><span>Wynik</span></div>
+              <div><b>Skłon do palców</b><span class="score score--good">3 pkt</span><span class="score score--good">3 pkt</span><strong>3 pkt</strong></div>
+              <div><b>Rotacja</b><span class="score score--good">3 pkt</span><span class="score score--mid">2 pkt</span><strong>3 pkt <small>asymetria</small></strong></div>
+              <div><b>Balans</b><span class="score score--mid">2 pkt</span><span class="score score--low">1 pkt</span><strong>2 pkt <small>asymetria</small></strong></div>
+              <div><b>Globalna mobilność barków</b><span class="score score--low">1 pkt</span><span class="score score--low">1 pkt</span><strong>1 pkt <small>asymetria</small></strong></div>
+              <div><b>Przysiad</b><span>—</span><span>—</span><strong class="score score--pain">ból</strong></div>
             </div>
             <aside class="report-result__priority">
               <p class="client-report__eyebrow">Najważniejszy obszar do pracy</p>
@@ -72,7 +82,7 @@
             <h2>Prosta kolejność działania.</h2>
             <ol class="report-actions__axis">
               <li><span>01</span><b>Pozbyć się bólu</b></li>
-              <li><span>02</span><b>Re-test</b></li>
+              <li><span>02</span><b>Re-test za 3–4 tygodnie</b></li>
               <li><span>03</span><b>Poprawić globalną mobilność barków</b></li>
             </ol>
           </div>
