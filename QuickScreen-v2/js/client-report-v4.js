@@ -1,34 +1,106 @@
-/* Dwie niezależne makiety raportu klienta. Dane i linki pozostają przykładowe. */
+/* Statyczna makieta raportu klienta — bez logiki aplikacyjnej. */
 (function () {
-  function chooser(active) {
-    return `<nav class="report-concept-switcher" aria-label="Wybierz projekt raportu"><span>Makiety raportu</span><a class="${active === 'editorial' ? 'active' : ''}" href="#/report/demo?design=editorial"><b>01</b> Editorial <small>spokojny / papierowy</small></a><a class="${active === 'signal' ? 'active' : ''}" href="#/report/demo?design=signal"><b>02</b> Signal <small>ciemny / sportowy</small></a></nav>`;
+  const videos = [
+    ['Przykładowy film 1', 'https://www.youtube.com/'],
+    ['Przykładowy film 2', 'https://www.youtube.com/'],
+    ['Przykładowy film 3', 'https://www.youtube.com/']
+  ];
+
+  function videoLinks() {
+    return `<ol class="client-report__links">${videos.map(([label, href]) =>
+      `<li><a href="${href}" target="_blank" rel="noreferrer">${label}<span aria-hidden="true">↗</span></a></li>`
+    ).join('')}</ol>`;
   }
-  const videos = `<ol class="report-video-list"><li><a href="https://www.youtube.com/watch?v=example-neck-control" target="_blank" rel="noreferrer">Kontrola szyi w spokojnym zakresie <span>↗</span></a></li><li><a href="https://www.youtube.com/watch?v=example-shoulder-control" target="_blank" rel="noreferrer">Stabilizacja prawego barku <span>↗</span></a></li><li><a href="https://www.youtube.com/watch?v=example-toe-touch" target="_blank" rel="noreferrer">Skłon i kontrola bioder <span>↗</span></a></li></ol>`;
-  function rawDetails(className) { return `<details class="${className}"><summary><span>SUROWE WYNIKI / SZCZEGÓŁY SCREENINGU</span><b>+</b></summary><div><p>Cervical Rotation + Extension <b>BÓL po prawej</b></p><p>Shoulder Mobility <b>L 2 · P 0 · BÓL w clearingu</b></p><p>Toe Touch <b>L 1 · P 3</b></p><p>Balance <b>L 2 · P 1</b></p><p>Rotation · Squat · Cervical Flexion <b>OK</b></p></div></details>`; }
-  function editorial() {
-    return `<article class="report-editorial">
-      <header class="editorial-masthead"><span>KB Trener / QuickScreen</span><b>Raport ruchowy</b><span>07.09.2026 · QS-2026-0907</span></header>
-      <div class="editorial-title"><p>Wynik dla Gawła Kota · Piłka nożna</p><h1>Najpierw<br><i>bez bólu.</i></h1><div><b>Dzisiejsza decyzja</b><p>Nie zwiększaj teraz wymagań dla szyi i prawego barku. Pozostałą, bezbolesną aktywność możesz utrzymać.</p></div></div>
-      <section class="editorial-section editorial-outcome"><div class="editorial-index">01 / Co wyszło?</div><div><h2>Dwa sygnały wymagają uwagi. Reszta daje Ci dobry punkt oparcia.</h2><p>Podczas ruchu szyi w prawo z odchyleniem oraz testu prawego barku pojawił się ból. Skłon i równowaga po prawej stronie warto poprawić. Rotacja, przysiad i zgięcie szyi są gotowe do dalszego rozwoju.</p><div class="editorial-scoreline"><span class="is-pain">Ból <b>Szyja + prawy bark</b></span><span class="is-warn">Do poprawy <b>Skłon + równowaga</b></span><span class="is-ok">Mocne strony <b>Rotacja + przysiad</b></span></div></div></section>
-      <section class="editorial-priority"><div><p class="editorial-index">02 / Co jest najważniejsze?</p><h2>Ból szyi<br>i prawego barku.</h2></div><div><p class="editorial-callout">Ból ma pierwszeństwo przed jakością ruchu i wynikiem punktowym.</p><p>Gdy uspokoisz bolesny ruch i wrócisz do jego kontroli, łatwiej będzie bezpiecznie pracować także nad skłonem i równowagą. Dlatego od tego zaczynamy.</p></div></section>
-      <section class="editorial-section"><div class="editorial-index">03 / Co zrobić teraz?</div><div><h2>Trzy kroki, bez nadmiaru planu.</h2><div class="editorial-steps"><article><b>Teraz</b><h3>Popraw priorytet</h3><p>Pracuj nad bezbolesnym ruchem szyi i barku. Zacznij od spokojnej kontroli, dopiero potem zwiększaj zakres i obciążenie.</p><aside><strong>Na razie ogranicz</strong> ruchy szyi, pozycje nad głową i za plecami, które odtwarzają ból.</aside></article><article><b>~ 4 tygodnie</b><h3>Wykonaj re-test</h3><p>Sprawdź, czy ruch jest bez bólu i czy jakość po obu stronach jest bardziej podobna.</p></article><article><b>Dalej</b><h3>Wróć do rozwoju</h3><p>Stopniowo rozwijaj rotację, przysiad i bezbolesne elementy treningu piłkarskiego.</p></article></div></div></section>
-      <section class="editorial-paths"><div><p class="editorial-index">04 / Dwie ścieżki działania</p><h2>Wybierz swój następny ruch.</h2></div><article><b>01 — Darmowa</b><h3>Trzy materiały na start</h3><p>Wykonuj je wyłącznie w bezbolesnym zakresie.</p>${videos}<small>Linki demonstracyjne.</small></article><article><b>02 — Dedykowany program</b><h3>Plan prowadzony krok po kroku.</h3><p>Od bezbolesnego punktu startowego do powrotu do pełnego treningu.</p><a href="https://www.trainerize.com/example-dedykowany-program" target="_blank" rel="noreferrer">Otwórz program w Trainerize →</a><small>Link demonstracyjny.</small></article></section>
-      ${rawDetails('editorial-details')}<footer class="editorial-footer"><b>Move well. Move often.</b><span>Screening nie jest diagnozą medyczną i nie określa przyczyny bólu.</span></footer>
-    </article>`;
-  }
-  function signal() {
-    return `<article class="report-signal">
-      <header class="signal-header"><div class="signal-brand"><i></i><span>KB / PERFORMANCE<br><b>QUICKSCREEN</b></span></div><div>CLIENT / 0024<br><b>GAWEŁ KOT</b></div><div>STATUS<br><b class="signal-live">ATTENTION REQUIRED</b></div></header>
-      <section class="signal-hero"><div><p>RAPORT RUCHOWY · 07.09.2026</p><h1>MOVE<br><span>WITH SIGNAL.</span></h1><h2>Najpierw: szyja i prawy bark.</h2></div><aside><span>PRIORYTET</span><b>01</b><p>BÓL</p><i></i><small>Nie zwiększaj wymagań dla bolesnego ruchu.</small></aside></section>
-      <section class="signal-section signal-readout"><div class="signal-label">01 / READOUT</div><div><h2>Co wyszło?</h2><p>Większość wzorców jest gotowa do dalszej pracy. Ból pojawił się przy ruchu szyi w prawo z odchyleniem i w teście prawego barku. Skłon oraz równowaga po prawej stronie są kolejnymi sygnałami do poprawy.</p></div><div class="signal-meters"><span><i style="--level:86%"></i><b>ROTACJA / OK</b></span><span><i style="--level:62%"></i><b>SKŁON / UWAGA</b></span><span class="danger"><i style="--level:28%"></i><b>BARK / BÓL</b></span></div></section>
-      <section class="signal-priority"><div class="signal-label">02 / FOCUS</div><div><h2>Dlaczego zaczynamy tutaj?</h2><p><b>Ból zawsze ma pierwszeństwo.</b> Powrót do spokojnej, bezbolesnej kontroli szyi i barku może poprawić warunki dla pozostałych wzorców. Najpierw jakość. Potem większy zakres, obciążenie i szybkość.</p></div></section>
-      <section class="signal-section"><div class="signal-label">03 / PROTOCOL</div><div class="signal-plan"><h2>Co zrobić teraz?</h2><div><article><span>STEP 01</span><h3>POPRAW PRIORYTET</h3><p>Pracuj nad bezbolesnym ruchem szyi i barku z trenerem.</p><strong>LIMIT: pozycje nad głową, za plecami i ruchy odtwarzające ból.</strong></article><article><span>STEP 02</span><h3>RE-TEST / ~4 WEEKS</h3><p>Sprawdź ból oraz jakość ruchu po obu stronach.</p></article><article><span>STEP 03</span><h3>DEVELOP</h3><p>Wróć do rotacji, przysiadu i bezbolesnych elementów treningu.</p></article></div></div></section>
-      <section class="signal-routes"><div><p class="signal-label">04 / SELECT ROUTE</p><h2>Dwie ścieżki działania.</h2></div><article><span>ROUTE A / FREE</span><h3>Materiały na start</h3>${videos}<small>Linki demonstracyjne.</small></article><article><span>ROUTE B / COACHED</span><h3>Dedykowany program</h3><p>Plan pracy dopasowany do Twojego wyniku.</p><a href="https://www.trainerize.com/example-dedykowany-program" target="_blank" rel="noreferrer">URUCHOM TRAINERIZE <b>→</b></a><small>Link demonstracyjny.</small></article></section>
-      ${rawDetails('signal-details')}<footer class="signal-footer"><b>MOVE WELL / MOVE OFTEN</b><span>QuickScreen jest narzędziem przesiewowym, nie diagnozą medyczną.</span></footer>
-    </article>`;
-  }
-  QSViews.clientResult = function (state) {
-    const design = state && state.query && state.query.design === 'signal' ? 'signal' : 'editorial';
-    return `<main class="report-gallery report-gallery--${design}"><div class="report-gallery__top"><a class="qs-back" href="#/client-panel">← Wróć do panelu klienta</a><button class="btn btn-outline btn-sm" onclick="window.print()">Drukuj raport</button></div>${chooser(design)}${design === 'signal' ? signal() : editorial()}</main>`;
+
+  QSViews.clientResult = function () {
+    return `<main class="report-page">
+      <div class="report-page__tools">
+        <a class="qs-back" href="#/client-panel">← Wróć do panelu klienta</a>
+        <button class="btn btn-outline btn-sm" onclick="window.print()">Drukuj raport</button>
+      </div>
+
+      <article class="client-report">
+        <header class="client-report__header">
+          <span>KB Trener / QuickScreen</span>
+          <b>Raport ruchowy</b>
+          <span>07.09.2026 · QS-2026-0907</span>
+        </header>
+
+        <section class="client-report__hero">
+          <p class="client-report__eyebrow">Raport dla Gawła Kota · Piłka nożna</p>
+          <h1>Szybki Test<br>Ruchowy</h1>
+          <p>Twój osobisty punkt startowy do lepszego, pewniejszego ruchu.</p>
+        </section>
+
+        <section class="client-report__section report-intro">
+          <p class="client-report__index">01 / Wstęp</p>
+          <div class="client-report__copy">
+            <h2>Hej! Przesyłam Ci Twój raport z Szybkiego Testu Ruchowego.</h2>
+            <p>Ten test sprawdza, czy na bazowym poziomie jesteś w stanie wykonać podstawowe wzorce ruchowe, takie jak: martwy ciąg / skłon do palców, globalna mobilność barków, rotacja ciała, stabilność na jednej nodze, przysiad oraz podstawowe zakresy ruchu szyi.</p>
+            <p>Wszystkie ruchy, które wykonujemy w sporcie i codziennym życiu, są zbudowane właśnie z takich podstawowych wzorców. Każdy z nich można później rozłożyć na bardziej szczegółowe elementy, np. mobilność i stabilność konkretnych stawów, albo połączyć z innymi wzorcami w bardziej złożone ruchy, takie jak bieganie, skakanie, jazda na łyżwach czy nawet prace w ogrodzie.</p>
+            <p>W tym teście sprawdzamy, czy ruszasz się:</p>
+            <dl class="report-intro__scale">
+              <div><dt>3 pkt</dt><dd>bardzo dobrze</dd></div>
+              <div><dt>2 pkt</dt><dd>dobrze</dd></div>
+              <div><dt>1 pkt</dt><dd>źle</dd></div>
+              <div><dt>0 pkt</dt><dd>z bólem</dd></div>
+            </dl>
+            <p>Jeżeli gdziekolwiek pojawia się wynik 1, ból lub wyraźna asymetria, oznacza to, że Twoje ciało będzie gdzieś kompensować i już na bardzo podstawowym poziomie nie jest w stanie wykonać danego ruchu optymalnie.</p>
+            <p>W sporcie i życiu wyniki 0, 1 oraz asymetrie częściej pojawiają się u osób z kontuzjami, bólem lub problemami z nauczeniem się prawidłowej techniki, mimo wielu prób. Z mojego doświadczenia, zarówno u amatorów, jak i zawodowych sportowców, poprawa tych podstawowych wzorców potrafiła przełożyć się również na poprawę techniki.</p>
+          </div>
+        </section>
+
+        <section class="client-report__section report-result">
+          <p class="client-report__index">02 / Twój wynik</p>
+          <div class="client-report__copy">
+            <h2>Twoja szyja ma dobrą mobilność i jest bez bólu.</h2>
+            <div class="report-result__grid">
+              <div><b>Masz</b><p>3 punkty w testach: skłon do palców i rotacja,<br>2 punkty w balansie,<br>1 punkt w teście globalnej mobilności barków.</p></div>
+              <div><b>Asymetrie występują w</b><p>rotacji,<br>balansie,<br>globalnej mobilności barków.</p></div>
+            </div>
+            <aside class="report-result__priority">
+              <p class="client-report__eyebrow">Najważniejszy obszar do pracy</p>
+              <h3>Najpierw usuń ból w przysiadzie.</h3>
+              <p>Ból zawsze będzie wpływał na to, jak się ruszasz. Jego wyeliminowanie bardzo często potrafi poprawić także wyniki pozostałych testów, dlatego w pierwszej kolejności skupiamy się właśnie na nim.</p>
+            </aside>
+          </div>
+        </section>
+
+        <section class="client-report__section report-actions">
+          <p class="client-report__index">03 / Co teraz musisz zrobić</p>
+          <div class="client-report__copy">
+            <h2>Prosta kolejność działania.</h2>
+            <ol class="report-actions__axis">
+              <li><span>01</span><b>Pozbyć się bólu</b></li>
+              <li><span>02</span><b>Re-test</b></li>
+              <li><span>03</span><b>Poprawić globalną mobilność barków</b></li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="client-report__section report-help">
+          <p class="client-report__index">04 / Jak to zrobić</p>
+          <div class="client-report__copy">
+            <h2>Wybierz ścieżkę, która jest dla Ciebie wygodna.</h2>
+            <div class="report-help__paths">
+              <article>
+                <p class="client-report__eyebrow">Samodzielnie</p>
+                <h3>Materiały na start</h3>
+                <p>Jeżeli chcesz spróbować na własną rękę, zacznij od tych materiałów:</p>
+                ${videoLinks()}
+              </article>
+              <article>
+                <p class="client-report__eyebrow">Z pomocą</p>
+                <h3>Program w Trainerize</h3>
+                <p>Gotowy program adresujący ten problem, kontakt ze mną i plan dostosowany pod Ciebie. Nagraj ćwiczenia albo umów dodatkowe spotkanie, żebym mógł pomóc Ci w szczegółach.</p>
+                <a class="report-help__cta" href="https://www.trainerize.com/" target="_blank" rel="noreferrer">Kup program w Trainerize <span aria-hidden="true">→</span></a>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <footer class="client-report__footer"><b>Move well. Move often.</b><span>Screening nie jest diagnozą medyczną i nie określa przyczyny bólu.</span></footer>
+      </article>
+    </main>`;
   };
 }());
