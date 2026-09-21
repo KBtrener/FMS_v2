@@ -72,7 +72,7 @@
                   <tr><th>Balans</th><td><span class="score score--good">2 pkt</span></td><td><span class="score score--low">1 pkt</span></td><td><strong class="score score--low">1 pkt <small>asymetria</small></strong></td></tr>
                   <tr><th>Globalna mobilność barków</th><td><span class="score score--low">1 pkt</span></td><td><span class="score score--low">1 pkt</span></td><td><strong class="score score--low">1 pkt <small>asymetria</small></strong></td></tr>
                   <tr><th>Przysiad</th><td colspan="2" class="score-table__single"><span class="score score--pain">0 pkt</span></td><td><strong class="score score--pain">0 pkt</strong></td></tr>
-                  <tr><th>Wyprost kręgosłupa</th><td colspan="2" class="score-table__single"><span class="score score--pain">ból</span></td><td><strong class="score score--pain">0 pkt</strong></td></tr>
+                  <tr><th>Wyprost kręgosłupa</th><td colspan="2" class="score-table__single"><span class="score score--pain">ból</span></td><td><strong class="score score--pain">ból</strong></td></tr>
                 </tbody>
               </table>
             </div>
