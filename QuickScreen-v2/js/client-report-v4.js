@@ -61,12 +61,20 @@
           <div class="client-report__copy">
             <h2>Twoja szyja ma dobrą mobilność i jest bez bólu.</h2>
             <div class="report-score-table" role="region" aria-label="Wyniki testu według strony ciała">
-              <div class="report-score-table__head"><span>Test</span><span>Lewa strona</span><span>Prawa strona</span><span>Wynik</span></div>
-              <div><b>Skłon do palców</b><span class="score score--good">3 pkt</span><span class="score score--good">3 pkt</span><strong>3 pkt</strong></div>
-              <div><b>Rotacja</b><span class="score score--good">3 pkt</span><span class="score score--mid">2 pkt</span><strong>3 pkt <small>asymetria</small></strong></div>
-              <div><b>Balans</b><span class="score score--mid">2 pkt</span><span class="score score--low">1 pkt</span><strong>2 pkt <small>asymetria</small></strong></div>
-              <div><b>Globalna mobilność barków</b><span class="score score--low">1 pkt</span><span class="score score--low">1 pkt</span><strong>1 pkt <small>asymetria</small></strong></div>
-              <div><b>Przysiad</b><span>—</span><span>—</span><strong class="score score--pain">ból</strong></div>
+              <table>
+                <caption>Wynik globalny testu dwustronnego to niższy wynik z lewej lub prawej strony.</caption>
+                <thead><tr><th>Test</th><th>Lewa strona</th><th>Prawa strona</th><th>Wynik globalny</th></tr></thead>
+                <tbody>
+                  <tr><th>Szyja — zgięcie</th><td colspan="2" class="score-table__single"><span class="score score--good">bez bólu</span></td><td><strong class="score score--good">OK</strong></td></tr>
+                  <tr><th>Szyja — rotacja i wyprost</th><td><span class="score score--good">bez bólu</span></td><td><span class="score score--good">bez bólu</span></td><td><strong class="score score--good">OK</strong></td></tr>
+                  <tr><th>Skłon do palców</th><td><span class="score score--good">3 pkt</span></td><td><span class="score score--good">3 pkt</span></td><td><strong class="score score--good">3 pkt</strong></td></tr>
+                  <tr><th>Rotacja</th><td><span class="score score--good">3 pkt</span></td><td><span class="score score--good">2 pkt</span></td><td><strong class="score score--good">2 pkt <small>asymetria</small></strong></td></tr>
+                  <tr><th>Balans</th><td><span class="score score--good">2 pkt</span></td><td><span class="score score--low">1 pkt</span></td><td><strong class="score score--low">1 pkt <small>asymetria</small></strong></td></tr>
+                  <tr><th>Globalna mobilność barków</th><td><span class="score score--low">1 pkt</span></td><td><span class="score score--low">1 pkt</span></td><td><strong class="score score--low">1 pkt <small>asymetria</small></strong></td></tr>
+                  <tr><th>Przysiad</th><td colspan="2" class="score-table__single">test bez podziału na stronę</td><td><strong class="score score--pain">ból</strong></td></tr>
+                  <tr><th>Wyprost kręgosłupa</th><td colspan="2" class="score-table__single">test bez podziału na stronę</td><td><strong class="score score--pain">ból</strong></td></tr>
+                </tbody>
+              </table>
             </div>
             <aside class="report-result__priority">
               <p class="client-report__eyebrow">Najważniejszy obszar do pracy</p>
