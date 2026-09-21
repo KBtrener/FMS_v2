@@ -121,4 +121,10 @@
       </article>
     </main>`;
   };
+
+  /* Raport jest dokumentem. Kliknięcia w jego treść nie mogą trafić do
+     globalnego routera makiety i nie mogą zmienić aktualnej trasy. */
+  document.addEventListener('click', function (event) {
+    if (event.target.closest('.client-report')) event.stopImmediatePropagation();
+  });
 }());
