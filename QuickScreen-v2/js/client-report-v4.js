@@ -59,27 +59,19 @@
         <section class="client-report__section report-result">
           <p class="client-report__index">02 / Twój wynik</p>
           <div class="client-report__copy">
-            <h2>Twoja szyja ma dobrą mobilność i jest bez bólu.</h2>
-            <div class="report-score-table" role="region" aria-label="Wyniki testu według strony ciała">
-              <table>
-                <caption>Wynik globalny testu dwustronnego to niższy wynik z lewej lub prawej strony.</caption>
-                <thead><tr><th>Test</th><th>Lewa strona</th><th>Prawa strona</th><th>Wynik globalny</th></tr></thead>
-                <tbody>
-                  <tr><th>Szyja — zgięcie</th><td colspan="2" class="score-table__single"><span class="score score--good">bez bólu</span></td><td><strong class="score score--good">OK</strong></td></tr>
-                  <tr><th>Szyja — rotacja i wyprost</th><td><span class="score score--good">bez bólu</span></td><td><span class="score score--good">bez bólu</span></td><td><strong class="score score--good">OK</strong></td></tr>
-                  <tr><th>Skłon do palców</th><td><span class="score score--good">3 pkt</span></td><td><span class="score score--good">3 pkt</span></td><td><strong class="score score--good">3 pkt</strong></td></tr>
-                  <tr><th>Rotacja</th><td><span class="score score--good">3 pkt</span></td><td><span class="score score--good">2 pkt</span></td><td><strong class="score score--good">2 pkt <small>asymetria</small></strong></td></tr>
-                  <tr><th>Balans</th><td><span class="score score--good">2 pkt</span></td><td><span class="score score--low">1 pkt</span></td><td><strong class="score score--low">1 pkt <small>asymetria</small></strong></td></tr>
-                  <tr><th>Globalna mobilność barków</th><td><span class="score score--low">1 pkt</span></td><td><span class="score score--low">1 pkt</span></td><td><strong class="score score--low">1 pkt <small>asymetria</small></strong></td></tr>
-                  <tr><th>Przysiad</th><td colspan="2" class="score-table__single"><span class="score score--pain">0 pkt</span></td><td><strong class="score score--pain">0 pkt</strong></td></tr>
-                  <tr><th>Wyprost kręgosłupa</th><td colspan="2" class="score-table__single"><span class="score score--pain">ból</span></td><td><strong class="score score--pain">ból</strong></td></tr>
-                </tbody>
-              </table>
-            </div>
+            <h2>Twój wynik</h2>
+            <p>Jak czytać wynik: 3 pkt oznacza bardzo dobre wykonanie wzorca, 2 pkt — wynik akceptowalny, 1 pkt — wzorzec wymagający poprawy, a 0 pkt oznacza ból. W testach wykonywanych na obie strony wynik globalny jest równy słabszej stronie, a różnica między stronami oznacza asymetrię.</p>
+            <p>Asymetria oznacza, że jedna strona radzi sobie z tym samym ruchem gorzej niż druga — nawet jeśli obie strony osiągają wynik uznawany za akceptowalny.</p>
+            <p>Twoja szyja ma prawidłowy zakres ruchu i wszystkie testy szyi wykonałeś bez bólu.</p>
+            <p>Skłon do palców wypadł bardzo dobrze — uzyskałeś 3 punkty po obu stronach.</p>
+            <p>W rotacji uzyskałeś 3 punkty po lewej i 2 po prawej stronie, dlatego widzimy tutaj niewielką asymetrię. Globalny wynik tego testu to 2 punkty.</p>
+            <p>W balansie uzyskałeś 2 punkty po lewej i 1 po prawej stronie. Oznacza to asymetrię, a globalny wynik testu wynosi 1 punkt.</p>
+            <p>W teście globalnej mobilności barków uzyskałeś 1 punkt po obu stronach. Oznacza to, że ten wzorzec wymaga poprawy.</p>
+            <p>Podczas przysiadu wystąpił ból, dlatego wynik tego testu to 0 punktów. Ból pojawił się również podczas testu wyprostu kręgosłupa.</p>
             <aside class="report-result__priority">
               <p class="client-report__eyebrow">Najważniejszy obszar do pracy</p>
-              <h3>Najpierw usuń ból w przysiadzie.</h3>
-              <p>Ból zawsze będzie wpływał na to, jak się ruszasz. Jego wyeliminowanie bardzo często potrafi poprawić także wyniki pozostałych testów, dlatego w pierwszej kolejności skupiamy się właśnie na nim.</p>
+              <h3>Najpierw zajmij się bólem.</h3>
+              <p>Mimo że widzimy również ograniczenie mobilności barków oraz asymetrie w rotacji i balansie, w tej chwili mają one niższy priorytet. Ból może wpływać na sposób, w jaki wykonujesz pozostałe ruchy, dlatego najpierw warto go wyeliminować, a następnie wykonać test ponownie i dopiero na podstawie nowych wyników zdecydować, czym zająć się dalej.</p>
             </aside>
           </div>
         </section>
