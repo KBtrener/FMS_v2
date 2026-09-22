@@ -2,31 +2,33 @@
 (function () {
   const videos = [['Przykładowy film 1', 'https://www.youtube.com/'], ['Przykładowy film 2', 'https://www.youtube.com/'], ['Przykładowy film 3', 'https://www.youtube.com/']];
   const reports = {
-    demo: { label: 'Makieta 1', client: 'Gaweł Kot', sport: 'Piłka nożna', date: '07.09.2026', id: 'QS-2026-0907', neck: 'ok', toe: [3, 3], rotation: [3, 2], balance: [2, 1], shoulders: [1, 1], squat: 0, extensionPain: true, priority: 'pain' },
-    one: { label: 'Makieta 2', client: 'Julia Mazur', sport: 'Bieganie', date: '10.09.2026', id: 'QS-2026-0910', neck: 'ok', toe: [1, 2], rotation: [2, 2], balance: [3, 1], shoulders: [2, 2], squat: 1, extensionPain: false, priority: 'toe' },
-    two: { label: 'Makieta 3', client: 'Paweł Wrona', sport: 'Kolarstwo', date: '13.09.2026', id: 'QS-2026-0913', neck: 'ok', toe: [2, 2], rotation: [3, 2], balance: [2, 2], shoulders: [3, 3], squat: 1, extensionPain: false, priority: 'squat' },
-    three: { label: 'Makieta 4', client: 'Marta Lis', sport: 'Fitness', date: '16.09.2026', id: 'QS-2026-0916', neck: 'limited-left', neckRotation: [2, 2], toe: [2, 2], rotation: [2, 1], balance: [2, 2], shoulders: [2, 2], squat: 2, extensionPain: false, priority: 'neck' }
+    demo: { label: 'Makieta 1', client: 'Gaweł Kot', sport: 'Piłka nożna', date: '07.09.2026', id: 'QS-2026-0907', neck: 'full-no-pain', toe: [3, 3], rotation: [3, 2], balance: [2, 1], shoulders: [1, 1], squat: 0, extensionPain: true, priority: 'pain' },
+    one: { label: 'Makieta 2', client: 'Julia Mazur', sport: 'Bieganie', date: '10.09.2026', id: 'QS-2026-0910', neck: 'full-no-pain', toe: [1, 2], rotation: [2, 2], balance: [3, 1], shoulders: [2, 2], squat: 1, extensionPain: false, priority: 'toe' },
+    two: { label: 'Makieta 3', client: 'Paweł Wrona', sport: 'Kolarstwo', date: '13.09.2026', id: 'QS-2026-0913', neck: 'full-no-pain', toe: [2, 2], rotation: [3, 2], balance: [2, 2], shoulders: [3, 3], squat: 1, extensionPain: false, priority: 'squat' },
+    three: { label: 'Makieta 4', client: 'Marta Lis', sport: 'Fitness', date: '16.09.2026', id: 'QS-2026-0916', neck: 'limited-no-pain', toe: [2, 2], rotation: [2, 1], balance: [2, 2], shoulders: [2, 2], squat: 2, extensionPain: false, priority: 'neck' }
   };
   const scoreClass = value => value >= 2 ? 'score--good' : value === 1 ? 'score--mid' : 'score--pain';
   const score = value => `<span class="score ${scoreClass(value)}">${value} pkt</span>`;
+  const asymmetryScore = values => `<span class="score score--mid">${global(values)} — asymetria</span>`;
   const side = index => index === 0 ? 'lewa' : 'prawa';
   const global = values => Math.min(...values);
   const cap = text => text[0].toUpperCase() + text.slice(1);
   function bilateral(name, values, text) {
     const [left, right] = values;
     const weaker = left <= right ? side(0) : side(1);
-    return `<p><strong>${name}</strong><br>${left === right ? text.same(left, score(left)) : text.different(score(left), score(right), cap(weaker), score(global(values)))}</p>`;
+    return `<p><strong>${name}</strong><br>${left === right ? text.same(left, score(left)) : text.different(score(left), score(right), cap(weaker), asymmetryScore(values))}</p>`;
   }
   function priority(key) {
     return {
       pain: ['Najpierw zajmij się bólem.', 'Ból pojawił się podczas przysiadu i testu wyprostu kręgosłupa. Może on wpływać na sposób wykonywania pozostałych ruchów, dlatego najpierw trzeba go wyeliminować, a następnie wykonać test ponownie.', ['Pozbyć się bólu', 'Re-test za 3–4 tygodnie', 'Dopiero potem pracować nad pozostałymi wynikami']],
       toe: ['Najpierw popraw skłon i kontrolę zgięcia bioder.', 'Lewa strona skłonu nie spełnia jeszcze podstawowego standardu. Wynik przysiadu również wymaga poprawy, ale najpierw skup się na skłonie oraz kontroli ruchu bioder i tułowia.', ['Poprawić kontrolowany skłon', 'Nie progresować ciężkich skłonów', 'Re-test za 3–4 tygodnie']],
       squat: ['Najpierw popraw jakość przysiadu.', 'Przysiad nie spełnia jeszcze podstawowego standardu. Pozostałe wyniki są dobre, a różnica w rotacji nie wymaga teraz ograniczania treningu.', ['Pracować nad kontrolą przysiadu', 'Nie zwiększać głębokości ani obciążenia', 'Re-test za 3–4 tygodnie']],
-      neck: ['Najpierw popraw swobodę ruchu szyi po lewej stronie.', 'Ograniczenie nie jest bolesne, ale szyja ma najwyższy priorytet w kolejności pracy. Pozostałe wyniki spełniają podstawowy standard; w rotacji prawa strona wymaga dodatkowej uwagi.', ['Pracować nad komfortowym zakresem szyi', 'Nie wymuszać końcowego zakresu', 'Re-test za 3–4 tygodnie']]
+      neck: ['Najpierw popraw swobodę ruchu szyi.', 'Szyja nie ma pełnego zakresu ruchu, ale ograniczenie nie jest bolesne. Ma najwyższy priorytet w kolejności pracy. Pozostałe wyniki spełniają podstawowy standard; w rotacji prawa strona wymaga dodatkowej uwagi.', ['Pracować nad komfortowym zakresem szyi', 'Nie wymuszać końcowego zakresu', 'Re-test za 3–4 tygodnie']]
     }[key];
   }
   function narrative(report) {
-    const neck = report.neck === 'limited-left' ? `<p><strong>Szyja</strong><br>Po lewej stronie szyi widzimy ograniczenie zakresu ruchu, ale wszystkie testy wykonałeś bez bólu. Wynik rotacji i wyprostu szyi to ${score(2)} po obu stronach.</p>` : '<p><strong>Szyja</strong><br>Twoja szyja ma prawidłowy zakres ruchu i wszystkie testy szyi wykonałeś bez bólu.</p>';
+    const neckText = { 'full-no-pain': 'Szyja ma pełny zakres ruchu bez bólu.', 'full-pain': 'Szyja ma pełny zakres ruchu, ale podczas testu pojawił się ból.', 'limited-no-pain': 'Szyja nie ma pełnego zakresu ruchu, ale test wykonałeś bez bólu.', 'limited-pain': 'Szyja nie ma pełnego zakresu ruchu, a podczas testu pojawił się ból.' };
+    const neck = `<p><strong>Szyja</strong><br>${neckText[report.neck]}</p>`;
     const toe = bilateral('Skłon do palców', report.toe, { same: (value, badge) => value === 3 ? `Skłon do palców wypadł bardzo dobrze — uzyskałeś ${badge} po obu stronach.` : `Skłon do palców uzyskał ${badge} po obu stronach. To dobry, akceptowalny wynik.`, different: (left, right, weaker, total) => `W skłonie uzyskałeś ${left} po lewej i ${right} po prawej stronie. ${weaker} strona wymaga poprawy, a wynik globalny to ${total}.` });
     const rotation = bilateral('Rotacja', report.rotation, { same: (_value, badge) => `W rotacji uzyskałeś ${badge} po obu stronach. Ruch spełnia podstawowy standard.`, different: (left, right, weaker, total) => `W rotacji uzyskałeś ${left} po lewej i ${right} po prawej stronie. Widzimy asymetrię — słabsza jest strona ${weaker}, a wynik globalny to ${total}.` });
     const balance = bilateral('Balans', report.balance, { same: (_value, badge) => `W balansie uzyskałeś ${badge} po obu stronach. Ruch spełnia podstawowy standard.`, different: (left, right, weaker, total) => `W balansie uzyskałeś ${left} po lewej i ${right} po prawej stronie. Widzimy asymetrię — słabsza jest strona ${weaker}, a wynik globalny to ${total}.` });
