@@ -9,5 +9,6 @@ test('cała strona raportu jest izolowana przez centralny router', () => {
 
   assert.match(app, /function isReportPageClick\(event\)/);
   assert.match(app, /if\(isReportPageClick\(e\)\)return;/);
-  assert.doesNotMatch(report, /stopImmediatePropagation\(\)/);
+  assert.match(report, /closest\('\.report-variant, \.qs-back'\)/);
+  assert.match(report, /QSRouter\.go\(control\.getAttribute\('href'\)\)/);
 });
