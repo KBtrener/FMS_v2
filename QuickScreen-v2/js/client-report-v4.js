@@ -60,14 +60,14 @@
           <p class="client-report__index">02 / Twój wynik</p>
           <div class="client-report__copy">
             <h2>Twój wynik</h2>
-            <p>Jak czytać wynik: 3 pkt oznacza bardzo dobre wykonanie wzorca, 2 pkt — wynik akceptowalny, 1 pkt — wzorzec wymagający poprawy, a 0 pkt oznacza ból. W testach wykonywanych na obie strony wynik globalny jest równy słabszej stronie, a różnica między stronami oznacza asymetrię.</p>
+            <p>Jak czytać wynik: <span class="score score--good">3 pkt</span> oznacza bardzo dobre wykonanie wzorca, <span class="score score--good">2 pkt</span> — wynik akceptowalny, <span class="score score--mid">1 pkt</span> — wzorzec wymagający poprawy, a <span class="score score--pain">0 pkt</span> oznacza ból. W testach wykonywanych na obie strony wynik globalny jest równy słabszej stronie, a różnica między stronami oznacza asymetrię.</p>
             <p>Asymetria oznacza, że jedna strona radzi sobie z tym samym ruchem gorzej niż druga — nawet jeśli obie strony osiągają wynik uznawany za akceptowalny.</p>
             <p>Twoja szyja ma prawidłowy zakres ruchu i wszystkie testy szyi wykonałeś bez bólu.</p>
-            <p>Skłon do palców wypadł bardzo dobrze — uzyskałeś 3 punkty po obu stronach.</p>
-            <p>W rotacji uzyskałeś 3 punkty po lewej i 2 po prawej stronie, dlatego widzimy tutaj niewielką asymetrię. Globalny wynik tego testu to 2 punkty.</p>
-            <p>W balansie uzyskałeś 2 punkty po lewej i 1 po prawej stronie. Oznacza to asymetrię, a globalny wynik testu wynosi 1 punkt.</p>
-            <p>W teście globalnej mobilności barków uzyskałeś 1 punkt po obu stronach. Oznacza to, że ten wzorzec wymaga poprawy.</p>
-            <p>Podczas przysiadu wystąpił ból, dlatego wynik tego testu to 0 punktów. Ból pojawił się również podczas testu wyprostu kręgosłupa.</p>
+            <p>Skłon do palców wypadł bardzo dobrze — uzyskałeś <span class="score score--good">3 pkt</span> po obu stronach.</p>
+            <p>W rotacji uzyskałeś <span class="score score--good">3 pkt</span> po lewej i <span class="score score--good">2 pkt</span> po prawej stronie, dlatego widzimy tutaj niewielką asymetrię. Globalny wynik tego testu to <span class="score score--good">2 pkt</span>.</p>
+            <p>W balansie uzyskałeś <span class="score score--good">2 pkt</span> po lewej i <span class="score score--mid">1 pkt</span> po prawej stronie. Oznacza to asymetrię, a globalny wynik testu wynosi <span class="score score--mid">1 pkt</span>.</p>
+            <p>W teście globalnej mobilności barków uzyskałeś <span class="score score--mid">1 pkt</span> po obu stronach. Oznacza to, że ten wzorzec wymaga poprawy.</p>
+            <p>Podczas przysiadu wystąpił ból, dlatego wynik tego testu to <span class="score score--pain">0 pkt</span>. Ból pojawił się również podczas testu wyprostu kręgosłupa.</p>
             <aside class="report-result__priority">
               <p class="client-report__eyebrow">Najważniejszy obszar do pracy</p>
               <h3>Najpierw zajmij się bólem.</h3>
