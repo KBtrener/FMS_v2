@@ -1,122 +1,46 @@
-/* Statyczna makieta raportu klienta — bez logiki aplikacyjnej. */
+/* Statyczne warianty raportu klienta — wspólny szablon, różne dane testów. */
 (function () {
-  const videos = [
-    ['Przykładowy film 1', 'https://www.youtube.com/'],
-    ['Przykładowy film 2', 'https://www.youtube.com/'],
-    ['Przykładowy film 3', 'https://www.youtube.com/']
-  ];
-
-  function videoLinks() {
-    return `<ol class="client-report__links">${videos.map(([label, href]) =>
-      `<li><a href="${href}" target="_blank" rel="noreferrer">${label}<span aria-hidden="true">↗</span></a></li>`
-    ).join('')}</ol>`;
-  }
-
-  QSViews.clientResult = function () {
-    return `<main class="report-page">
-      <div class="report-page__tools">
-        <a class="qs-back" href="#/client-panel">← Wróć do panelu klienta</a>
-        <button class="btn btn-outline btn-sm" onclick="window.print()">Drukuj raport</button>
-      </div>
-
-      <article class="client-report">
-        <header class="client-report__header">
-          <span>KB Trener / QuickScreen</span>
-          <b>Raport ruchowy</b>
-          <span>07.09.2026 · QS-2026-0907</span>
-        </header>
-
-        <section class="client-report__hero">
-          <p class="client-report__eyebrow">Raport dla Gawła Kota · Piłka nożna</p>
-          <h1>Bazowy Test<br>Funkcjonalny</h1>
-          <p>Twój osobisty punkt startowy do lepszego, pewniejszego ruchu.</p>
-        </section>
-
-        <section class="client-report__section report-intro">
-          <p class="client-report__index">01 / Wstęp</p>
-          <div class="client-report__copy">
-            <h2>Hej! Przesyłam Ci Twój raport z Bazowego Testu Funkcjonalnego.</h2>
-            <p>Bazowy Test Funkcjonalny sprawdza, jak radzisz sobie z podstawowymi wzorcami ruchu, które są bazą dla sportu i codziennej aktywności. Oceniamy ich jakość, asymetrie oraz ewentualny ból, żeby znaleźć obszary, w których organizm może kompensować i które warto poprawić w pierwszej kolejności.</p>
-            <details class="report-intro__details">
-              <summary>Pokaż, jak działa test <span aria-hidden="true">↓</span></summary>
-              <div>
-                <p>Test sprawdza, czy na bazowym poziomie jesteś w stanie wykonać podstawowe wzorce ruchowe, takie jak: martwy ciąg / skłon do palców, globalna mobilność barków, rotacja ciała, stabilność na jednej nodze, przysiad oraz podstawowe zakresy ruchu szyi.</p>
-                <p>Wszystkie ruchy, które wykonujemy w sporcie i codziennym życiu, są zbudowane właśnie z takich podstawowych wzorców. Każdy z nich można później rozłożyć na bardziej szczegółowe elementy, np. mobilność i stabilność konkretnych stawów, albo połączyć z innymi wzorcami w bardziej złożone ruchy, takie jak bieganie, skakanie, jazda na łyżwach czy nawet prace w ogrodzie.</p>
-                <p>W tym teście sprawdzamy, czy ruszasz się:</p>
-                <dl class="report-intro__scale">
-                  <div><dt>3 pkt</dt><dd>bardzo dobrze</dd></div>
-                  <div><dt>2 pkt</dt><dd>dobrze</dd></div>
-                  <div><dt>1 pkt</dt><dd>źle</dd></div>
-                  <div><dt>0 pkt</dt><dd>z bólem</dd></div>
-                </dl>
-                <p>Jeżeli gdziekolwiek pojawia się wynik 1, ból lub wyraźna asymetria, oznacza to, że Twoje ciało będzie gdzieś kompensować i już na bardzo podstawowym poziomie nie jest w stanie wykonać danego ruchu optymalnie.</p>
-                <p>W sporcie i życiu wyniki 0, 1 oraz asymetrie częściej pojawiają się u osób z kontuzjami, bólem lub problemami z nauczeniem się prawidłowej techniki, mimo wielu prób. Z mojego doświadczenia, zarówno u amatorów, jak i zawodowych sportowców, poprawa tych podstawowych wzorców potrafiła przełożyć się również na poprawę techniki.</p>
-              </div>
-            </details>
-          </div>
-        </section>
-
-        <section class="client-report__section report-result">
-          <p class="client-report__index">02 / Twój wynik</p>
-          <div class="client-report__copy">
-            <h2>Twój wynik</h2>
-            <p>Jak czytać wynik: <span class="score score--good">3 pkt</span> oznacza bardzo dobre wykonanie wzorca, <span class="score score--good">2 pkt</span> — wynik akceptowalny, <span class="score score--mid">1 pkt</span> — wzorzec wymagający poprawy, a <span class="score score--pain">0 pkt</span> oznacza ból. W testach wykonywanych na obie strony wynik globalny jest równy słabszej stronie, a różnica między stronami oznacza asymetrię.</p>
-            <p>Asymetria oznacza, że jedna strona radzi sobie z tym samym ruchem gorzej niż druga — nawet jeśli obie strony osiągają wynik uznawany za akceptowalny.</p>
-            <p><strong>Szyja</strong><br>Twoja szyja ma prawidłowy zakres ruchu i wszystkie testy szyi wykonałeś bez bólu.</p>
-            <p><strong>Skłon do palców</strong><br>Skłon do palców wypadł bardzo dobrze — uzyskałeś <span class="score score--good">3 pkt</span> po obu stronach.</p>
-            <p><strong>Rotacja</strong><br>W rotacji uzyskałeś <span class="score score--good">3 pkt</span> po lewej i <span class="score score--good">2 pkt</span> po prawej stronie, dlatego widzimy tutaj niewielką asymetrię. Globalny wynik tego testu to <span class="score score--good">2 pkt</span>.</p>
-            <p><strong>Balans</strong><br>W balansie uzyskałeś <span class="score score--good">2 pkt</span> po lewej i <span class="score score--mid">1 pkt</span> po prawej stronie. Oznacza to asymetrię, a globalny wynik testu wynosi <span class="score score--mid">1 pkt</span>.</p>
-            <p><strong>Globalna mobilność barków</strong><br>W teście globalnej mobilności barków uzyskałeś <span class="score score--mid">1 pkt</span> po obu stronach. Oznacza to, że ten wzorzec wymaga poprawy.</p>
-            <p><strong>Przysiad i wyprost kręgosłupa</strong><br>Podczas przysiadu wystąpił ból, dlatego wynik tego testu to <span class="score score--pain">0 pkt</span>. Ból pojawił się również podczas testu wyprostu kręgosłupa.</p>
-            <aside class="report-result__priority">
-              <p class="client-report__eyebrow">Najważniejszy obszar do pracy</p>
-              <h3>Najpierw zajmij się bólem.</h3>
-              <p>Mimo że widzimy również ograniczenie mobilności barków oraz asymetrie w rotacji i balansie, w tej chwili mają one niższy priorytet. Ból może wpływać na sposób, w jaki wykonujesz pozostałe ruchy, dlatego najpierw warto go wyeliminować, a następnie wykonać test ponownie i dopiero na podstawie nowych wyników zdecydować, czym zająć się dalej.</p>
-            </aside>
-          </div>
-        </section>
-
-        <section class="client-report__section report-actions">
-          <p class="client-report__index">03 / Co teraz musisz zrobić</p>
-          <div class="client-report__copy">
-            <h2>Prosta kolejność działania.</h2>
-            <ol class="report-actions__axis">
-              <li><span>01</span><b>Pozbyć się bólu</b></li>
-              <li><span>02</span><b>Re-test za 3–4 tygodnie</b></li>
-              <li><span>03</span><b>Poprawić globalną mobilność barków</b></li>
-            </ol>
-          </div>
-        </section>
-
-        <section class="client-report__section report-help">
-          <p class="client-report__index">04 / Jak to zrobić</p>
-          <div class="client-report__copy">
-            <h2>Wybierz ścieżkę, która jest dla Ciebie wygodna.</h2>
-            <div class="report-help__paths">
-              <article>
-                <p class="client-report__eyebrow">Samodzielnie</p>
-                <h3>Materiały na start</h3>
-                <p>Jeżeli chcesz spróbować na własną rękę, zacznij od tych materiałów:</p>
-                ${videoLinks()}
-              </article>
-              <article>
-                <p class="client-report__eyebrow">Z pomocą</p>
-                <h3>Program w Trainerize</h3>
-                <p>Gotowy program adresujący ten problem, kontakt ze mną i plan dostosowany pod Ciebie. Nagraj ćwiczenia albo umów dodatkowe spotkanie, żebym mógł pomóc Ci w szczegółach.</p>
-                <a class="report-help__cta" href="https://www.trainerize.com/" target="_blank" rel="noreferrer">Kup program w Trainerize <span aria-hidden="true">→</span></a>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <footer class="client-report__footer"><b>Move well. Move often.</b><span>Screening nie jest diagnozą medyczną i nie określa przyczyny bólu.</span></footer>
-      </article>
-    </main>`;
+  const videos = [['Przykładowy film 1', 'https://www.youtube.com/'], ['Przykładowy film 2', 'https://www.youtube.com/'], ['Przykładowy film 3', 'https://www.youtube.com/']];
+  const reports = {
+    demo: { label: 'Makieta 1', client: 'Gaweł Kot', sport: 'Piłka nożna', date: '07.09.2026', id: 'QS-2026-0907', neck: 'ok', toe: [3, 3], rotation: [3, 2], balance: [2, 1], shoulders: [1, 1], squat: 0, extensionPain: true, priority: 'pain' },
+    one: { label: 'Makieta 2', client: 'Julia Mazur', sport: 'Bieganie', date: '10.09.2026', id: 'QS-2026-0910', neck: 'ok', toe: [1, 2], rotation: [2, 2], balance: [3, 1], shoulders: [2, 2], squat: 1, extensionPain: false, priority: 'toe' },
+    two: { label: 'Makieta 3', client: 'Paweł Wrona', sport: 'Kolarstwo', date: '13.09.2026', id: 'QS-2026-0913', neck: 'ok', toe: [2, 2], rotation: [3, 2], balance: [2, 2], shoulders: [3, 3], squat: 1, extensionPain: false, priority: 'squat' },
+    three: { label: 'Makieta 4', client: 'Marta Lis', sport: 'Fitness', date: '16.09.2026', id: 'QS-2026-0916', neck: 'limited-left', neckRotation: [2, 2], toe: [2, 2], rotation: [2, 1], balance: [2, 2], shoulders: [2, 2], squat: 2, extensionPain: false, priority: 'neck' }
   };
-
-  /* Raport jest dokumentem. Kliknięcia w jego treść nie mogą trafić do
-     globalnego routera makiety i nie mogą zmienić aktualnej trasy. */
-  document.addEventListener('click', function (event) {
-    if (event.target.closest('.client-report')) event.stopImmediatePropagation();
-  });
+  const scoreClass = value => value >= 2 ? 'score--good' : value === 1 ? 'score--mid' : 'score--pain';
+  const score = value => `<span class="score ${scoreClass(value)}">${value} pkt</span>`;
+  const side = index => index === 0 ? 'lewa' : 'prawa';
+  const global = values => Math.min(...values);
+  const cap = text => text[0].toUpperCase() + text.slice(1);
+  function bilateral(name, values, text) {
+    const [left, right] = values;
+    const weaker = left <= right ? side(0) : side(1);
+    return `<p><strong>${name}</strong><br>${left === right ? text.same(left, score(left)) : text.different(score(left), score(right), cap(weaker), score(global(values)))}</p>`;
+  }
+  function priority(key) {
+    return {
+      pain: ['Najpierw zajmij się bólem.', 'Ból pojawił się podczas przysiadu i testu wyprostu kręgosłupa. Może on wpływać na sposób wykonywania pozostałych ruchów, dlatego najpierw trzeba go wyeliminować, a następnie wykonać test ponownie.', ['Pozbyć się bólu', 'Re-test za 3–4 tygodnie', 'Dopiero potem pracować nad pozostałymi wynikami']],
+      toe: ['Najpierw popraw skłon i kontrolę zgięcia bioder.', 'Lewa strona skłonu nie spełnia jeszcze podstawowego standardu. Wynik przysiadu również wymaga poprawy, ale najpierw skup się na skłonie oraz kontroli ruchu bioder i tułowia.', ['Poprawić kontrolowany skłon', 'Nie progresować ciężkich skłonów', 'Re-test za 3–4 tygodnie']],
+      squat: ['Najpierw popraw jakość przysiadu.', 'Przysiad nie spełnia jeszcze podstawowego standardu. Pozostałe wyniki są dobre, a różnica w rotacji nie wymaga teraz ograniczania treningu.', ['Pracować nad kontrolą przysiadu', 'Nie zwiększać głębokości ani obciążenia', 'Re-test za 3–4 tygodnie']],
+      neck: ['Najpierw popraw swobodę ruchu szyi po lewej stronie.', 'Ograniczenie nie jest bolesne, ale szyja ma najwyższy priorytet w kolejności pracy. Pozostałe wyniki spełniają podstawowy standard; w rotacji prawa strona wymaga dodatkowej uwagi.', ['Pracować nad komfortowym zakresem szyi', 'Nie wymuszać końcowego zakresu', 'Re-test za 3–4 tygodnie']]
+    }[key];
+  }
+  function narrative(report) {
+    const neck = report.neck === 'limited-left' ? `<p><strong>Szyja</strong><br>Po lewej stronie szyi widzimy ograniczenie zakresu ruchu, ale wszystkie testy wykonałeś bez bólu. Wynik rotacji i wyprostu szyi to ${score(2)} po obu stronach.</p>` : '<p><strong>Szyja</strong><br>Twoja szyja ma prawidłowy zakres ruchu i wszystkie testy szyi wykonałeś bez bólu.</p>';
+    const toe = bilateral('Skłon do palców', report.toe, { same: (value, badge) => value === 3 ? `Skłon do palców wypadł bardzo dobrze — uzyskałeś ${badge} po obu stronach.` : `Skłon do palców uzyskał ${badge} po obu stronach. To dobry, akceptowalny wynik.`, different: (left, right, weaker, total) => `W skłonie uzyskałeś ${left} po lewej i ${right} po prawej stronie. ${weaker} strona wymaga poprawy, a wynik globalny to ${total}.` });
+    const rotation = bilateral('Rotacja', report.rotation, { same: (_value, badge) => `W rotacji uzyskałeś ${badge} po obu stronach. Ruch spełnia podstawowy standard.`, different: (left, right, weaker, total) => `W rotacji uzyskałeś ${left} po lewej i ${right} po prawej stronie. Widzimy asymetrię — słabsza jest strona ${weaker}, a wynik globalny to ${total}.` });
+    const balance = bilateral('Balans', report.balance, { same: (_value, badge) => `W balansie uzyskałeś ${badge} po obu stronach. Ruch spełnia podstawowy standard.`, different: (left, right, weaker, total) => `W balansie uzyskałeś ${left} po lewej i ${right} po prawej stronie. Widzimy asymetrię — słabsza jest strona ${weaker}, a wynik globalny to ${total}.` });
+    const shoulders = bilateral('Globalna mobilność barków', report.shoulders, { same: (value, badge) => value === 3 ? `W globalnej mobilności barków uzyskałeś ${badge} po obu stronach. To jedna z Twoich mocnych stron.` : value === 1 ? `W globalnej mobilności barków uzyskałeś ${badge} po obu stronach. Ten ruch wymaga poprawy.` : `W globalnej mobilności barków uzyskałeś ${badge} po obu stronach. To dobry, akceptowalny wynik.`, different: (left, right, weaker, total) => `W globalnej mobilności barków uzyskałeś ${left} po lewej i ${right} po prawej stronie. Słabsza jest strona ${weaker}; wynik globalny to ${total}.` });
+    const squat = `<p><strong>Przysiad</strong><br>${report.squat === 0 ? `Podczas przysiadu wystąpił ból, dlatego wynik testu to ${score(0)}.` : report.squat === 1 ? `W przysiadzie uzyskałeś ${score(1)}. Ten ruch wymaga poprawy.` : `W przysiadzie uzyskałeś ${score(2)}. Ruch spełnia podstawowy standard.`}</p>`;
+    const extension = `<p><strong>Wyprost kręgosłupa</strong><br>${report.extensionPain ? 'Podczas testu wyprostu kręgosłupa pojawił się ból.' : 'Test wyprostu kręgosłupa wykonałeś bez bólu.'}</p>`;
+    return [neck, toe, rotation, balance, shoulders, squat, extension].join('');
+  }
+  function videoLinks() { return `<ol class="client-report__links">${videos.map(([label, href]) => `<li><a href="${href}" target="_blank" rel="noreferrer">${label}<span aria-hidden="true">↗</span></a></li>`).join('')}</ol>`; }
+  QSViews.clientResult = function (state) {
+    const selected = reports[state?.query?.variant] ? state.query.variant : 'demo';
+    const report = reports[selected], main = priority(report.priority);
+    const picker = Object.entries(reports).map(([key, item]) => `<a class="report-variant${key === selected ? ' is-active' : ''}" href="#/report/demo?variant=${key}" aria-current="${key === selected ? 'page' : 'false'}">${item.label}<small>${item.client}</small></a>`).join('');
+    return `<main class="report-page"><div class="report-page__tools"><a class="qs-back" href="#/client-panel">← Wróć do panelu klienta</a><button class="btn btn-outline btn-sm" onclick="window.print()">Drukuj raport</button></div><nav class="report-variants" aria-label="Wybór makiety raportu"><span>Wybierz makietę</span><div>${picker}</div></nav><article class="client-report"><header class="client-report__header"><span>KB Trener / QuickScreen</span><b>Raport ruchowy</b><span>${report.date} · ${report.id}</span></header><section class="client-report__hero"><p class="client-report__eyebrow">Raport dla ${report.client} · ${report.sport}</p><h1>Bazowy Test<br>Funkcjonalny</h1><p>Twój osobisty punkt startowy do lepszego, pewniejszego ruchu.</p></section><section class="client-report__section report-intro"><p class="client-report__index">01 / Wstęp</p><div class="client-report__copy"><h2>Hej! Przesyłam Ci Twój raport z Bazowego Testu Funkcjonalnego.</h2><p>Badanie sprawdza podstawowe wzorce ruchu, ich jakość, różnice między stronami oraz ewentualny ból, aby ustalić kolejność pracy.</p></div></section><section class="client-report__section report-result"><p class="client-report__index">02 / Twój wynik</p><div class="client-report__copy"><h2>Twój wynik</h2><p>Jak czytać wynik: ${score(3)} oznacza bardzo dobre wykonanie wzorca, ${score(2)} — wynik akceptowalny, ${score(1)} — wzorzec wymagający poprawy, a ${score(0)} oznacza ból. W testach wykonywanych na obie strony wynik globalny jest równy słabszej stronie, a różnica między stronami oznacza asymetrię.</p><p>Asymetria oznacza, że jedna strona radzi sobie z tym samym ruchem gorzej niż druga — nawet jeśli obie strony osiągają wynik uznawany za akceptowalny.</p>${narrative(report)}<aside class="report-result__priority"><p class="client-report__eyebrow">Najważniejszy obszar do pracy</p><h3>${main[0]}</h3><p>${main[1]}</p></aside></div></section><section class="client-report__section report-actions"><p class="client-report__index">03 / Co teraz musisz zrobić</p><div class="client-report__copy"><h2>Prosta kolejność działania.</h2><ol class="report-actions__axis">${main[2].map((step, index) => `<li><span>0${index + 1}</span><b>${step}</b></li>`).join('')}</ol></div></section><section class="client-report__section report-help"><p class="client-report__index">04 / Jak to zrobić</p><div class="client-report__copy"><h2>Wybierz ścieżkę, która jest dla Ciebie wygodna.</h2><div class="report-help__paths"><article><p class="client-report__eyebrow">Samodzielnie</p><h3>Materiały na start</h3><p>Jeżeli chcesz spróbować na własną rękę, zacznij od tych materiałów:</p>${videoLinks()}</article><article><p class="client-report__eyebrow">Z pomocą</p><h3>Program w Trainerize</h3><p>Gotowy program, kontakt ze mną i plan dostosowany pod Ciebie.</p><a class="report-help__cta" href="https://www.trainerize.com/" target="_blank" rel="noreferrer">Kup program w Trainerize <span aria-hidden="true">→</span></a></article></div></div></section><footer class="client-report__footer"><b>Move well. Move often.</b><span>Screening nie jest diagnozą medyczną i nie określa przyczyny bólu.</span></footer></article></main>`;
+  };
+  document.addEventListener('click', event => { if (event.target.closest('.client-report')) event.stopImmediatePropagation(); });
 }());
