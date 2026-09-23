@@ -49,7 +49,7 @@ QSUI.shell = function (content, active = 'clients') {
   const definition = roleDefinitions[role];
   const currentPath = routePath(location.hash);
   const activeRoute = definition.menu.find(([, route]) => currentPath === routePath(route));
-  const menu = `<details class="main-menu"><summary aria-label="Otwórz menu">Menu <span aria-hidden="true">⌄</span></summary><nav class="main-menu-panel" aria-label="Menu ${definition.label}">${definition.menu.map(([label, route]) => `<a class="${activeRoute?.[1] === route ? 'active' : ''}" href="${route}">${label}</a>`).join('')}</nav></details>`;
+  const menu = role === 'client' ? '' : `<details class="main-menu"><summary aria-label="Otwórz menu">Menu <span aria-hidden="true">⌄</span></summary><nav class="main-menu-panel" aria-label="Menu ${definition.label}">${definition.menu.map(([label, route]) => `<a class="${activeRoute?.[1] === route ? 'active' : ''}" href="${route}">${label}</a>`).join('')}</nav></details>`;
   const switcher = `<section class="preview-role-switch" aria-label="Podgląd roli w makiecie"><span>Podgląd roli</span><div>${Object.entries(roleDefinitions).map(([key, item]) => `<a class="${role === key ? 'active' : ''}" href="${item.route}" data-preview-role="${key}">${item.label}</a>`).join('')}</div></section>`;
   const profileLink = role === 'client'
     ? '<a class="avatar" href="#/client/demo" title="Mój profil">KB</a>'
