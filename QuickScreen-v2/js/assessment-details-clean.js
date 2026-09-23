@@ -1,59 +1,33 @@
-(function(){
-  const scoreLabel=['Ból','Słabo','W normie','Super!'];
-  const scoreData={
-    'Toe Touch':{left:3,right:3,base:'3 /3 · Super!',final:'3 /3 · Super!',kind:'pass'},
-    'Shoulder Mobility':{left:1,right:2,base:'1 /3 · Słabo',final:'0 /3 · Ból',kind:'pain'},
-    'Rotation':{left:0,right:1,base:'0 /3 · Ból',final:'0 /3 · Ból',kind:'pain'},
-    'Balance':{left:1,right:2,base:'1 /3 · Słabo',final:'1 /3 · Słabo',kind:'attention'},
-    'Squat':{single:2,base:'2 /3 · W normie',final:'0 /3 · Ból',kind:'pain'}
+/* Wspólny, techniczny podgląd surowych wyników badania. */
+(function () {
+  const tests = [
+    ['1', 'Cervical Flexion', 'PASS', '—', 'PASS', 'pass'],
+    ['2', 'Cervical Rotation + Extension', 'PASS', 'PASS', 'PASS', 'pass'],
+    ['2a', 'Neck Extension Clearing', 'Brak bólu', 'Ból', 'FAIL', 'pain'],
+    ['3', 'Toe Touch', '3', '3', '3 / 3', 'pass'],
+    ['4', 'Shoulder Mobility', '1', '2', '0 / 3', 'pain'],
+    ['4a', 'Shoulder Clearing', 'PASS', 'FAIL', '0 / 3', 'pain'],
+    ['5', 'Rotation', '0', '1', '0 / 3', 'pain'],
+    ['6', 'Balance', '1', '2', '1 / 3', 'attention'],
+    ['7', 'Squat', '—', '—', '0 / 3', 'pain'],
+    ['7a', 'Spine Extension Clearing', '—', 'Ból', 'FAIL', 'pain']
+  ];
+  const statusLabel = { pass: 'PASS', attention: 'UWAGA', pain: 'BÓL' };
+
+  QSViews.details = function () {
+    const role = window.QSPreview?.getRole?.() || 'trainer';
+    const backRoute = role === 'client' ? '#/client-panel' : '#/client/demo';
+    const backLabel = role === 'client' ? '← Mój panel' : '← Profil klienta';
+    const rows = tests.map(([number, name, left, right, result, status]) => `<tr class="technical-result-row ${status}"><td>${number}</td><th scope="row">${name}</th><td>${left}</td><td>${right}</td><td><strong class="technical-result-value ${status}">${result}</strong></td><td>${QSUI.status(status, statusLabel[status])}</td></tr>`).join('');
+
+    return QSViews.layout(`<main class="technical-result-page" aria-labelledby="technical-result-title">
+      <header class="technical-result-head">
+        <div><a class="btn btn-ghost btn-sm" href="${backRoute}">${backLabel}</a><span class="eyebrow">PODGLĄD WYNIKU · QUICKSCREEN</span><h1 id="technical-result-title">Badanie z 07.09.2026</h1><p>Surowe dane badania</p></div>
+        <div class="technical-result-summary"><span>Wynik łączny</span><strong>5<small>/15</small></strong><a class="btn btn-teal" href="#/report/demo">Otwórz raport badania <span aria-hidden="true">→</span></a></div>
+      </header>
+      <section class="technical-result-table-wrap" aria-label="Tabela wyników badania">
+        <table class="technical-result-table"><thead><tr><th scope="col">#</th><th scope="col">Test</th><th scope="col">L</th><th scope="col">P</th><th scope="col">Wynik</th><th scope="col">Status</th></tr></thead><tbody>${rows}</tbody></table>
+      </section>
+    </main>`, 'clients');
   };
-  const passData={
-    'Cervical Flexion':{range:'Pass',pain:'Brak bólu',kind:'pass'},
-    'Cervical Rotation and Extension':{left:'Pass',right:'Pass',painLeft:'Brak bólu',painRight:'Brak bólu',kind:'pass'}
-  };
-  const clearingData={
-    'Neck Extension Clearing':{parent:'Cervical Rotation and Extension',mode:'pain',left:'Brak bólu',right:'Ból',final:'Fail · Ból',kind:'pain'},
-    'Shoulder Clearing':{parent:'Shoulder Mobility',mode:'patterns',patterns:[
-      {name:'Wzorzec górny',left:['Brak bólu','Pass'],right:['Brak bólu','Pass']},
-      {name:'Wzorzec dolny',left:['Brak bólu','Pass'],right:['Ból','Fail']}
-    ],final:'0 / 3 · Ból',kind:'pain'},
-    'Spine Extension Clearing':{parent:'Squat',mode:'single',result:'Ból',final:'Ból',kind:'pain'}
-  };
-  const badge=(text,kind)=>`<span class="badge badge-${kind||'info'}">${text}</span>`;
-  const scoreCard=(side,value)=>`<div class="assessment-side-result-card ${value===0?'pain':value===1?'attention':'pass'}"><span>${side}</span><strong class="${value===0?'pain':value===1?'attention':'pass'}">${value} /3</strong><em>${scoreLabel[value]}</em></div>`;
-  const finalCard=(value,kind)=>`<aside class="assessment-final-card ${kind}"><span>Punkt ostateczny</span><strong>${value}</strong></aside>`;
-  const parentHead=(number,name)=>`<div class="assessment-test-head"><span class="assessment-test-number">${number}</span><div><h3>${name}</h3></div></div>`;
-  const bilateralScore=(number,name,data)=>`<article class="assessment-group-card"><div class="assessment-group-main">${parentHead(number,name)}<div class="assessment-side-results">${scoreCard('Lewa strona',data.left)}${scoreCard('Prawa strona',data.right)}</div></div>${finalCard(data.final,data.kind)}</article>`;
-  const singleScore=(number,name,data)=>`<article class="assessment-group-card"><div class="assessment-group-main">${parentHead(number,name)}</div>${finalCard(data.final,data.kind)}</article>`;
-  const passTest=(number,name,data)=>`<article class="assessment-group-card"><div class="assessment-group-main">${parentHead(number,name)}<div class="assessment-side-results"><div class="assessment-side-result-card pass"><span>Zakres</span><strong>${data.range}</strong><em>Spełnia zakres</em></div><div class="assessment-side-result-card pass"><span>Ból</span><strong>${data.pain}</strong><em>Bez bólu</em></div></div></div>${finalCard('Pass','pass')}</article>`;
-  const bilateralPassBody=(number,name,data)=>`${parentHead(number,name)}<div class="assessment-side-results"><div class="assessment-side-result-card pass"><span>Lewa strona</span><strong>${data.left}</strong><em>${data.painLeft}</em></div><div class="assessment-side-result-card pass"><span>Prawa strona</span><strong>${data.right}</strong><em>${data.painRight}</em></div></div>`;
-  const clearingPainBody=(number,name,data)=>`<div class="assessment-dependent-test" aria-label="Test zależny"><div class="assessment-test-head"><div><h3>${name}</h3></div></div><div class="assessment-side-results"><div class="assessment-side-result-card pass"><span>Lewa strona</span><strong class="pass">${data.left}</strong></div><div class="assessment-side-result-card pain"><span>Prawa strona</span><strong class="pain">${data.right}</strong></div></div></div>`;
-  const shoulderClearingBody=(number,name,data)=>`<div class="assessment-dependent-test assessment-shoulder-clearing" aria-label="Test zależny"><div class="assessment-test-head"><div><h3>${name}</h3></div></div><div class="assessment-clearing-sides">${['left','right'].map(side=>`<section class="assessment-clearing-side"><b class="assessment-clearing-side-title">${side==='left'?'Lewa strona':'Prawa strona'}</b>${data.patterns.map(p=>{const result=side==='left'?p.left:p.right;return `<div class="assessment-clearing-pattern"><strong>${p.name}</strong><div class="assessment-clearing-statuses"><span class="${result[0]==='Ból'?'pain':'pass'}">Ból: ${result[0]}</span><em class="${result[1]==='Fail'?'pain':'pass'}">Zakres: ${result[1]}</em></div></div>`}).join('')}</section>`).join('')}</div></div>`;
-  const spineClearingBody=(number,name,data)=>`<div class="assessment-dependent-test" aria-label="Test zależny"><div class="assessment-test-head"><div><h3>${name}</h3></div></div><div class="assessment-single-results"><strong class="pain">${data.result}</strong></div></div>`;
-  const dependentGroup=(parentBody,childBody,final)=>`<article class="assessment-group-card has-dependent"><div class="assessment-group-main">${parentBody}${childBody}</div>${final}</article>`;
-  function cleanDetails(){
-    const group1=passTest(1,'Cervical Flexion',passData['Cervical Flexion']);
-    const group2=dependentGroup(bilateralPassBody(2,'Cervical Rotation and Extension',passData['Cervical Rotation and Extension']),clearingPainBody(2,'Neck Extension Clearing',clearingData['Neck Extension Clearing']),finalCard(clearingData['Neck Extension Clearing'].final,clearingData['Neck Extension Clearing'].kind));
-    const group4=bilateralScore(3,'Toe Touch',scoreData['Toe Touch']);
-    const group5=dependentGroup(`${parentHead(4,'Shoulder Mobility')}<div class="assessment-side-results">${scoreCard('Lewa strona',scoreData['Shoulder Mobility'].left)}${scoreCard('Prawa strona',scoreData['Shoulder Mobility'].right)}</div>`,shoulderClearingBody(4,'Shoulder Clearing',clearingData['Shoulder Clearing']),finalCard(scoreData['Shoulder Mobility'].final,scoreData['Shoulder Mobility'].kind));
-    const group7=bilateralScore(5,'Rotation',scoreData.Rotation);
-    const group8=bilateralScore(6,'Balance',scoreData.Balance);
-    const group9=dependentGroup(`${parentHead(7,'Squat')}<div class="assessment-single-results"><strong class="${scoreData.Squat.single===0?'pain':scoreData.Squat.single===1?'attention':'pass'}">${scoreData.Squat.base}</strong></div>`,spineClearingBody(7,'Spine Extension Clearing',clearingData['Spine Extension Clearing']),finalCard(scoreData.Squat.final,scoreData.Squat.kind));
-    const body=`<div class="assessment-detail-page"><div class="page-head"><div><a class="btn btn-ghost btn-sm" href="#/client/demo">← Gaweł Kot</a><div class="eyebrow">Podgląd badania</div><h1>Szczegóły badania</h1><p>07.09.2026 · kompletne badanie QuickScreen</p></div><div>${badge('Ból / red flag','pain')}</div></div><div class="assessment-detail-layout"><main class="assessment-detail-stack"><section class="card"><div class="card-head"><div><h2>Wyniki testów</h2><p class="muted">Testy zależne są pokazane bezpośrednio pod testem nadrzędnym.</p></div><strong class="assessment-total">5 /15</strong></div><div class="assessment-detail-stack">${group1}${group2}${group4}${group5}${group7}${group8}${group9}</div></section><section class="assessment-notes-card"><h3>Notatka trenera</h3><p>Widoczna asymetria w obrębie barku. Po stronie prawej pojawił się ból w wzorcu dolnym clearingu.</p></section></main><aside class="assessment-detail-stack"><section class="assessment-notes-card"><h3>Clearing effects</h3><p>Clearing barku zmienia wynik Shoulder Mobility na 0 /3. Pozostałe efekty są pokazane przy właściwym teście.</p></section><section class="assessment-attachments-empty"><h3>Dokumentacja</h3><p>Brak załączników do tego badania.</p></section></aside></div></div>`;
-    const noteText='Widoczna asymetria w obrębie barku. Po stronie prawej pojawił się ból w wzorcu dolnym clearingu.';
-    const noteCard=`<section class="assessment-notes-card assessment-sidebar-notes"><h3>Notatka trenera</h3><p>${noteText}</p></section>`;
-    const sidebarMatch=body.match(/<aside class="assessment-detail-stack">.*?<\/aside>/);
-    const sidebar=sidebarMatch?sidebarMatch[0]:'';
-    const docs=sidebar.replace(/<section class="assessment-notes-card">.*?<\/section>/,'').replace(/^<aside class="assessment-detail-stack">/,'').replace(/<\/aside>$/,'');
-    const withoutInlineNote=body.replace(/<section class="assessment-notes-card"><h3>Notatka trenera<\/h3>.*?<\/section>/,'');
-    const cleanBody=withoutInlineNote.replace(sidebar,`<aside class="assessment-detail-stack">${noteCard}${docs}</aside>`)+`<button class="assessment-notes-float" type="button" data-clean-notes>Notatki trenera</button>`;
-    return QSViews.layout(cleanBody,'clients');
-  }
-  QSViews.details=cleanDetails;
-  document.addEventListener('click',function(event){
-    const trigger=event.target.closest('[data-clean-notes]');
-    if(!trigger)return;
-    event.preventDefault();
-    document.body.insertAdjacentHTML('beforeend',QSUI.modal('Notatki trenera','<p>Widoczna asymetria w obrębie barku. Po stronie prawej pojawił się ból w wzorcu dolnym clearingu.</p>'));
-  });
 })();
