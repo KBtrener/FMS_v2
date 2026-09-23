@@ -26,7 +26,7 @@ QSViews.clientPanel = function () {
         <h1 id="client-simple-title">Cześć, ${client.name.split(' ')[0]}.</h1>
         <h2>Najpierw zajmij się bólem, potem wróć do pozostałych celów treningowych.</h2>
         <p>Ból pojawił się przy przysiadzie i wyproście kręgosłupa. To wynik do spokojnego omówienia — nie diagnoza.</p>
-        <div class="client-simple-actions"><a class="btn btn-teal" href="#/report/demo">Zobacz raport <span aria-hidden="true">→</span></a><a class="client-profile-link" href="#/client/demo">Mój profil</a></div>
+        <div class="client-simple-actions"><a class="btn btn-teal" href="#/report/demo">Zobacz raport <span aria-hidden="true">→</span></a></div>
       </div>
       <div class="client-simple-score"><span>Ostatni screening</span><strong>${latest.score}<small>/15</small></strong>${QSUI.status(latest.status, 'Do omówienia')}<small>${latest.date}</small></div>
     </section>
