@@ -199,16 +199,16 @@ W środku raportu nie powtarzaj disclaimerów. Wystarczy jeden na końcu.
 
 ## 14. Kolejność komunikatu
 
-Najważniejsza część raportu:
+Układ raportu klienta definiuje `FMS_REPORT_UI_BLUEPRINT.md`. Stosuj kolejność:
 
-1. **Czy możesz trenować / funkcjonować**
-2. **Najważniejszy obszar**
-3. **Co zrobić teraz**
-4. **Co chwilowo ograniczyć**
-5. **Co możesz kontynuować**
-6. **Dlaczego ma to znaczenie**
-7. **Historia** — tylko gdy istnieje
-8. dopiero potem pełne wyniki.
+1. **Kontekst** — czym jest raport i czego dotyczy.
+2. **Wynik** — krótkie, naturalne opisy obserwacji.
+3. **Najważniejszy obszar** — jeden wyraźny priorytet wraz z uzasadnieniem.
+4. **Działanie** — `Chroń`, `Popraw`, `Rozwijaj` oraz re-test, gdy jest zdefiniowany.
+5. **Pomoc** — materiały lub wsparcie, tylko gdy projekt je dostarcza.
+6. **Szczegóły opcjonalne** — pełne wyniki, techniczne nazwy i metodologia.
+
+Odpowiedź „czy mogę trenować / funkcjonować?” ma być jednoznaczna w planie działania, ale nie musi otwierać raportu jako osobny blok.
 
 ## 15. Ton sprzedażowy
 
@@ -299,4 +299,3 @@ Słabsza kontrola skłonu i zgięcia bioder ma znaczenie szczególnie przy szybs
 Tekst pozostaje deterministyczny. Naturalność uzyskuj przez `finding_type`, `message_intent`, słownik nazw i odmian, gotowe szablony oraz reguły agregacji.
 
 Szczegóły: `FMS_REPORT_SEMANTIC_MESSAGES_DB.md`.
-

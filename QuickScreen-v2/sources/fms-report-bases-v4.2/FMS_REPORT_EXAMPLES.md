@@ -1,5 +1,7 @@
 # Przykłady raportów
 
+> **Uwaga o prezentacji:** przykłady opisują poprawne komunikaty i dane. W gotowym raporcie układaj je zgodnie z `FMS_REPORT_UI_BLUEPRINT.md`: kontekst → wynik → priorytet → Chroń / Popraw / Rozwijaj → pomoc → szczegóły. Nagłówek „Czy możesz trenować?” może zostać włączony do części **Rozwijaj**, zamiast otwierać raport jako osobna sekcja.
+
 Wersja: 4.2
 
 # Przykład A — ACTIVE, bieganie, Toe Touch = 1
@@ -163,4 +165,3 @@ Mniejsza swoboda barków może być najbardziej odczuwalna przy sięganiu na wys
 ### Kiedy sprawdzić ponownie?
 
 Sprawdź ponownie za 1–2 tygodnie.
-

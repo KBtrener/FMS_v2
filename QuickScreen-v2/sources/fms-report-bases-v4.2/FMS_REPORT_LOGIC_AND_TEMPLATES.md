@@ -145,45 +145,35 @@ Nie wprowadzaj ograniczeń tylko z powodu 3/2.
 
 ---
 
-# 7. Główna sekcja raportu
+# 7. Składanie raportu klienta
 
-Nie pokazuj dwóch sąsiadujących komunikatów, które powtarzają nazwę PRIMARY. Jeśli nagłówek brzmi `Najważniejszy obszar: {primary}`, tekst pod nim ma wyjaśniać znaczenie lub działanie.
+Układ raportu definiuje `FMS_REPORT_UI_BLUEPRINT.md`. Nie pokazuj dwóch sąsiadujących komunikatów, które powtarzają nazwę `PRIMARY`.
 
-Kolejność:
+Generator tworzy bloki w tej kolejności:
 
-## 1. Czy możesz trenować / funkcjonować?
+1. `context` — krótki wstęp: czym było badanie i po co wykonano raport;
+2. `result_summary` — naturalne opisy wyników oraz pomocnicze markery punktowe;
+3. `primary_priority` — jeden obszar `PRIMARY` albo agregacja bólu, wraz z powodem;
+4. `action_plan` — trzy części: `PROTECT / Chroń`, `CORRECT / Popraw`, `DEVELOP / Rozwijaj`;
+5. `retest` — wyłącznie gdy reguła lub dane trenera go określają;
+6. `help` — materiały lub wsparcie wyłącznie z danych projektu;
+7. `optional_details` — pełne wyniki, techniczne nazwy i metodologia.
 
-Jedno konkretne zdanie.
+Blok `action_plan` musi zawierać:
 
-## 2. Najważniejsze teraz
+- `temporarily_limit` w części **Chroń**; jeśli brak ograniczenia, powiedz to wprost;
+- `do_now` w części **Popraw**;
+- `can_continue` w części **Rozwijaj**.
 
-`PRIMARY` albo ból.
+To właśnie plan działania ma jasno odpowiedzieć, co klient może trenować lub wykonywać normalnie. Nie wymuszaj osobnego bloku „Czy możesz trenować?” przed wynikiem.
 
-## 3. Co zrobić teraz
-
-`do_now`.
-
-## 4. Co chwilowo ograniczyć
-
-`temporarily_limit`.
-
-Jeśli nic:
-`Nie ma potrzeby ograniczać aktywności wyłącznie z powodu tego wyniku.`
-
-## 5. Co możesz kontynuować
-
-`can_continue`.
-
-## 6. Dlaczego ma to znaczenie dla Ciebie
-
-- GENERAL -> `general_meaning` + codzienny przykład,
-- ACTIVE -> `active_meaning` + maksymalnie 1–2 sportowe przykłady.
-
-Dopiero po tych sekcjach pokazuj Protect / Correct / Develop i pełne szczegóły.
+Dla `GENERAL` użyj codziennego przykładu, a dla `ACTIVE` maksymalnie 1–2 trafnych przykładów sportowych. Przykład nie może tworzyć nowego ograniczenia.
 
 ---
 
-# 8. Protect / Correct / Develop
+# 8. Chroń / Popraw / Rozwijaj
+
+W widoku klienta etykiety prezentuj po polsku: **Chroń / Popraw / Rozwijaj**. Nazwy `PROTECT / CORRECT / DEVELOP` pozostają nazwami stanów logicznych.
 
 ## PROTECT
 Ból.
@@ -291,15 +281,12 @@ Jeśli nie ma porównywalnego wcześniejszego badania, nie pokazuj nagłówka `O
 
 ## NEW_LEAD
 
-1. Czy mogę trenować / funkcjonować
-2. Najważniejsze teraz
-3. Co robić / ograniczyć / kontynuować
-4. Dlaczego to ma znaczenie
-5. Protect / Correct / Develop
-6. Mocne strony
-7. Szczegóły
-8. CTA
-9. Jeden disclaimer
+1. Kontekst badania
+2. Wynik i najważniejszy obszar
+3. Chroń / Popraw / Rozwijaj oraz re-test
+4. Pomoc i CTA
+5. Opcjonalne szczegóły
+6. Jeden disclaimer
 
 ## CLIENT_NO_HISTORY
 
@@ -308,7 +295,7 @@ Jak wyżej, ale bez sprzedażowego CTA. Dodaj:
 
 ## CLIENT_WITH_HISTORY
 
-Jak wyżej +:
+Jak wyżej + krótka sekcja historii po planie działania, przed pomocą lub szczegółami:
 `Co zmieniło się od poprzedniego badania`.
 
 ---
@@ -456,4 +443,3 @@ rendered_text
 ```
 
 Snapshot test ma wykrywać przypadkowe zmiany tekstu. Nie używaj LLM do renderowania raportu.
-

@@ -16,8 +16,7 @@
 | `references/report/*` | `Stitch/stitch_fms_quickscreen_design_system/podgl_d_raportu_pdf_gawe_kot/*` | Referencja raportu | Nie |
 | `references/style-guide/*` | `Stitch/stitch_fms_quickscreen_design_system/wzornik_kolor_w_i_oznacze_style_guide/*` | Referencja statusów i kolorów | Nie |
 | `references/STUDIO_BIOMECHANICS_DESIGN.md` | `Stitch/stitch_fms_quickscreen_design_system/studio_biomechanics/DESIGN.md` | Kontekst wizualny | Nie |
-| `sources/fms-report-bases-v4.1/*` | `FMS_report_bases_v4_1_language.zip` | Poprzednia baza logiki i języka raportu 4.1 | Nie |
-| `sources/fms-report-bases-v4.2/*` | `FMS_report_bases_v4_2_semantic_language.zip` | Kanoniczna baza logiki, języka i komunikatów semantycznych raportu 4.2 | Nie |
+| `sources/fms-report-bases-v4.2/*` | `FMS_report_bases_v4_2_semantic_language.zip` | Kanoniczna baza logiki, języka, komunikatów semantycznych i układu raportu klienta | Tak — dostrojona do zaakceptowanej makiety oraz skilla `simple-client-report-ui` |
 
 Pliki `css/` i `js/` są nową implementacją makiety. Nie mają zależności runtime od `web/`, `Stitch/` ani usług zewnętrznych.
 `docs/ASSESSMENT_DETAILS_UI.md` zawiera samodzielną, aktualną specyfikację widoku podglądu badania V2.

@@ -27,6 +27,7 @@ Generator ma nie tylko opisywać wyniki. Ma dawać badanemu konkretną odpowied�
 - `FMS_REPORT_SPORT_PROFILES_DB.md` — profile GENERAL / ACTIVE, tagi wymagań ruchowych, sporty i przykłady sportowe.
 - `FMS_REPORT_USER_STATE_DB.md` — nowy użytkownik / klient / historia / CTA.
 - `FMS_REPORT_LOGIC_AND_TEMPLATES.md` — wybór priorytetu i składanie raportu.
+- `FMS_REPORT_UI_BLUEPRINT.md` — **kanoniczny układ raportu klienta zgodny z makietą i skillem UI**.
 - `FMS_REPORT_EDGE_CASES_AND_VALIDATION.md` — przypadki graniczne i walidacja.
 - `FMS_REPORT_EXAMPLES.md` — przykłady gotowych raportów.
 - `FMS_QUICK_SCREEN_TRAINER_RULES.md` — skrócona ściąga do zakładki trenera.
@@ -54,7 +55,7 @@ sport / codzienne funkcjonowanie
     ↓
 historia
     ↓
-raport
+raport: kontekst -> wynik -> priorytet -> działanie -> pomoc -> szczegóły
 ```
 
 ## Zasady domenowe
@@ -107,3 +108,6 @@ wynik testu
 
 Techniczne nazwy testów pozostają w szczegółach i panelu trenera. Główna część raportu używa języka klienta.
 
+## Źródło prawdy dla prezentacji
+
+`FMS_REPORT_UI_BLUEPRINT.md` jest nadrzędny dla układu raportu klienta. Baza zachowuje wszystkie istniejące reguły punktacji, priorytetów i Action Rules, ale prezentuje ich wynik zgodnie z zaakceptowaną makietą: najpierw kontekst i wynik, następnie jeden priorytet, plan `Chroń -> Popraw -> Rozwijaj`, pomoc i dopiero szczegóły.
