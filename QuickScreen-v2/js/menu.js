@@ -88,7 +88,7 @@ QSViews.trainerPanel = function () {
   return QSViews.layout(`<div class="role-dashboard trainer-dashboard trainer-workbench">
     <div class="page-head trainer-page-head">
       <div><div class="eyebrow">QuickScreen · workspace trenera</div><h1>Wyniki i protokół</h1><p>Surowe wyniki wspierają Twoją ocenę — aplikacja nie wybiera za Ciebie priorytetu pracy.</p></div>
-      <div class="trainer-page-actions"><a class="btn btn-outline" href="#/clients">Klienci</a></div>
+      <div class="trainer-page-actions"><a class="btn btn-outline" href="#/clients?modal=new">＋ Dodaj klienta</a><a class="btn btn-primary" href="#/assessment">＋ Nowe badanie</a></div>
     </div>
 
     <section class="card trainer-results-card">
