@@ -91,13 +91,6 @@ QSViews.trainerPanel = function () {
       <div class="trainer-page-actions"><a class="btn btn-outline" href="#/clients">Klienci</a><a class="btn btn-primary" href="#/assessment">＋ Nowe badanie</a></div>
     </div>
 
-    <section class="trainer-utility-bar">
-      <div><b>${activeClients}</b><span>aktywnych klientów</span></div>
-      <div><b>${QS.history.length}</b><span>zapisane badania demo</span></div>
-      <div><b>9</b><span>elementów QuickScreen</span></div>
-      <a href="#trainer-fms-rules">Zasady FMS / QuickScreen ↓</a>
-    </section>
-
     <section class="card trainer-results-card">
       <div class="card-head"><div><span class="eyebrow">Ostatnie kompletne badania</span><h2>Surowe wyniki</h2><p class="muted">Wynik zapisany zgodnie z protokołem. Ocenę znaczenia i kolejność pracy ustala trener.</p></div><a class="btn btn-soft btn-sm" href="#/clients">Pełna lista klientów</a></div>
       <div class="trainer-results-scroll"><table class="trainer-results-table"><thead><tr><th>Klient / data</th><th>Szyja</th><th>Skłon</th><th>Bark</th><th>Przysiad</th><th>Równowaga</th><th>Rotacja</th><th></th></tr></thead><tbody>${rawResults.map(row => `<tr><td><span class="initials ${row.status}">${row.initials}</span><span><b>${row.client}</b><small>${row.date}</small></span></td>${row.scores.map(score => `<td>${score}</td>`).join('')}<td><a class="btn btn-ghost btn-sm" href="${row.route}">Profil</a></td></tr>`).join('')}</tbody></table></div>
