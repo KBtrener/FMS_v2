@@ -119,12 +119,6 @@ QSViews.trainerPanel = function () {
         </div>
         <aside class="trainer-retest-rule"><b>Jak pracować z wynikiem?</b><p>Wybierz jeden główny problem, pozostałe zapisz jako obserwacje dodatkowe, potem wykonaj re-test. Poprawa wcześniejszego wzorca może zmienić obraz kolejnych wyników.</p></aside>
       </section>
-      <section class="card trainer-actions-card">
-        <div class="card-head"><div><span class="eyebrow">Praca z klientem</span><h2>Badania</h2></div></div>
-        <a class="trainer-action-link primary" href="#/assessment"><b>＋</b><span>Przeprowadź nowe badanie<small>Wybierz klienta i rozpocznij testy</small></span></a>
-        <a class="trainer-action-link" href="#/clients?modal=new"><b>＋</b><span>Dodaj klienta<small>Utwórz profil przed badaniem</small></span></a>
-        <div class="trainer-method-note"><b>Przypomnienie</b><p>QuickScreen jest badaniem przesiewowym. Wynik pokazuje obserwację, nie przyczynę ograniczenia ani diagnozę.</p></div>
-      </section>
     </div>
   </div>`, 'trainer-panel');
 };
