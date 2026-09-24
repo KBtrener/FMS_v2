@@ -70,15 +70,15 @@ Ta prezentacja nie zmienia merytorycznej relacji wyniku Shoulder Clearing do wyn
   <script defer src="js/data.js"></script>
   <script defer src="js/router.js"></script>
   <script defer src="js/components.js?v=logo-stable-20260913"></script>
-  <script defer src="js/views.js?v=client-first-step-20260924"></script>
-  <script defer src="js/exact-fixtures.js?v=shoulder-side-order-20260924"></script>
+  <script defer src="js/views.js?v=wizard-navigation-reload-20260924"></script>
+  <script defer src="js/exact-fixtures.js?v=wizard-navigation-reload-20260924"></script>
   <script defer src="js/menu.js?v=trainer-action-card-removed-20260923"></script>
   <script defer src="js/client-dashboard.js?v=client-hero-profile-link-removed-20260923"></script>
   <script defer src="js/client-report-v4.js?v=report-recommendations-20260923"></script>
   <script defer src="js/admin-dashboards.js?v=admin-panels-20260914"></script>
   <script defer src="js/protocol-config.js?v=protocol-config-20260914"></script>
   <script defer src="js/assessment-details-clean.js?v=technical-results-20260923"></script>
-  <script defer src="js/app.js?v=client-picker-flow-20260924"></script>
+  <script defer src="js/app.js?v=wizard-navigation-reload-20260924"></script>
 </head>
 <body><div id="app"></div></body>
 </html>
@@ -1133,7 +1133,7 @@ body[data-preview-role] .role-tabs{display:none}body[data-preview-role="client"]
 .clearing-side .option.pain.selected{background:var(--pain);border-color:var(--pain)}
 .wizard-shell{padding-bottom:88px}
 .wizard-progress-card .stepper{grid-template-columns:repeat(10,minmax(0,1fr))}
-.wizard-shell>.action-bar{position:fixed;left:50%;right:auto;bottom:72px;z-index:18;width:min(760px,calc(100% - 32px));margin:0;padding:10px 16px;transform:translateX(-50%);border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.97);box-shadow:0 8px 24px rgba(15,23,42,.12)}
+.wizard-shell>.action-bar{position:fixed!important;left:50%;right:auto;bottom:72px;z-index:18;width:min(760px,calc(100% - 32px));margin:0;padding:10px 16px;transform:translateX(-50%);border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.97);box-shadow:0 8px 24px rgba(15,23,42,.12)}
 @media(max-width:760px){.wizard-progress-card .stepper{grid-template-columns:repeat(10,48px);overflow-x:auto}.wizard-shell>.action-bar{width:calc(100% - 32px);padding:8px 10px}}
 @media(max-width:620px){.clearing-test-card{padding:14px}.clearing-test-head h2{font-size:19px}}
 ````
