@@ -61,7 +61,7 @@ Kolor nigdy nie jest jedynym nośnikiem znaczenia: zawsze występują ikona/znak
 
 Jeden topbar ma lokalne logo, app switcher, status synchronizacji i konto. Na mobile główne obszary są w dolnej nawigacji. Karty mają promień 16 px, kontrolowany cień i obrys subtle. Przyciski oraz pola mają co najmniej 48 px wysokości. Focus ma wyraźny ring teal.
 
-Wizard pokazuje `Test n z 9`, nazwę każdego kroku i stany: bieżący, ukończony, niepełny i błąd. Testy obustronne porównują `Lewa strona` i `Prawa strona` w jednej osi. Shoulder Clearing grupuje `Wzorzec górny` i `Wzorzec dolny`. Kryteria są domyślnie zamknięte. Sticky action bar pozostaje pod kciukiem. Status szkicu brzmi `Szkic zapisany na tym urządzeniu`.
+Przed listą testów wizard pokazuje pierwszy krok wyboru klienta. Wejście z profilu automatycznie uzupełnia imię, nazwisko, e-mail i dyscyplinę; wprowadzenie minimum 3 znaków w polu imienia, nazwiska lub e-maila pokazuje pasujące profile. Dalsza reguła znajduje się w `ASSESSMENT_FLOW_V2.md`. Po wyborze klienta wizard pokazuje `Test n z liczby testów w aktualnej konfiguracji`, nazwę każdego testu i jego stan. Testy obustronne porównują `Lewa strona` i `Prawa strona`. Shoulder Clearing jest jednym zwykłym, kompletnym testem. Jego kafelek ma układ pionowy: najpierw `Lewa strona`, potem `Prawa strona`; w każdej stronie są `Wzorzec górny` i `Wzorzec dolny`. Kryteria są domyślnie zamknięte. Sticky action bar pozostaje pod kciukiem. Status szkicu brzmi `Szkic zapisany na tym urządzeniu`.
 
 Empty, loading i error mają komunikat, jednoznaczną ikonę oraz następną akcję. Stan archiwalny nie jest komunikowany samą przezroczystością. Akcje destrukcyjne są drugorzędne i wymagają potwierdzenia.
 

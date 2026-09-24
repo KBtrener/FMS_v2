@@ -1,5 +1,7 @@
 # QuickScreen V2 — specyfikacja widoku podglądu badania
 
+> Ten plik opisuje wyłącznie ekran zapisanego badania. Wygląd i flow testu w wizardzie, w tym zwykłe traktowanie Shoulder Clearing jako jednego pełnego testu, określa `ASSESSMENT_FLOW_V2.md`.
+
 Ten dokument jest samodzielnym opisem widoku `#/assessment-details/demo`. Osoba rozwijająca makietę nie powinna potrzebować historii rozmów ani znajomości wcześniejszych wersji kodu.
 
 ## Zakres

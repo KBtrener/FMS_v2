@@ -1,5 +1,7 @@
 # Current App UI Audit
 
+> **Zakres źródła:** ten audyt opisuje produkcyjną aplikację `web/` i jej rzeczywiste backendowe flow. Nie jest specyfikacją działania statycznej makiety `QuickScreen-v2/`. Dla jej wyboru klienta i wizarda nadrzędny jest `ASSESSMENT_FLOW_V2.md`.
+
 ## 1. Executive summary
 
 Repozytorium zawiera produkcyjną aplikację FMS QuickScreen dla trenera. Jest to aplikacja webowa typu SPA zbudowana bez Reacta: HTML jest dostarczany przez `web/index.html`, a widoki są składane dynamicznie w `web/app.js` jako stringi HTML. Dane użytkownika, konfiguracja protokołu, wyniki badań, raporty i pliki są obsługiwane przez Supabase.

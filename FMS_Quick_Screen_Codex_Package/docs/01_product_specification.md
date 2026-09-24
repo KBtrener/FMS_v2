@@ -28,16 +28,18 @@ neutralnego raportu do przekazania klientowi lub innemu trenerowi.
 
 ## Główny przepływ
 
-1. Trener wyszukuje klienta albo zakłada nowy profil.
-2. Rozpoczyna Quick Screen w jednym szybkim widoku krokowym lub układzie kart.
+1. Trener rozpoczyna badanie w pierwszym kroku wyboru klienta. Z profilu klienta jego imię, nazwisko, e-mail i dyscyplina są wstępnie uzupełnione.
+2. W pustym formularzu trener może wpisać imię, nazwisko lub e-mail. Po minimum 3 znakach w danym polu system pokazuje pasujące profile z bazy; wybranie profilu uzupełnia wszystkie cztery pola. Trener może też kontynuować wpisywanie danych nowej osoby.
+3. Przed utworzeniem rekordu backend dopasowuje znormalizowane imię, nazwisko i e-mail: jednoznaczne dopasowanie używa istniejącego klienta, brak dopasowania tworzy nowego, a wiele dopasowań wymaga wskazania właściwego profilu. Dyscyplina jest daną profilu, nie identyfikatorem osoby. Sam e-mail nie jest kluczem, bo różne osoby mogą go współdzielić.
+4. Rozpoczyna Quick Screen w jednym szybkim widoku krokowym lub układzie kart.
    Dokładny wariant interfejsu może zostać wybrany pod kątem szybkości, nie
    jest wymagane kopiowanie istniejącego wizarda.
-3. Przy każdym teście widzi krótki opis oraz przycisk Kryteria oceny.
-4. Wprowadza wyniki. Odpowiedzi binarne mają dwa duże, jednoznaczne przyciski:
+5. Przy każdym teście widzi krótki opis oraz przycisk Kryteria oceny.
+6. Wprowadza wyniki. Odpowiedzi binarne mają dwa duże, jednoznaczne przyciski:
    Pass / Fail albo Brak bólu / Ból.
-5. W ostatnim kroku naciska jeden przycisk Zakończ badanie.
-6. Aplikacja waliduje dane, zapisuje odpowiedzi i oblicza wyniki.
-7. Pojawia się profil klienta z aktualnym wynikiem, historią i przyciskiem
+7. W ostatnim kroku naciska jeden przycisk Zakończ badanie.
+8. Aplikacja waliduje dane, zapisuje odpowiedzi i oblicza wyniki.
+9. Pojawia się profil klienta z aktualnym wynikiem, historią i przyciskiem
    Wygeneruj raport.
 
 ## Profil klienta
@@ -53,7 +55,10 @@ Profil pokazuje:
 - przyciski: Nowe badanie, Edytuj dane, Edytuj badanie, Archiwizuj.
 
 E-mail klienta nie jest kluczem głównym. Jest możliwe, że dwie osoby użyją
-tego samego adresu; aplikacja ma jedynie ostrzegać o możliwym duplikacie.
+tego samego adresu. Przy rozpoznawaniu istniejącego profilu e-mail należy
+łączyć z imieniem i nazwiskiem; nie wolno automatycznie przypisać badania
+wyłącznie na podstawie wspólnego adresu. Jeśli dopasowanie pozostaje
+niejednoznaczne, trener wskazuje właściwy profil.
 
 ## Korekta i archiwizacja
 
