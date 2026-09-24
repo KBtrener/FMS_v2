@@ -2,10 +2,10 @@
 
 Poniżej znajduje się bieżąca zawartość `index.html`, wszystkich plików JavaScript z `js/` oraz arkuszy stylów z `css/`. Sekcje kodu są dołączone verbatim. Zawierają aktualne teksty interfejsu, pytania i instrukcje badań, dane demonstracyjne, ekrany, flow oraz style.
 
-To jest migawka kodu makiety. Dla pierwszego kroku klienta oraz flow i układu wizarda stosuj nadrzędny docs/ASSESSMENT_FLOW_V2.md; pozostałe teksty odczytuj z aktualnych plików źródłowych js/ i css/.
+To jest migawka kodu makiety. Dla pierwszego kroku klienta oraz flow i układu wizarda stosuj nadrzędny `ASSESSMENT_FLOW_V2.md`; pozostałe teksty i ekrany odczytuj z kodu zamieszczonego dalej w tym pliku.
 
 
-## docs/ASSESSMENT_FLOW_V2.md
+## ASSESSMENT_FLOW_V2.md
 
 ````md
 # QuickScreen V2 — flow rozpoczęcia badania i wizarda

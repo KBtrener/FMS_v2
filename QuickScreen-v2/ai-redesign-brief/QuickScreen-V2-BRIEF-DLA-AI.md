@@ -2,7 +2,7 @@
 
 ## Nadrzędne doprecyzowanie aktualnego flow V2
 
-Opis wyboru klienta oraz Shoulder Clearing w tym briefie i zbiorczym kodzie może być starszy. Dla tych elementów stosuj [`docs/ASSESSMENT_FLOW_V2.md`](../docs/ASSESSMENT_FLOW_V2.md): wybór/potwierdzenie klienta jest pierwszym krokiem wizarda; Shoulder Clearing jest jednym zwykłym, kompletnym testem z sekcją lewej strony nad sekcją prawej strony. W V2 wyszukiwanie pokazuje podpowiedzi od 3 znaków, a kliknięcie wejścia z profilu wstępnie uzupełnia imię, nazwisko, e-mail i dyscyplinę. Szczegóły przyszłego sprawdzania i tworzenia klientów opisuje wskazany dokument.
+Opis wyboru klienta oraz Shoulder Clearing w tym briefie i zbiorczym kodzie może być starszy. Dla tych elementów stosuj [`ASSESSMENT_FLOW_V2.md`](ASSESSMENT_FLOW_V2.md): wybór/potwierdzenie klienta jest pierwszym krokiem wizarda; Shoulder Clearing jest jednym zwykłym, kompletnym testem z sekcją lewej strony nad sekcją prawej strony. W V2 wyszukiwanie pokazuje podpowiedzi od 3 znaków, a kliknięcie wejścia z profilu wstępnie uzupełnia imię, nazwisko, e-mail i dyscyplinę. Szczegóły przyszłego sprawdzania i tworzenia klientów opisuje wskazany dokument.
 
 Krok wyboru klienta i wyszukiwanie są prezentowane jako makieta na fixture’ach; nie dodawaj połączenia z bazą. Zachowaj pozostałe istniejące teksty i flow testów.
 
@@ -27,6 +27,6 @@ QuickScreen V2 to narzędzie KB Trener do przeprowadzania krótkich badań i tes
 ## Pliki do przejrzenia
 
 - `QuickScreen-V2-AKTUALNY-KOD.md` — bieżący kod `index.html`, wszystkich plików `js/` i `css/`; źródło prawdy dla ekranów, tekstów, pytań, danych i flow.
-- `assets/logo/kb-logo.png` — logo w paczce ZIP ze źródłami, ewentualnie logo dołączone osobno.
+- `assets/logo/kb-logo.png` — dołączone logo KB Trener.
 
 Zaprojektuj redesign wszystkich istniejących ekranów, nie pomijając wizarda, raportu ani administracji. Najpierw odczytaj cały zbiorczy kod, potem przedstaw spójny plan i propozycje wizualne. Nie wymyślaj brakujących pytań ani danych — są w kodzie.
