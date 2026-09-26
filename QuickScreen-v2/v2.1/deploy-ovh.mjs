@@ -27,6 +27,7 @@ await client.connect({
 const remoteRoot = posix.join(env.OVH_DEPLOY_PATH, 'quickscreen v2');
 const allowedRoots = new Set(['index.html', '.htaccess', 'css', 'js', 'assets']);
 async function uploadTree(localDir, remoteDir) {
+  if (!(await client.exists(remoteDir))) await client.mkdir(remoteDir, true);
   for (const entry of await readdir(localDir, { withFileTypes: true })) {
     const local = join(localDir, entry.name);
     const remote = posix.join(remoteDir, entry.name);
