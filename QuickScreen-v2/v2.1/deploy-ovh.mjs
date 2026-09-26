@@ -24,11 +24,10 @@ await client.connect({
   readyTimeout: 20000,
 });
 
-const remoteDirectory = process.argv[2] || 'quickscreen v2';
-if (remoteDirectory.includes('..') || remoteDirectory.startsWith('/') || remoteDirectory.includes('\\')) {
+const remoteDirectories = process.argv.length > 2 ? process.argv.slice(2) : ['quickscreen v2', 'quick-screen-v2'];
+if (remoteDirectories.some(path => path.includes('..') || path.startsWith('/') || path.includes('\\'))) {
   throw new Error('Nieprawidłowy katalog docelowy OVH.');
 }
-const remoteRoot = posix.join(env.OVH_DEPLOY_PATH, remoteDirectory);
 const allowedRoots = new Set(['index.html', '.htaccess', 'css', 'js', 'assets']);
 async function uploadTree(localDir, remoteDir) {
   if (!(await client.exists(remoteDir))) await client.mkdir(remoteDir, true);
@@ -41,17 +40,26 @@ async function uploadTree(localDir, remoteDir) {
 }
 
 try {
-  if (!(await client.exists(remoteRoot))) await client.mkdir(remoteRoot, true);
-  for (const entry of await readdir(projectDir, { withFileTypes: true })) {
-    if (!allowedRoots.has(entry.name)) continue;
-    const local = join(projectDir, entry.name);
-    const remote = posix.join(remoteRoot, entry.name);
-    if (entry.isDirectory()) {
-      if (!(await client.exists(remote))) await client.mkdir(remote, true);
-      await uploadTree(local, remote);
-    } else await client.fastPut(local, remote);
+  const published = [];
+  for (const remoteDirectory of remoteDirectories) {
+    const remoteRoot = posix.join(env.OVH_DEPLOY_PATH, remoteDirectory);
+    if (!(await client.exists(remoteRoot))) await client.mkdir(remoteRoot, true);
+    for (const name of ['css', 'js', 'assets']) {
+      const stalePath = posix.join(remoteRoot, name);
+      if (await client.exists(stalePath)) await client.rmdir(stalePath, true);
+    }
+    for (const entry of await readdir(projectDir, { withFileTypes: true })) {
+      if (!allowedRoots.has(entry.name)) continue;
+      const local = join(projectDir, entry.name);
+      const remote = posix.join(remoteRoot, entry.name);
+      if (entry.isDirectory()) {
+        if (!(await client.exists(remote))) await client.mkdir(remote, true);
+        await uploadTree(local, remote);
+      } else await client.fastPut(local, remote);
+    }
+    published.push(remoteRoot);
   }
-  console.log(JSON.stringify({ published: remoteRoot, files: 'index.html, css/, js/, assets/, .htaccess' }));
+  console.log(JSON.stringify({ published, files: 'index.html, css/, js/, assets/, .htaccess' }));
 } finally {
   await client.end();
 }

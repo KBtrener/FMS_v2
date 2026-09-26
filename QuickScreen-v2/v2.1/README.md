@@ -1,30 +1,21 @@
 # QuickScreen
 
-Interaktywna makieta nowego modułu QuickScreen. Pliki UI, dane demonstracyjne, konfiguracja Supabase i migracje znajdują się w tym katalogu.
+Makieta aplikacji zbudowana od podstaw na podstawie PNG z Figmy i zasad z `design.md`. Interfejs nie korzysta z kodu ani komponentów poprzedniej aplikacji. Dane klientów i badań są wyłącznie demonstracyjne.
 
-## Uruchomienie makiety
+## Uruchomienie
 
-Uruchom lokalny serwer statyczny w katalogu `v2.1`, np.:
+W katalogu `v2.1` uruchom:
 
 ```powershell
 python -m http.server 8000
 ```
 
-Otwórz `http://localhost:8000`. Makieta korzysta z fixture’ów w `js/data.js` i `js/v2.1-data.js`; nie zapisuje prawdziwych klientów ani badań.
+Otwórz `http://localhost:8000`.
 
-## Supabase
+## Supabase i przyszłe API
 
-`supabase/migrations` zawiera bazowy schemat, polityki RLS, procedury, definicje testów i raportów przeniesione z istniejącego backendu. Seed w `supabase/seed.sql` opisuje ten sam protokół 10 testów co makieta, wraz z zależnościami clearingów. Nie seeduje prawdziwych osób ani badań.
+`supabase/` zawiera schemat, RLS, migracje i seedy bazujące na istniejącym backendzie oraz protokole 10 testów. Makieta nie zapisuje danych do Supabase. Granicę modułu i przyszłą integrację przez API opisuje [API_ARCHITECTURE.md](API_ARCHITECTURE.md).
 
-Dla lokalnego środowiska Supabase:
+## Publikacja
 
-```powershell
-npx supabase start
-npx supabase db reset
-```
-
-Dla wybranego projektu Supabase skonfiguruj połączenie przez CLI, a następnie wypchnij migracje i seed. Nie dodawaj klucza service-role do frontendu.
-
-## Integracja z aplikacją główną
-
-QuickScreen jest osobnym modułem. Widoki, protokół i schemat mogą być rozwijane niezależnie. Późniejsze połączenie z aplikacją główną powinno odbywać się przez wersjonowaną warstwę API opisaną w [API_ARCHITECTURE.md](API_ARCHITECTURE.md). Makieta nie jest jeszcze podłączona do projektu Supabase ani do API aplikacji głównej.
+Z katalogu głównego repozytorium uruchom `node QuickScreen-v2/v2.1/deploy-ovh.mjs`. Skrypt publikuje pliki UI do `quickscreen v2` oraz dotychczasowego adresu `quick-screen-v2`. Nie wysyła dokumentacji ani plików Supabase.
