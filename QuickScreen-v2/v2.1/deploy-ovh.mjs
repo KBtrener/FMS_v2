@@ -24,7 +24,11 @@ await client.connect({
   readyTimeout: 20000,
 });
 
-const remoteRoot = posix.join(env.OVH_DEPLOY_PATH, 'quickscreen v2');
+const remoteDirectory = process.argv[2] || 'quickscreen v2';
+if (remoteDirectory.includes('..') || remoteDirectory.startsWith('/') || remoteDirectory.includes('\\')) {
+  throw new Error('Nieprawidłowy katalog docelowy OVH.');
+}
+const remoteRoot = posix.join(env.OVH_DEPLOY_PATH, remoteDirectory);
 const allowedRoots = new Set(['index.html', '.htaccess', 'css', 'js', 'assets']);
 async function uploadTree(localDir, remoteDir) {
   if (!(await client.exists(remoteDir))) await client.mkdir(remoteDir, true);
