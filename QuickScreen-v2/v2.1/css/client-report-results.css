@@ -1,0 +1,11 @@
+/* Tabela wyników raportu — osobny, semantyczny układ tabelaryczny. */
+.report-score-table{margin-top:28px;overflow-x:auto;border-top:1px solid #dfe3e2}
+.report-score-table table{width:100%;min-width:610px;border-collapse:collapse;text-align:left}
+.report-score-table caption{padding:10px 0 12px;color:#69716f;font-size:12px;line-height:1.45;text-align:left}
+.report-score-table th,.report-score-table td{padding:12px 10px;border-bottom:1px solid #e5e7e8;font-size:13px;vertical-align:middle}
+.report-score-table thead th{padding-top:10px;color:#69716f;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.report-score-table tbody th{padding-left:0;font-weight:600}.report-score-table tbody td:last-child{padding-right:0}
+.report-score-table .score-table__single{color:#69716f;font-size:12px!important;text-align:center}
+.report-score-table strong{font-weight:700}.report-score-table strong small{display:block;margin-top:3px;color:#a65b2c;font-size:10px;font-weight:600}
+.report-score-table .score{display:inline-flex;justify-content:center;width:max-content;min-width:42px;padding:4px 7px;border-radius:3px;font-size:12px;font-weight:700}
+.report-score-table .score--good{background:#edf7ef;color:#27613e}.report-score-table .score--mid,.report-score-table .score--low{background:#f8f4e8;color:#7b5d1f}.report-score-table .score--pain{background:#fae9e8;color:#9a322d}

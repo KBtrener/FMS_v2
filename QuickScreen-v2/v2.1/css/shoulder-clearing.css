@@ -1,0 +1,16 @@
+.clearing-group{gap:20px;background:linear-gradient(180deg,#ffffff 0%,#f8fffe 100%)}
+.clearing-group>.wizard-heading{padding-bottom:2px}
+.clearing-test-card{display:grid;gap:16px;padding:18px;border:2px solid var(--line-strong);border-radius:16px;background:var(--card);box-shadow:0 4px 14px rgba(15,23,42,.05)}
+.clearing-test-card.upper{border-color:#99f6e4}
+.clearing-test-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.clearing-test-head h2{font-size:21px;margin-top:3px}
+.clearing-sides{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.clearing-side{display:grid;gap:15px;padding:15px;border-radius:14px;background:var(--muted);border:1px solid var(--line)}
+.clearing-side h3{display:flex;align-items:center;gap:8px;font-size:16px}
+.clearing-side h3 span{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--primary);color:#fff;font:700 12px Inter}
+.clearing-side .options{grid-template-columns:1fr 1fr}
+.clearing-side .option{min-height:48px;font-size:13px}
+.clearing-side .option.pass.selected{background:var(--pass);border-color:var(--pass)}
+.clearing-side .option.fail.selected{background:var(--attention);border-color:var(--attention)}
+.clearing-side .option.pain.selected{background:var(--pain);border-color:var(--pain)}
+@media(max-width:620px){.clearing-test-card{padding:14px}.clearing-sides{grid-template-columns:1fr}.clearing-test-head h2{font-size:19px}}

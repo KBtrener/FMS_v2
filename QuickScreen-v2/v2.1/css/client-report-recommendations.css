@@ -1,0 +1,20 @@
+/* Zalecenia: klient widzi kolejność pracy i konkretne następne kroki. */
+.report-actions__lead{margin-top:14px!important;max-width:560px}
+.report-actions__plan{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:28px;border:1px solid #dfe3e2}
+.report-action{min-height:250px;padding:22px 20px;background:#fff}
+.report-action+.report-action{border-left:1px solid #dfe3e2}
+.report-action h3{margin:9px 0 0;font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
+.report-action>p:last-child{margin:14px 0 0;color:#3e4846;font-size:14px;line-height:1.62}
+.report-action ul{display:grid;gap:11px;margin:16px 0 0;padding:0;list-style:none}
+.report-action li{position:relative;padding-left:16px;color:#3e4846;font-size:14px;line-height:1.5}
+.report-action li::before{content:'—';position:absolute;left:0;color:#a6413c;font-weight:700}
+.report-action--protect{background:#fcf8f6}
+.report-action--protect .client-report__eyebrow{color:#a6413c}
+.report-action--improve{background:#fbfcfa}
+.report-action--improve .client-report__eyebrow{color:#476d52}
+.report-action--develop .client-report__eyebrow{color:#4b6877}
+.report-actions__retest{display:flex;align-items:center;gap:14px;margin-top:16px;padding:15px 18px;border-left:3px solid #18221f;background:#f3f5f4}
+.report-actions__retest>span{display:grid;place-items:center;width:28px;height:28px;border:1px solid #aeb7b3;border-radius:50%;color:#18221f;font-size:18px}
+.report-actions__retest b{font-size:13px;font-weight:700}
+.report-actions__retest p{margin:3px 0 0;color:#58615f;font-size:13px;line-height:1.45}
+@media(max-width:700px){.report-actions__plan{grid-template-columns:1fr}.report-action{min-height:0;padding:20px}.report-action+.report-action{border-top:1px solid #dfe3e2;border-left:0}}
