@@ -104,13 +104,6 @@
       : allPain
         ? `${observations.join(' ')} To najważniejsza informacja z badania i obszar, którym warto zająć się w pierwszej kolejności.${positiveSummary}`
         : `${observations.join(' ')} To obszar, któremu warto poświęcić teraz najwięcej uwagi.${positiveSummary} Nie musisz poprawiać wszystkiego jednocześnie; szczegółowe wyniki są poniżej.`;
-    const descriptionSections = priority.type === 'none'
-      ? [{ title: 'Obraz całości', text: summary, tone: 'overview' }]
-      : [
-          { title: 'Co wymaga uwagi', text: observations.join(' '), tone: allPain ? 'problem' : 'watch' },
-          { title: 'Priorytet', text: allPain ? `Ból jest najważniejszą informacją z badania. W pierwszej kolejności zajmij się: ${priority.items.map(nameOf).join(', ')}.` : `Skup teraz uwagę na teście ${nameOf(main)}. Nie musisz poprawiać wszystkiego jednocześnie.`, tone: 'priority' },
-          ...(positiveNames.length ? [{ title: 'Co działa dobrze', text: `Bez bólu i większych trudności wypadły: ${positiveNames.join(', ')}.`, tone: 'good' }] : []),
-        ];
     const plan = main ? [
       { title: 'Chroń', label: title, text: allPain ? painRules.join(' ') : (mainCode === 'cervical' && isFail(main) ? 'Nie wymuszaj końcowego zakresu szyi. Stopniowo zwiększaj zakres przed ruchem gwałtownym, szybkimi zmianami kierunku i sportami walki, które wymagają szybkiego ustawienia głowy.' : mildAsymmetry ? 'Nie ma potrzeby ograniczać aktywności tylko z powodu asymetrii 3/2.' : (scoreOf(main) === 1 || isFail(main) ? action.limit : 'Nie ma potrzeby automatycznie ograniczać całej aktywności z powodu tej różnicy.')) },
       { title: 'Popraw', label: title, text: mildAsymmetry ? `Obie strony spełniają podstawowy standard. Skup dodatkową pracę na stronie z niższym wynikiem (${main.leftScore < main.rightScore ? 'lewa' : 'prawa'}).` : allPain ? (mainCode === 'cervical' ? action.do : `${action.do} Przy bólu warto skonsultować się ze specjalistą, zwłaszcza jeśli utrzymuje się lub ogranicza codzienne czynności. Do tego czasu samodzielnie pozostań przy bezbolesnej aktywności i nie forsuj bolesnego zakresu.`) : action.do },
@@ -119,6 +112,13 @@
       { title: 'Chroń', label: 'Brak dodatkowych ograniczeń', text: 'Nie ma ograniczeń wynikających z dzisiejszego badania.' },
       { title: 'Popraw', label: 'Utrzymuj jakość ruchu', text: 'Kontynuuj regularny ruch i ćwiczenia dopasowane do swojego poziomu.' },
       { title: 'Rozwijaj', label: 'Kontynuuj aktywność', text: 'Możesz kontynuować codzienną aktywność lub trening bez ograniczeń wynikających z badania.' },
+    ];
+    const descriptionSections = [
+      { title: 'Obraz całości', text: summary, tone: 'overview' },
+      { title: 'Co działa dobrze', text: positiveNames.length ? `Bez bólu i większych trudności wypadły: ${positiveNames.join(', ')}.` : 'Nie ma wyników, które można wyróżnić jako bezbolesne i bez większych trudności.', tone: 'good' },
+      { title: 'Co wymaga uwagi', text: observations.length ? observations.join(' ') : 'W ocenionych testach nie pojawił się ból ani wyraźne ograniczenie.', tone: observations.length ? allPain ? 'problem' : 'watch' : 'good' },
+      { title: 'Priorytet', text: main ? (allPain ? `Ból jest najważniejszą informacją z badania. W pierwszej kolejności zajmij się: ${priority.items.map(nameOf).join(', ')}.` : `Skup teraz uwagę na teście ${nameOf(main)}. Nie musisz poprawiać wszystkiego jednocześnie.`) : 'Badanie nie wskazuje jednego obszaru, od którego trzeba zacząć.', tone: main ? allPain ? 'problem' : 'priority' : 'overview' },
+      { title: 'Co dalej', text: plan[1].text, tone: 'next' },
     ];
     return {
       generatorVersion: '5.0.0', assessmentId: assessment.assessmentId, client: assessment.client || {}, assessmentDate: assessment.date || '',
