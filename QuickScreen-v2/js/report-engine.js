@@ -6,7 +6,7 @@
     { id: 'help', title: 'Jak to zrobić', label: '04 / Jak to zrobić' },
   ];
   const LABELS = {
-    cervical_flexion: 'Zgięcie szyi', cervical_rotation: 'Rotacja szyi', cervical_rotation_extension: 'Rotacja szyi z odchyleniem',
+    cervical_flexion: 'Zgięcie karku', cervical_rotation: 'Rotacje karku', cervical_rotation_extension: 'Rotacje karku', neck_extension_clearing: 'Wyprost karku',
     toe_touch: 'Skłon do palców', shoulder_mobility: 'Ruchomość barków', shoulder_clearing: 'Test barku', squat: 'Przysiad',
     balance: 'Równowaga na jednej nodze', rotation: 'Rotacja tułowia', spine_extension_clearing: 'Wyprost kręgosłupa',
   };
