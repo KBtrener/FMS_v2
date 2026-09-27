@@ -41,7 +41,8 @@
       const columnMarkup = columnRows => columnRows.map(row => `<div class="report-test-row"><span>${esc(row.name)}</span><span>${esc(row.value)}</span></div>`).join('');
       const leftColumn = columnMarkup(rows.slice(0, 6));
       const rightColumn = columnMarkup(rows.slice(6));
-      sections.push(`<section class="report-section" ${blockAttrs('results')}><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><p class="report-results-description">${esc(b.results.summary)}</p><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-test-grid"><div class="report-test-column">${leftColumn}</div><div class="report-test-column">${rightColumn}</div></div></details></section>`);
+      const description = (b.results.descriptionSections || [{ title: 'Obraz całości', text: b.results.summary, tone: 'overview' }]).map(item => `<article class="report-description-card ${esc(item.tone)}"><b>${esc(item.title)}</b><p>${esc(item.text)}</p></article>`).join('');
+      sections.push(`<section class="report-section" ${blockAttrs('results')}><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><div class="report-description-sections">${description}</div><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-test-grid"><div class="report-test-column">${leftColumn}</div><div class="report-test-column">${rightColumn}</div></div></details></section>`);
     }
     if (visible.has('plan')) {
       const steps = b.plan.steps.map((step, index) => `<article class="plan-step"><span class="plan-num">0${index + 1}</span><div class="plan-copy"><b>${esc(step.title)}</b><small>${esc(step.label)}</small><p>${esc(step.text)}</p></div></article>`).join('');

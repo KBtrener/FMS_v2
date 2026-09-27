@@ -104,6 +104,13 @@
       : allPain
         ? `${observations.join(' ')} To najważniejsza informacja z badania i obszar, którym warto zająć się w pierwszej kolejności.${positiveSummary}`
         : `${observations.join(' ')} To obszar, któremu warto poświęcić teraz najwięcej uwagi.${positiveSummary} Nie musisz poprawiać wszystkiego jednocześnie; szczegółowe wyniki są poniżej.`;
+    const descriptionSections = priority.type === 'none'
+      ? [{ title: 'Obraz całości', text: summary, tone: 'overview' }]
+      : [
+          { title: 'Co wymaga uwagi', text: observations.join(' '), tone: allPain ? 'problem' : 'watch' },
+          { title: 'Priorytet', text: allPain ? `Ból jest najważniejszą informacją z badania. W pierwszej kolejności zajmij się: ${priority.items.map(nameOf).join(', ')}.` : `Skup teraz uwagę na teście ${nameOf(main)}. Nie musisz poprawiać wszystkiego jednocześnie.`, tone: 'priority' },
+          ...(positiveNames.length ? [{ title: 'Co działa dobrze', text: `Bez bólu i większych trudności wypadły: ${positiveNames.join(', ')}.`, tone: 'good' }] : []),
+        ];
     const plan = main ? [
       { title: 'Chroń', label: title, text: allPain ? painRules.join(' ') : (mainCode === 'cervical' && isFail(main) ? 'Nie wymuszaj końcowego zakresu szyi. Stopniowo zwiększaj zakres przed ruchem gwałtownym, szybkimi zmianami kierunku i sportami walki, które wymagają szybkiego ustawienia głowy.' : mildAsymmetry ? 'Nie ma potrzeby ograniczać aktywności tylko z powodu asymetrii 3/2.' : (scoreOf(main) === 1 || isFail(main) ? action.limit : 'Nie ma potrzeby automatycznie ograniczać całej aktywności z powodu tej różnicy.')) },
       { title: 'Popraw', label: title, text: mildAsymmetry ? `Obie strony spełniają podstawowy standard. Skup dodatkową pracę na stronie z niższym wynikiem (${main.leftScore < main.rightScore ? 'lewa' : 'prawa'}).` : allPain ? (mainCode === 'cervical' ? action.do : `${action.do} Przy bólu warto skonsultować się ze specjalistą, zwłaszcza jeśli utrzymuje się lub ogranicza codzienne czynności. Do tego czasu samodzielnie pozostań przy bezbolesnej aktywności i nie forsuj bolesnego zakresu.`) : action.do },
@@ -118,7 +125,7 @@
       assessmentName, sport, profile, totalScore: assessment.totalScore ?? null, maximum: assessment.maximum ?? null,
       visibleBlocks: visibleBlocks.map(block => block.id), blocks: {
         intro: { title: 'Hej! Oto Twój raport z badania.', text: 'Badanie sprawdza podstawowe wzorce ruchu, różnice między stronami i ból, aby pomóc ustalić kolejność dalszej pracy.' },
-        results: { title: 'Obraz całości i priorytety', summary, priority: main ? { title, reason, side, type: priority.type } : null,
+        results: { title: 'Obraz całości i priorytety', summary, descriptionSections, priority: main ? { title, reason, side, type: priority.type } : null,
           findings: important.map(test => ({ title: nameOf(test), text: `${isPain(test) ? 'Pojawił się ból' : isFail(test) ? 'Zakres ruchu nie osiągnął kryterium' : `Wynik ${scoreOf(test) ?? 'do oceny'}`}${sideText(test) ? ` · ${sideText(test)}` : ''}.`, status: 'attention' })),
           positive: positive.slice(0, 4).map(test => ({ title: nameOf(test), text: `${sideText(test) || `Wynik ${scoreOf(test) ?? 'bez bólu'}`} — bez bólu.`, status: 'good' })),
           history: history.slice(0, 1).flatMap(entry => (entry.changes || []).filter(change => change.change !== 'unchanged' && change.change !== 'not_comparable').slice(0, 5).map(change => ({ date: entry.date, name: change.name, change: change.change, text: change.change === 'new_pain' ? 'W tym badaniu pojawił się ból.' : change.change === 'pain_resolved' ? 'Tym razem ból się nie pojawił.' : change.change === 'new_asymmetry' ? 'Pojawiła się różnica między stronami.' : change.change === 'resolved_asymmetry' ? 'Wcześniejsza różnica między stronami nie pojawia się w tym badaniu.' : change.change === 'improved' ? `Wynik poprawił się: ${change.previousScore} → ${change.currentScore}.` : `Wynik jest niższy: ${change.previousScore} → ${change.currentScore}.` }))), tests: items },
