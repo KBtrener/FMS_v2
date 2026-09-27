@@ -11,16 +11,34 @@ Ten dokument opisuje nowy system wizualny aplikacji. Przy implementacji należy 
 
 | Token | Wartość | Zastosowanie |
 |---|---|---|
-| `accent` | `#3B82F6` | Przyciski CTA, linki, aktywne zakładki, wykresy trendów |
-| `text-primary` | `#0F172A` | Nagłówki i główny tekst |
-| `text-body` | `#475569` | Tekst treści i opisy |
-| `text-muted` | `#94A3B8` | Tekst pomocniczy i placeholdery |
+| `accent` | `#C1D445` | Przyciski CTA, linki, aktywne zakładki, wykresy trendów |
+| `accent-hover` | `#A8BA2F` | Hover przycisków primary |
+| `text-primary` | `#3A353B` | Nagłówki i główny tekst |
+| `text-body` | `#52494F` | Tekst treści i opisy |
+| `text-muted` | `#8A8389` | Tekst pomocniczy i placeholdery |
 | `white` | `#FFFFFF` | Tła kart, nagłówka i dolnego paska nawigacji |
-| `border` | `#E2E8F0` | Obramowania kart, separatory i pola formularzy |
-| `bg-page` | `#F8FAFC` | Tło strony |
-| `bg-blue-light` | `#EFF6FF` | Tła przycisków ghost i secondary |
-| `bg-section` | `#F9FAFB` | Tło sekcji wewnątrz kart |
-| `bg-blue-soft` | `#DBEAFE` | Tło podświetlonych elementów |
+| `border` | `#E0DDD9` | Obramowania kart, separatory i pola formularzy |
+| `bg-page` | `#F7F6F5` | Tło strony |
+| `bg-accent-light` | `#F5F7E2` | Tła przycisków secondary, aktywnych zakładek i podświetleń |
+| `bg-section` | `#FBFAF8` | Tło sekcji wewnątrz kart |
+| `input-bg` | `#F2F0EE` | Tło pól formularzy i tabel |
+
+### Skala akcentu
+
+| Poziom | Kolor |
+|---:|---|
+| 50 | `#F5F7E2` |
+| 100 | `#EEF0CC` |
+| 200 | `#DDE3A2` |
+| 300 | `#CCD678` |
+| 400 | `#C1D445` |
+| 500 | `#A8BA2F` |
+| 600 | `#8A9A1E` |
+| 700 | `#6B7716` |
+| 800 | `#4D5610` |
+| 900 | `#3A4009` |
+
+Ciemny bazowy (`dark`): `#3A353B`.
 
 ### Statusy wyników
 
@@ -47,7 +65,7 @@ W całej aplikacji stosuj rodzinę **Inter**.
 | Small / Caption | 12–13 px | 400 (Regular) | Etykiety i metadane |
 | Fine | 10–11 px | 400 (Regular) | Drobne adnotacje |
 
-Kolory tekstu: `#0F172A` dla tekstu głównego, `#475569` dla treści i `#94A3B8` dla tekstu pomocniczego.
+Kolory tekstu: `#3A353B` dla tekstu głównego i tekstu na limonkowym CTA, `#52494F` dla treści i `#8A8389` dla tekstu pomocniczego.
 
 ## 3. Odstępy
 
@@ -78,10 +96,10 @@ Bazowa jednostka odstępów wynosi 4 px. Stosuj wielokrotności tej wartości.
 
 ## 5. Cienie i obramowania
 
-Domyślnie karty używają obramowania `1px solid #E2E8F0`, bez cienia. Delikatny cień stosuj oszczędnie, wyłącznie dla kart wymagających wizualnego uniesienia:
+Domyślnie karty używają obramowania `1px solid #E0DDD9`, bez cienia. Delikatny cień stosuj oszczędnie, wyłącznie dla kart wymagających wizualnego uniesienia:
 
 ```css
-box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+box-shadow: 0 12px 24px rgba(58, 53, 59, 0.08);
 ```
 
 ## 6. Układ i nawigacja
@@ -90,10 +108,10 @@ box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
 
 - Nagłówek: wysokość 72 px, białe tło; logo po lewej, zakładki nawigacji i avatar.
 - Kontener treści: maksymalna szerokość 1360 px, wyśrodkowany, padding poziomy 40 px, odstęp między elementami 24 px.
-- Karty: białe tło, obramowanie `#E2E8F0`, promień 16 px.
+- Karty: białe tło, obramowanie `#E0DDD9`, promień 16 px.
 - Stopka: wysokość 56 px.
 
-Nawigacja desktop zawiera zakładki: **Dashboard, Klienci, Nowy test, Ściąga, Profil**. Aktywna zakładka używa tekstu `#3B82F6` i podkreślenia; nieaktywne zakładki używają `#475569`.
+Nawigacja desktop zawiera zakładki: **Dashboard, Klienci, Nowy test, Ściąga, Profil**. Aktywna zakładka używa ciemnego tekstu `#3A353B` i limonkowego podkreślenia `#C1D445`; nieaktywne zakładki używają `#52494F`.
 
 ### Mobile — punkt odniesienia 390 px
 
@@ -102,7 +120,7 @@ Nawigacja desktop zawiera zakładki: **Dashboard, Klienci, Nowy test, Ściąga, 
 - Przewijana treść: padding poziomy 16 px.
 - Dolny pasek nawigacji: 72 px plus 20 px safe area; pięć równomiernie rozmieszczonych pozycji.
 - Każda pozycja nawigacji zawiera ikonę i etykietę pod ikoną.
-- Aktywna pozycja używa `#3B82F6`, nieaktywna `#94A3B8`.
+- Aktywna pozycja używa ciemnego tekstu `#3A353B` i limonkowej ikony `#C1D445`; nieaktywna używa `#8A8389`.
 - Nie używaj menu hamburgerowego. Cała nawigacja znajduje się w dolnym pasku.
 
 Nawigacja mobile zawiera te same pozycje co desktop: **Dashboard, Klienci, Nowy test, Ściąga, Profil**.
@@ -115,14 +133,30 @@ Nawigacja mobile zawiera te same pozycje co desktop: **Dashboard, Klienci, Nowy 
 .input {
   height: 37px;
   padding: 0 12px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #E0DDD9;
   border-radius: 8px;
-  color: #0F172A;
+  color: #3A353B;
   font-size: 14px;
 }
 
+.input:focus {
+  border-color: #C1D445;
+  outline-color: #C1D445;
+}
+
+.btn-primary {
+  background: #C1D445;
+  border-color: #C1D445;
+  color: #3A353B;
+}
+
+.btn-primary:hover {
+  background: #A8BA2F;
+  border-color: #A8BA2F;
+}
+
 .input::placeholder {
-  color: #94A3B8;
+  color: #8A8389;
 }
 ```
 
@@ -131,8 +165,8 @@ Nawigacja mobile zawiera te same pozycje co desktop: **Dashboard, Klienci, Nowy 
 ```css
 .table-header {
   height: 47px;
-  border-bottom: 1px solid #E2E8F0;
-  color: #94A3B8;
+  border-bottom: 1px solid #E0DDD9;
+  color: #8A8389;
   font-size: 12px;
   font-weight: 500;
   text-transform: uppercase;
@@ -159,9 +193,9 @@ Każdy widok ma wariant desktopowy (punkt odniesienia 1440 px) i mobilny (punkt 
 
 ## 9. Wykresy trendów
 
-- Linia i punkty danych: `#3B82F6`.
+- Linia i punkty danych: `#C1D445`.
 - Używaj jednego koloru trendu; nie stosuj czerwieni ani zieleni do kodowania linii wykresu.
-- Linie siatki: `#E2E8F0`; etykiety osi: `#94A3B8`.
+- Linie siatki: `#E0DDD9`; etykiety osi: `#8A8389`.
 - Wykres zajmuje pełną szerokość karty i ma około 200 px wysokości.
 
 ## 10. Logo
