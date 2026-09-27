@@ -202,12 +202,15 @@ Deno.serve(async request => {
         }
         if (step.tests.code === 'shoulder_clearing') {
           for (const pattern of ['upper', 'lower']) {
-            const field = fields.find(item => item.code === `shoulder_clearing_${pattern}_pain`);
-            if (!field) continue;
-            const lDetails = detailsFor([field], 'left');
-            const rDetails = detailsFor([field], 'right');
-            const positive = [...lDetails, ...rDetails].some(item => item.tone === 'pain');
-            rows.push({ name: pattern === 'upper' ? 'Wzorzec górny' : 'Wzorzec dolny', kind: 'summary', merged: false, lDetails, rDetails, status: positive ? 'problem' : 'ok', child: true, groupKey: 'shoulder', sharedScore: 'shoulder' });
+            const patternFields = fields.filter(item => item.code.startsWith(`shoulder_clearing_${pattern}_`) && (item.code.endsWith('_pain') || item.code.endsWith('_range')));
+            if (!patternFields.length) continue;
+            const orderedFields = patternFields.sort((a, b) => (a.answer_sets?.code === 'pass_fail' ? 0 : 1) - (b.answer_sets?.code === 'pass_fail' ? 0 : 1));
+            const lDetails = detailsFor(orderedFields, 'left');
+            const rDetails = detailsFor(orderedFields, 'right');
+            const patternDetails = [...lDetails, ...rDetails];
+            const hasPain = patternDetails.some(item => item.tone === 'pain');
+            const hasBadRange = patternDetails.some(item => item.tone === 'bad');
+            rows.push({ name: pattern === 'upper' ? 'Wzorzec górny' : 'Wzorzec dolny', kind: 'summary', merged: false, lDetails, rDetails, status: hasPain ? 'problem' : hasBadRange ? 'warn' : 'ok', child: true, groupKey: 'shoulder', sharedScore: 'shoulder' });
           }
           continue;
         }
