@@ -84,9 +84,35 @@ Deno.serve(async request => {
     }
 
     if (request.method === 'GET' && route === '/dashboard') {
-      const { data, error } = await db.from('assessments').select('assessment_id,assessment_date,status,total_score,max_score,clients!inner(client_id,first_name,last_name,client_disciplines(discipline,is_primary))').eq('owner_id', ownerId).eq('status', 'completed').order('assessment_date', { ascending: false }).limit(8);
+      const { data, error } = await db.from('assessments').select('assessment_id,assessment_date,status,total_score,max_score,clients!inner(client_id,first_name,last_name,client_disciplines(discipline,is_primary)),assessment_answers(side,test_field_id,attempt_number,numeric_value,test_fields(side_mode,answer_sets(code)),answer_options(code))').eq('owner_id', ownerId).eq('status', 'completed').order('assessment_date', { ascending: false }).limit(8);
       if (error) throw error;
-      return response((data || []).map(item => ({ assessmentId: item.assessment_id, clientId: item.clients.client_id, name: `${item.clients.first_name} ${item.clients.last_name}`, sport: [...(item.clients.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', date: item.assessment_date, status: item.status, score: item.total_score, maximum: item.max_score })));
+      return response((data || []).map(item => {
+        let hasPain = false;
+        let needsAttention = false;
+        const bilateralFields = new Map<string, { answerSetCode: string; sides: Record<string, Array<{ attempt: number; value: number | string | null }>> }>();
+        for (const answer of item.assessment_answers || []) {
+          const answerSetCode = answer.test_fields?.answer_sets?.code || '';
+          const answerCode = answer.answer_options?.code || '';
+          if ((answerSetCode === 'pain_status' && answerCode === 'positive') || (answerSetCode === 'score_0_3' && answer.numeric_value === 0)) hasPain = true;
+          else if ((answerSetCode === 'pass_fail' && answerCode === 'fail') || (answerSetCode === 'score_0_3' && answer.numeric_value === 1)) needsAttention = true;
+          if (answer.test_fields?.side_mode === 'bilateral' && (answer.side === 'left' || answer.side === 'right')) {
+            let field = bilateralFields.get(answer.test_field_id);
+            if (!field) {
+              field = { answerSetCode, sides: { left: [], right: [] } };
+              bilateralFields.set(answer.test_field_id, field);
+            }
+            field.sides[answer.side].push({ attempt: answer.attempt_number, value: answerSetCode === 'score_0_3' ? answer.numeric_value : answerCode });
+          }
+        }
+        for (const field of bilateralFields.values()) {
+          const bestSideValue = (side: Array<{ attempt: number; value: number | string | null }>) => field.answerSetCode === 'score_0_3'
+            ? Math.max(...side.map(attempt => Number(attempt.value)))
+            : side.sort((a, b) => b.attempt - a.attempt)[0]?.value;
+          if (field.sides.left.length && field.sides.right.length && bestSideValue(field.sides.left) !== bestSideValue(field.sides.right)) needsAttention = true;
+        }
+        const indicator = hasPain ? 'problem' : needsAttention ? 'warn' : 'ok';
+        return { assessmentId: item.assessment_id, clientId: item.clients.client_id, name: `${item.clients.first_name} ${item.clients.last_name}`, sport: [...(item.clients.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', date: item.assessment_date, status: item.status, indicator, score: item.total_score, maximum: item.max_score };
+      }));
     }
 
     if (request.method === 'POST' && route === '/clients/resolve') {
