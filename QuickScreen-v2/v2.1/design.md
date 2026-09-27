@@ -191,6 +191,8 @@ Każdy widok ma wariant desktopowy (punkt odniesienia 1440 px) i mobilny (punkt 
 | Wspólne | `assessment-results` | Wyniki badania w tabeli z ikonami statusów |
 | Wspólne | `cheat-sheet` | Ściąga z testami i instrukcjami |
 
+W formularzu nowego badania sugestie klientów pojawiają się po wpisaniu co najmniej 3 znaków i są wyświetlane bezpośrednio pod aktywnym polem imienia, nazwiska lub e-maila. Wybór wyniku uzupełnia dane profilu.
+
 ## 9. Wykresy trendów
 
 - Linia i punkty danych: `#C1D445`.
