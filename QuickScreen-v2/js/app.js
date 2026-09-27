@@ -2,6 +2,7 @@
   const $ = (s, root = document) => root.querySelector(s);
   const app = $('#app');
   const CONFIG = window.QUICKSCREEN_CONFIG || {};
+  const SUPABASE_URL = String(CONFIG.supabaseUrl || '').replace(/\/(?:rest|auth|functions)\/v1\/?$/i, '').replace(/\/+$/, '');
   const AUTH_STORAGE_KEY = 'quickscreen-v2-auth';
   let authSession = null;
   try { authSession = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null'); } catch { localStorage.removeItem(AUTH_STORAGE_KEY); }
@@ -13,10 +14,10 @@
     history.replaceState(null, '', `${location.pathname}${location.search}`);
   }
   async function authFetch(path, body, options = {}) {
-    if (!CONFIG.supabaseUrl || !CONFIG.publishableKey) throw new Error('Aplikacja nie ma skonfigurowanego połączenia z Supabase.');
+    if (!SUPABASE_URL || !CONFIG.publishableKey) throw new Error('Aplikacja nie ma skonfigurowanego połączenia z Supabase.');
     const headers = { apikey: CONFIG.publishableKey, 'Content-Type': 'application/json' };
     if (options.accessToken) headers.Authorization = `Bearer ${options.accessToken}`;
-    const response = await fetch(`${CONFIG.supabaseUrl.replace(/\/$/, '')}/auth/v1/${path}`, { method: options.method || 'POST', headers, body: JSON.stringify(body) });
+    const response = await fetch(`${SUPABASE_URL}/auth/v1/${path}`, { method: options.method || 'POST', headers, body: JSON.stringify(body) });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(path.startsWith('token?') && (response.status === 400 || response.status === 401) ? 'Nieprawidłowy e-mail lub hasło.' : payload.msg || payload.message || 'Nie udało się wykonać operacji.');
     return payload;
@@ -28,7 +29,7 @@
   }
   async function apiRequest(path, options = {}) {
     if (!authSession?.access_token) throw new Error('Sesja wygasła. Zaloguj się ponownie.');
-    const response = await fetch(`${CONFIG.supabaseUrl.replace(/\/$/, '')}/functions/v1/quickscreen-api/v1${path}`, { ...options, headers: { apikey: CONFIG.publishableKey, Authorization: `Bearer ${authSession.access_token}`, 'Content-Type': 'application/json', ...options.headers } });
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/quickscreen-api/v1${path}`, { ...options, headers: { apikey: CONFIG.publishableKey, Authorization: `Bearer ${authSession.access_token}`, 'Content-Type': 'application/json', ...options.headers } });
     const payload = await response.json().catch(() => ({}));
     if (response.status === 401) { authStore(null); setRoute('login'); render(); throw new Error('Sesja wygasła. Zaloguj się ponownie.'); }
     if (!response.ok) throw new Error(payload.message || payload.error || 'Nie udało się pobrać danych.');

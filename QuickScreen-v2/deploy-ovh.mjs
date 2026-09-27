@@ -15,9 +15,10 @@ for (const line of (await readFile(join(rootDir, '.env.local'), 'utf8')).split(/
   const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
   if (match) runtime[match[1]] = match[2].replace(/^['"]|['"]$/g, '');
 }
-const supabaseUrl = runtime.SUPABASE_PROJECT_URL || runtime.SUPABASE_API_URL;
+const rawSupabaseUrl = runtime.SUPABASE_PROJECT_URL || runtime.SUPABASE_API_URL;
 const publishableKey = runtime.SUPABASE_PUBLISHABLE_KEY;
-if (!supabaseUrl || !publishableKey) throw new Error('Ustaw SUPABASE_PROJECT_URL i SUPABASE_PUBLISHABLE_KEY w .env.local.');
+if (!rawSupabaseUrl || !publishableKey) throw new Error('Ustaw SUPABASE_PROJECT_URL i SUPABASE_PUBLISHABLE_KEY w .env.local.');
+const supabaseUrl = new URL(rawSupabaseUrl).toString().replace(/\/(?:rest|auth|functions)\/v1\/?$/i, '').replace(/\/+$/, '');
 const required = ['OVH_DEPLOY_HOST', 'OVH_DEPLOY_USER', 'OVH_DEPLOY_PASSWORD', 'OVH_DEPLOY_PATH'];
 if (required.some(key => !env[key])) throw new Error('Brak konfiguracji OVH w .env.deploy.local.');
 
