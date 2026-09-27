@@ -18,14 +18,47 @@
 
     if (visible.has('intro')) sections.push(`<section class="report-section" ${blockAttrs('intro')}><p class="report-index">01 / Wstęp</p><h2>${esc(b.intro.title)}</h2><p>${esc(b.intro.text)}</p></section>`);
     if (visible.has('results')) {
-      const tests = b.results.tests.map(item => {
-        const tone = item.status === 'pain' ? 'problem' : item.status === 'attention' ? 'warn' : '';
-        const sides = item.leftScore != null || item.rightScore != null ? `L ${item.leftScore ?? '—'} · P ${item.rightScore ?? '—'}` : '';
-        const fieldValues = (item.fields || []).map(field => `${field.side === 'left' ? 'L: ' : field.side === 'right' ? 'P: ' : ''}${field.valueLabel || field.valueCode || ''}`).filter(Boolean).join(' · ');
-        const result = sides || (item.score != null ? `${item.score}/3` : fieldValues || (item.status === 'pain' ? 'Ból' : item.status === 'attention' ? 'Wymaga uwagi' : item.status === 'unknown' ? 'Nie oceniono' : 'Bez bólu'));
-        return `<tr><th scope="row">${esc(item.name)}</th><td class="report-score-value ${tone}">${esc(result)}</td></tr>`;
+      const sideLabel = side => side === 'left' ? 'Lewa strona' : 'Prawa strona';
+      const fieldValue = field => field.answerSetCode === 'pass_fail'
+        ? (field.valueCode === 'pass' ? 'Dobry' : field.valueCode === 'fail' ? 'Zły' : field.valueLabel || '—')
+        : field.answerSetCode === 'pain_status'
+          ? (field.valueCode === 'positive' ? 'Ból' : field.valueCode === 'negative' ? 'Brak bólu' : field.valueLabel || '—')
+          : (field.valueLabel || field.valueCode || '—');
+      const fieldLabel = field => field.answerSetCode === 'pass_fail' ? 'Zakres' : field.answerSetCode === 'pain_status' ? 'Ból' : field.label;
+      const detailsFor = (fields, side) => fields.filter(field => field.side === side && field.answerSetCode !== 'score_0_3').map(field => `${fieldLabel(field)}: ${fieldValue(field)}`);
+      const testCards = b.results.tests.map(item => {
+        const fields = item.fields || [];
+        const shoulderPatterns = item.code === 'shoulder_clearing';
+        const hasSides = item.leftScore != null || item.rightScore != null || fields.some(field => field.side === 'left' || field.side === 'right');
+        const sideContent = side => {
+          const details = detailsFor(fields, side);
+          const score = side === 'left' ? item.leftScore : item.rightScore;
+          const value = score != null ? `${score}/3` : details.length ? details.join(' · ') : '—';
+          return `<div class="report-detail-side"><span>${sideLabel(side)}</span><b>${esc(value)}</b></div>`;
+        };
+        let content;
+        if (shoulderPatterns) {
+          content = ['upper', 'lower'].map(pattern => {
+            const patternFields = fields.filter(field => String(field.code || '').includes(`_${pattern}_`));
+            if (!patternFields.length) return '';
+            const title = pattern === 'upper' ? 'Wzorzec górny' : 'Wzorzec dolny';
+            return `<div class="report-detail-pattern"><b>${title}</b><div class="report-detail-sides">${sideContentForFields(patternFields, 'left')}${sideContentForFields(patternFields, 'right')}</div></div>`;
+          }).join('');
+        } else if (hasSides) {
+          content = `<div class="report-detail-sides">${sideContent('left')}${sideContent('right')}</div>`;
+        } else {
+          const details = detailsFor(fields, 'none');
+          const value = details.length ? details.join(' · ') : (item.score == null ? 'Nie oceniono' : `${item.score}/3`);
+          content = `<div class="report-detail-single"><span>Wynik</span><b>${esc(value)}</b></div>`;
+        }
+        if (!shoulderPatterns && item.finalScore != null) content += `<div class="report-detail-final">Wynik końcowy: ${esc(item.finalScore)}/3</div>`;
+        return `<article class="report-test-detail"><h3>${esc(item.name)}</h3>${content}</article>`;
       }).join('');
-      sections.push(`<section class="report-section" ${blockAttrs('results')}><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><p class="report-results-description">${esc(b.results.summary)}</p><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-results-table-wrap"><table class="report-results-table"><thead><tr><th scope="col">Test</th><th scope="col">Wynik</th></tr></thead><tbody>${tests}</tbody></table></div></details></section>`);
+      function sideContentForFields(fields, side) {
+        const details = detailsFor(fields, side);
+        return `<div class="report-detail-side"><span>${sideLabel(side)}</span><b>${esc(details.length ? details.join(' · ') : '—')}</b></div>`;
+      }
+      sections.push(`<section class="report-section" ${blockAttrs('results')}><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><p class="report-results-description">${esc(b.results.summary)}</p><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-test-grid">${testCards}</div></details></section>`);
     }
     if (visible.has('plan')) {
       const steps = b.plan.steps.map((step, index) => `<article class="plan-step"><span class="plan-num">0${index + 1}</span><div class="plan-copy"><b>${esc(step.title)}</b><small>${esc(step.label)}</small><p>${esc(step.text)}</p></div></article>`).join('');
