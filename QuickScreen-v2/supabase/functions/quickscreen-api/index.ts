@@ -176,6 +176,17 @@ Deno.serve(async request => {
       if (stepsError) throw stepsError;
       const finalScores: Record<string, number> = {};
       const rows: Record<string, unknown>[] = [];
+      const detailsFor = (fields: any[], side: string) => fields.flatMap(field => (answers || [])
+        .filter(answer => answer.test_field_id === field.test_field_id && answer.side === side)
+        .map(answer => {
+          const option = field.answer_sets?.answer_options?.find(item => item.answer_option_id === answer.answer_option_id);
+          const code = option?.code || '';
+          const setCode = field.answer_sets?.code || '';
+          const label = setCode === 'pass_fail' ? 'Zakres' : setCode === 'pain_status' ? 'Ból' : field.label_pl;
+          const value = setCode === 'pass_fail' ? code === 'pass' ? 'Dobry' : code === 'fail' ? 'Zły' : option?.label_pl || '' : option?.label_pl || '';
+          const tone = setCode === 'pain_status' ? code === 'positive' ? 'pain' : 'good' : setCode === 'pass_fail' ? code === 'fail' ? 'bad' : 'good' : '';
+          return { label, value, tone };
+        }));
       for (const step of steps || []) {
         const fields = (step.test_fields || []).filter(field => field.is_scoring_input);
         const numericFields = fields.filter(field => field.answer_sets?.code === 'score_0_3');
@@ -187,6 +198,17 @@ Deno.serve(async request => {
           const finalScore = (effects || []).filter(effect => effect.target_screen_test_id === step.screen_test_id).reduce((value, effect) => Math.min(value, effect.after_score), baseScore);
           finalScores[step.screen_test_id] = finalScore;
           rows.push({ name: step.tests.name_pl, kind: 'score', l: sideValues.left ?? null, r: sideValues.right ?? null, value: sideValues.none ?? null, merged: sideValues.none != null, finalScore, status: finalScore === 0 ? 'problem' : finalScore === 1 ? 'warn' : 'ok', groupKey: step.tests.code === 'shoulder_mobility' ? 'shoulder' : null, sharedScore: step.tests.code === 'shoulder_mobility' ? 'shoulder' : null });
+          continue;
+        }
+        if (step.tests.code === 'shoulder_clearing') {
+          for (const pattern of ['upper', 'lower']) {
+            const field = fields.find(item => item.code === `shoulder_clearing_${pattern}_pain`);
+            if (!field) continue;
+            const lDetails = detailsFor([field], 'left');
+            const rDetails = detailsFor([field], 'right');
+            const positive = [...lDetails, ...rDetails].some(item => item.tone === 'pain');
+            rows.push({ name: pattern === 'upper' ? 'Wzorzec górny' : 'Wzorzec dolny', kind: 'summary', merged: false, lDetails, rDetails, status: positive ? 'problem' : 'ok', child: true, groupKey: 'shoulder', sharedScore: 'shoulder' });
+          }
           continue;
         }
         const sides: Record<string, string[]> = { left: [], right: [], none: [] };
@@ -202,7 +224,7 @@ Deno.serve(async request => {
         const codes = fields.flatMap(field => (answers || []).filter(answer => answer.test_field_id === field.test_field_id).map(answer => field.answer_sets?.answer_options?.find(option => option.answer_option_id === answer.answer_option_id)?.code || ''));
         const state = codes.some(code => /positive|pain|yes/i.test(code)) ? 'problem' : codes.some(code => /fail/i.test(code)) ? 'warn' : 'ok';
         const bilateral = sides.left.length > 0 || sides.right.length > 0;
-        rows.push({ name: step.tests.name_pl, kind: 'summary', merged: !bilateral, l: sides.left.join(' · '), r: sides.right.join(' · '), value: sides.none.join(' · '), detail: details.join(' · '), status: state, child: step.tests.code === 'shoulder_clearing', groupKey: step.tests.code === 'shoulder_clearing' ? 'shoulder' : null, sharedScore: step.tests.code === 'shoulder_clearing' ? 'shoulder' : null });
+        rows.push({ name: step.tests.name_pl, kind: 'summary', merged: !bilateral, l: sides.left.join(' · '), r: sides.right.join(' · '), value: sides.none.join(' · '), detail: details.join(' · '), lDetails: detailsFor(fields, 'left'), rDetails: detailsFor(fields, 'right'), valueDetails: detailsFor(fields, 'none'), status: state });
       }
       let totalScore = 0;
       for (const value of Object.values(finalScores)) totalScore += value;

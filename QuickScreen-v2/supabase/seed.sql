@@ -37,7 +37,7 @@ on conflict (answer_set_id) do update set name=excluded.name,value_kind=excluded
 
 insert into quickscreen_v2.answer_options (answer_option_id,answer_set_id,code,label_pl,numeric_value,sort_order,is_active) values
 ('option_score_0','answer_set_score_0_3','score_0','0 - ból',0,0,true),('option_score_1','answer_set_score_0_3','score_1','1',1,1,true),('option_score_2','answer_set_score_0_3','score_2','2',2,2,true),('option_score_3','answer_set_score_0_3','score_3','3',3,3,true),
-('option_pass','answer_set_pass_fail','pass','Pass',null,1,true),('option_fail','answer_set_pass_fail','fail','Fail',null,2,true),
+('option_pass','answer_set_pass_fail','pass','Dobry',null,1,true),('option_fail','answer_set_pass_fail','fail','Zły',null,2,true),
 ('option_negative','answer_set_pain_status','negative','Brak bólu',null,1,true),('option_positive','answer_set_pain_status','positive','Ból',null,2,true)
 on conflict (answer_option_id) do update set label_pl=excluded.label_pl,numeric_value=excluded.numeric_value,is_active=true;
 
@@ -92,8 +92,8 @@ update quickscreen_v2.answer_options
 set label_en = case code
   when 'positive' then 'Pain'
   when 'negative' then 'No pain'
-  when 'pass' then 'Pass'
-  when 'fail' then 'Fail'
+  when 'pass' then 'Good'
+  when 'fail' then 'Bad'
   else coalesce(numeric_value::text, initcap(replace(code, '_', ' '))) end;
 
 \ir test_descriptions_seed.sql

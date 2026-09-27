@@ -27,6 +27,7 @@
 @media(max-width:760px){.account span.avatar{display:grid}}
 .chart-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:var(--accent);vertical-align:1px}
 .result-table-mobile{display:none}.status-icon{width:18px;height:18px}.status-icon svg{width:18px;height:18px}.result-value b.pain{color:var(--red)}.result-value b.warn{color:var(--amber)}body.is-report{background:#fff}
+.result-detail{display:block;line-height:1.5}.result-detail.good{color:var(--green)}.result-detail.bad,.result-detail.pain{color:var(--red)}.result-mobile-row .result-mobile-main small .result-detail.good{color:var(--green)}.result-mobile-row .result-mobile-main small .result-detail.bad,.result-mobile-row .result-mobile-main small .result-detail.pain{color:var(--red)}
 @media(max-width:760px){.result-table-mobile{display:grid}}
 
 .criteria-list{display:grid;gap:9px}.criteria-point{display:grid;grid-template-columns:88px minmax(0,1fr);gap:10px;font-size:13px;line-height:1.45}.criteria-point>b{color:var(--navy)}@media(max-width:620px){.criteria-point{grid-template-columns:68px minmax(0,1fr);gap:8px;font-size:12px}}
