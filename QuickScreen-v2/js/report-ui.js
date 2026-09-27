@@ -18,19 +18,14 @@
 
     if (visible.has('intro')) sections.push(`<section class="report-section" ${blockAttrs('intro')}><p class="report-index">01 / Wstęp</p><h2>${esc(b.intro.title)}</h2><p>${esc(b.intro.text)}</p></section>`);
     if (visible.has('results')) {
-      const priority = b.results.priority;
-      const priorityMarkup = priority ? `<article class="insight ${priority.type === 'pain' ? 'problem' : 'watch'}"><b>Najważniejsze teraz · ${esc(priority.title)}</b><p>${esc(priority.reason)}</p></article>` : '<article class="insight good"><b>Brak jednego głównego priorytetu</b><p>Kontynuuj aktywność dopasowaną do swojego poziomu.</p></article>';
-      const findings = [...(b.results.findings || []), ...(b.results.positive || [])].map(item => `<article class="insight ${item.status === 'good' ? 'good' : 'watch'}"><b>${esc(item.title)}</b><p>${esc(item.text)}</p></article>`).join('');
-      const history = (b.results.history || []).map(item => `<article class="insight ${item.change === 'improved' || item.change === 'pain_resolved' ? 'good' : 'watch'}"><b>Zmiana · ${esc(item.name)}</b><p>${esc(item.text)} <small>Badanie z ${esc(item.date)}</small></p></article>`).join('');
       const tests = b.results.tests.map(item => {
-        const statusText = item.status === 'pain' ? 'Ból' : item.status === 'attention' ? 'Wymaga uwagi' : item.status === 'unknown' ? 'Nie oceniono' : item.score == null ? 'Bez bólu' : `Wynik ${item.score}`;
-        const score = item.score == null ? '' : ` · ${item.score}/3`;
-        const sides = item.sideText ? ` · ${item.sideText}` : item.leftScore != null || item.rightScore != null ? ` · Lewa ${item.leftScore ?? '—'} · Prawa ${item.rightScore ?? '—'}` : '';
-        const details = (item.fields || []).map(field => `${field.side === 'left' ? 'Lewa' : field.side === 'right' ? 'Prawa' : ''}${field.side && field.side !== 'none' ? ' strona · ' : ''}${field.label}: ${field.valueLabel || field.valueCode}`).join(' · ');
         const tone = item.status === 'pain' ? 'problem' : item.status === 'attention' ? 'warn' : '';
-        return `<div class="report-score-row"><span><b>${esc(item.name)}</b>${item.description ? `<small>${esc(item.description)}</small>` : ''}${details ? `<small>${esc(details)}</small>` : ''}</span><b class="report-score-value ${tone}">${esc(statusText + score + sides)}</b></div>`;
+        const sides = item.leftScore != null || item.rightScore != null ? `L ${item.leftScore ?? '—'} · P ${item.rightScore ?? '—'}` : '';
+        const fieldValues = (item.fields || []).map(field => `${field.side === 'left' ? 'L: ' : field.side === 'right' ? 'P: ' : ''}${field.valueLabel || field.valueCode || ''}`).filter(Boolean).join(' · ');
+        const result = sides || (item.score != null ? `${item.score}/3` : fieldValues || (item.status === 'pain' ? 'Ból' : item.status === 'attention' ? 'Wymaga uwagi' : item.status === 'unknown' ? 'Nie oceniono' : 'Bez bólu'));
+        return `<tr><th scope="row">${esc(item.name)}</th><td class="report-score-value ${tone}">${esc(result)}</td></tr>`;
       }).join('');
-      sections.push(`<section class="report-section" ${blockAttrs('results')}><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><p>${esc(b.results.summary)}</p><div class="report-insights">${priorityMarkup}${findings}${history}</div><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-scores">${tests}</div></details></section>`);
+      sections.push(`<section class="report-section" ${blockAttrs('results')}><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><p class="report-results-description">${esc(b.results.summary)}</p><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-results-table-wrap"><table class="report-results-table"><thead><tr><th scope="col">Test</th><th scope="col">Wynik</th></tr></thead><tbody>${tests}</tbody></table></div></details></section>`);
     }
     if (visible.has('plan')) {
       const steps = b.plan.steps.map((step, index) => `<article class="plan-step"><span class="plan-num">0${index + 1}</span><div class="plan-copy"><b>${esc(step.title)}</b><small>${esc(step.label)}</small><p>${esc(step.text)}</p></div></article>`).join('');

@@ -87,9 +87,23 @@
       sideText: sideText(test), fields: fieldsOf(test), status: isPain(test) || scoreOf(test) === 0 ? 'pain' : (scoreOf(test) === 1 || isFail(test) ? 'attention' : assessable(test) ? 'ok' : 'unknown'),
       description: test.description || test.descriptionShort || '', priority: priority.all.includes(test),
     }));
+    const describeObservation = test => {
+      const affectedSides = [...new Set(fieldsOf(test).filter(field => isPain({ fields: [field] }) || isFail({ fields: [field] })).map(field => field.side).filter(sideName => sideName === 'left' || sideName === 'right'))];
+      const side = affectedSides.length === 2 ? ' po obu stronach' : affectedSides[0] === 'left' ? ' po lewej stronie' : affectedSides[0] === 'right' ? ' po prawej stronie' : '';
+      const asymmetric = test.leftScore != null && test.rightScore != null && test.leftScore !== test.rightScore;
+      if (isPain(test) || scoreOf(test) === 0) return `Podczas testu ${nameOf(test)}${side} pojawił się ból.`;
+      if (isFail(test)) return `W teście ${nameOf(test)}${side} zakres ruchu nie spełnił kryterium.`;
+      if (asymmetric) return `W teście ${nameOf(test)} widać różnicę między stronami.`;
+      return `Test ${nameOf(test)} wymaga dalszej pracy.`;
+    };
+    const observations = important.map(describeObservation);
+    const positiveNames = positive.slice(0, 5).map(nameOf);
+    const positiveSummary = positiveNames.length ? ` Bez bólu i większych trudności wypadły: ${positiveNames.join(', ')}.` : '';
     const summary = priority.type === 'none'
-      ? 'Wszystkie ocenione ruchy spełniają podstawowy standard badania. Możesz kontynuować aktywność odpowiednią do swojego poziomu.'
-      : allPain ? reason : `${reason} Pozostałe wyniki są pokazane niżej; nie musisz poprawiać wszystkiego jednocześnie.`;
+      ? 'W badaniu nie pojawił się ból ani wyraźny obszar wymagający pierwszeństwa. Ocenione ruchy spełniają podstawowy standard, więc możesz kontynuować aktywność odpowiednią do swojego poziomu.'
+      : allPain
+        ? `${observations.join(' ')} To najważniejsza informacja z badania i obszar, którym warto zająć się w pierwszej kolejności.${positiveSummary}`
+        : `${observations.join(' ')} To obszar, któremu warto poświęcić teraz najwięcej uwagi.${positiveSummary} Nie musisz poprawiać wszystkiego jednocześnie; szczegółowe wyniki są poniżej.`;
     const plan = main ? [
       { title: 'Chroń', label: title, text: allPain ? painRules.join(' ') : (mainCode === 'cervical' && isFail(main) ? 'Nie wymuszaj końcowego zakresu szyi. Stopniowo zwiększaj zakres przed ruchem gwałtownym, szybkimi zmianami kierunku i sportami walki, które wymagają szybkiego ustawienia głowy.' : mildAsymmetry ? 'Nie ma potrzeby ograniczać aktywności tylko z powodu asymetrii 3/2.' : (scoreOf(main) === 1 || isFail(main) ? action.limit : 'Nie ma potrzeby automatycznie ograniczać całej aktywności z powodu tej różnicy.')) },
       { title: 'Popraw', label: title, text: mildAsymmetry ? `Obie strony spełniają podstawowy standard. Skup dodatkową pracę na stronie z niższym wynikiem (${main.leftScore < main.rightScore ? 'lewa' : 'prawa'}).` : allPain ? (mainCode === 'cervical' ? action.do : `${action.do} Przy bólu warto skonsultować się ze specjalistą, zwłaszcza jeśli utrzymuje się lub ogranicza codzienne czynności. Do tego czasu samodzielnie pozostań przy bezbolesnej aktywności i nie forsuj bolesnego zakresu.`) : action.do },
