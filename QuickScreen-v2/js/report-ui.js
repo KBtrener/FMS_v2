@@ -4,8 +4,8 @@
   const BLOCKS = window.QuickScreenReport.BLOCKS;
 
   function resourcesMarkup(resources) {
-    if (!resources.length) return '<p>Trener nie dodał jeszcze materiałów do tego obszaru.</p>';
-    return resources.map(resource => `<a class="report-resource" href="${esc(safeUrl(resource.url))}" target="_blank" rel="noopener noreferrer"><b>${esc(resource.title)}</b><span>${esc(resource.description || resource.type)}</span></a>`).join('');
+    if (!resources.length) return '<span class="report-path-link-placeholder">Przykładowy film 1</span><span class="report-path-link-placeholder">Przykładowy film 2</span>';
+    return resources.map(resource => `<a class="report-path-link" href="${esc(safeUrl(resource.url))}" target="_blank" rel="noopener noreferrer">${esc(resource.title)}${resource.description ? `<small>${esc(resource.description)}</small>` : ''}</a>`).join('');
   }
 
   function reportMarkup(model, options = {}) {
@@ -36,7 +36,14 @@
       const steps = b.plan.steps.map((step, index) => `<article class="plan-step"><span class="plan-num">0${index + 1}</span><div class="plan-copy"><b>${esc(step.title)}</b><small>${esc(step.label)}</small><p>${esc(step.text)}</p></div></article>`).join('');
       sections.push(`<section class="report-section" ${blockAttrs('plan')}><p class="report-index">03 / Plan</p><h2>${esc(b.plan.title)}</h2><p>Na podstawie Twojego wyniku — oto kolejne kroki.</p><div class="report-plan">${steps}</div><p class="report-next-step"><b>Następny krok:</b> ${esc(b.plan.nextStep)}</p></section>`);
     }
-    if (visible.has('help')) sections.push(`<section class="report-section" ${blockAttrs('help')}><p class="report-index">04 / Jak to zrobić</p><h2>${esc(b.help.title)}</h2><p>${esc(b.help.intro)}</p><div class="report-paths">${resourcesMarkup(b.help.resources)}</div></section>`);
+    if (visible.has('help')) {
+      const materials = (b.help.resources || []).filter(resource => resource.type !== 'trainerize');
+      const programs = (b.help.resources || []).filter(resource => resource.type === 'trainerize');
+      const programLinks = programs.length
+        ? programs.map(resource => `<a class="btn btn-blue btn-small report-help-cta" href="${esc(safeUrl(resource.url))}" target="_blank" rel="noopener noreferrer">${esc(resource.title)} <span aria-hidden="true">→</span></a>`).join('')
+        : '<span class="btn btn-blue btn-small report-help-cta is-placeholder" aria-disabled="true">Kup program w Trainerize <span aria-hidden="true">→</span></span>';
+      sections.push(`<section class="report-section" ${blockAttrs('help')}><p class="report-index">04 / Jak to zrobić</p><h2>Wybierz ścieżkę dla siebie</h2><div class="report-paths"><article class="report-path"><h3>Samodzielnie</h3><p>Materiały wideo na start, jeśli chcesz spróbować na własną rękę:</p>${resourcesMarkup(materials)}</article><article class="report-path"><h3>Z pomocą</h3><p>Dedykowany program naprawczy online i pełny kontakt ze mną.</p>${programLinks}</article></div></section>`);
+    }
 
     return `<main class="report-page"><div class="report-toolbar"><a class="btn btn-small" href="#/results/${esc(model.assessmentId)}">← Wróć do wyników</a><button class="btn btn-small" onclick="window.QuickScreenReportUI.printClientReport()">Drukuj raport klienta</button></div><header class="report-hero"><span class="report-client-tag">Raport dla ${esc(`${model.client.firstName || ''} ${model.client.lastName || ''}`.trim())}${model.sport ? ` · ${esc(model.sport)}` : ''}</span><h1>${esc(model.assessmentName)}</h1><p>Badanie z ${esc(model.assessmentDate ? new Date(`${model.assessmentDate}T00:00:00`).toLocaleDateString('pl-PL') : '—')}${model.totalScore != null ? ` · Wynik ${esc(model.totalScore)}/${esc(model.maximum)}` : ''}</p></header>${sections.join('')}<p class="report-disclaimer">Badanie ma charakter przesiewowy. Pokazuje, które obszary wymagają uwagi i co można zrobić dalej, ale nie określa przyczyny bólu ani ograniczenia.</p><footer class="report-footer"><div class="report-footer-brand"><img src="assets/logo/kb-logo.png" alt="KB Trener"><span>KB Trener / QuickScreen</span></div><span class="report-footer-meta">Raport ruchowy<br>${esc(model.assessmentDate || '')} · ${esc(model.assessmentId || '')}</span></footer></main>`;
   }
