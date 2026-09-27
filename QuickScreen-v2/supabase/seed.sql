@@ -26,7 +26,7 @@ insert into quickscreen_v2.screen_tests (screen_test_id,screen_type_id,test_id,s
 ('screen_test_rotation','screen_quick_screen','test_rotation',7,'best_attempt_minimum_bilateral',true,null),
 ('screen_test_balance','screen_quick_screen','test_balance',8,'best_attempt_minimum_bilateral',true,null),
 ('screen_test_squat','screen_quick_screen','test_squat',9,'best_attempt_single',true,null),
-('screen_test_spine_extension_clearing','screen_quick_screen','test_spine_extension_clearing',10,'status_only',true,'screen_test_squat')
+('screen_test_spine_extension_clearing','screen_quick_screen','test_spine_extension_clearing',10,'status_only',true,null)
 on conflict (screen_test_id) do update set sort_order=excluded.sort_order,calculation_type=excluded.calculation_type,is_active=true,parent_screen_test_id=excluded.parent_screen_test_id;
 
 insert into quickscreen_v2.answer_sets values
@@ -63,8 +63,7 @@ on conflict (test_field_id) do update set label_pl=excluded.label_pl,answer_set_
 insert into quickscreen_v2.effect_rules values
 ('effect_rule_shoulder_upper_clearing_to_shoulder_mobility','screen_quick_screen','field_shoulder_clearing_upper_pain','option_positive','any','screen_test_shoulder_mobility','set_final_score',0,true,'Shoulder Clearing - ból: {side} strona, wzorzec górny'),
 ('effect_rule_shoulder_lower_clearing_to_shoulder_mobility','screen_quick_screen','field_shoulder_clearing_lower_pain','option_positive','any','screen_test_shoulder_mobility','set_final_score',0,true,'Shoulder Clearing - ból: {side} strona, wzorzec dolny'),
-('effect_rule_shoulder_clearing_to_shoulder_mobility','screen_quick_screen','field_shoulder_clearing_pain','option_positive','any','screen_test_shoulder_mobility','set_final_score',0,false,'Shoulder Clearing - Ból po stronie {side}'),
-('effect_rule_spine_extension_clearing_to_squat','screen_quick_screen','field_spine_extension_clearing_pain','option_positive','none','screen_test_squat','set_final_score',0,true,'Spine Extension Clearing - ból zeruje wynik Squat')
+('effect_rule_shoulder_clearing_to_shoulder_mobility','screen_quick_screen','field_shoulder_clearing_pain','option_positive','any','screen_test_shoulder_mobility','set_final_score',0,false,'Shoulder Clearing - Ból po stronie {side}')
 on conflict (effect_rule_id) do update set is_active=excluded.is_active,reason_template=excluded.reason_template;
 
 update quickscreen_v2.screen_types
