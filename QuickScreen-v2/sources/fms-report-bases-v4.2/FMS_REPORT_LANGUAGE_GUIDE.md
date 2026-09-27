@@ -199,7 +199,7 @@ W środku raportu nie powtarzaj disclaimerów. Wystarczy jeden na końcu.
 
 ## 14. Kolejność komunikatu
 
-Układ raportu klienta definiuje `FMS_REPORT_UI_BLUEPRINT.md`. Stosuj kolejność:
+Generator ma przekazywać informacje w następującej kolejności merytorycznej; sposób ich wizualnego przedstawienia określają wyłącznie PNG z Figmy:
 
 1. **Kontekst** — czym jest raport i czego dotyczy.
 2. **Wynik** — krótkie, naturalne opisy obserwacji.

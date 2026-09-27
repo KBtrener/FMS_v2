@@ -1,6 +1,6 @@
 # Przykłady raportów
 
-> **Uwaga o prezentacji:** przykłady opisują poprawne komunikaty i dane. W gotowym raporcie układaj je zgodnie z `FMS_REPORT_UI_BLUEPRINT.md`: kontekst → wynik → priorytet → Chroń / Popraw / Rozwijaj → pomoc → szczegóły. Nagłówek „Czy możesz trenować?” może zostać włączony do części **Rozwijaj**, zamiast otwierać raport jako osobna sekcja.
+> Przykłady określają treść komunikatów i dane, a nie wygląd raportu. Wygląd odtwarzaj wyłącznie z PNG z Figmy. Merytoryczna kolejność komunikatów jest opisana w `FMS_REPORT_LANGUAGE_GUIDE.md`.
 
 Wersja: 4.2
 

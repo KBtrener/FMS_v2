@@ -1,7 +1,7 @@
 # QuickScreen — zasady pracy
 
 - Pracujemy wyłącznie nad nowym QuickScreen; katalogiem głównym modułu jest `QuickScreen-v2`.
-- Interfejs i zasady wizualne są opisane w `design.md`; nie przywracamy starej makiety ani jej komponentów.
+- Jedynym wzorcem wyglądu są zrzuty PNG z Figmy w `../Stitch/stitch_fms_quickscreen_design_system/`. Nie opieramy projektu na innych makietach ani opisach designu.
 - Publikujemy na OVH w `quickscreen v2` i pod dotychczasowym adresem `quick-screen-v2`.
 - Każdą zmianę commitujemy. Przy niejasnościach pytamy.
 - QuickScreen pozostaje osobnym modułem; integracja z aplikacją główną ma przebiegać przez API.

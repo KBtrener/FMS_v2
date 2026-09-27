@@ -147,7 +147,7 @@ Nie wprowadzaj ograniczeń tylko z powodu 3/2.
 
 # 7. Składanie raportu klienta
 
-Układ raportu definiuje `FMS_REPORT_UI_BLUEPRINT.md`. Nie pokazuj dwóch sąsiadujących komunikatów, które powtarzają nazwę `PRIMARY`.
+Nie pokazuj dwóch sąsiadujących komunikatów, które powtarzają nazwę `PRIMARY`. Wygląd raportu określają wyłącznie PNG z Figmy.
 
 Generator tworzy bloki w tej kolejności:
 

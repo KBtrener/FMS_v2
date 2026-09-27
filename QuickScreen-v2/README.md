@@ -17,7 +17,7 @@ Otwórz `http://localhost:8000`.
 - `index.html`, `css/`, `js/`, `assets/` — aktualna makieta.
 - `supabase/` — konfiguracja, migracje, dane startowe i test izolacji RLS dla przyszłego backendu.
 - `API_ARCHITECTURE.md` — granica modułu i zasady integracji.
-- `design.md` i `agents.md` — zasady wyglądu i pracy nad aplikacją.
+- Jedynym wzorcem wyglądu są zrzuty PNG z Figmy w `../Stitch/stitch_fms_quickscreen_design_system/`; `agents.md` zawiera zasady pracy i logikę wyników.
 - `docs/` i `sources/` — logika badań, raportów i reguły domenowe.
 
 ## Przygotowanie backendu

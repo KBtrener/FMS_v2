@@ -1,6 +1,6 @@
 # QuickScreen V2 — flow rozpoczęcia badania i wizarda
 
-Ten dokument opisuje makietę V2. Jest nadrzędny wobec starszego audytu produkcyjnego `CURRENT_APP_UI_AUDIT.md` w zakresie rozpoczęcia badania i wyglądu wizarda. Makieta pozostaje statyczna: wyszukiwanie korzysta wyłącznie z danych demonstracyjnych i nie zapisuje klienta ani badania do bazy.
+Ten dokument opisuje zachowanie rozpoczęcia badania i kolejność testów. Nie określa wyglądu interfejsu; jedynym wzorcem wizualnym są PNG z Figmy wskazane w `QuickScreen-v2/README.md`. Makieta pozostaje statyczna: wyszukiwanie korzysta wyłącznie z danych demonstracyjnych i nie zapisuje klienta ani badania do bazy.
 
 ## Pierwszy krok: klient
 
@@ -24,12 +24,10 @@ Po potwierdzeniu lub dodaniu danych klienta rozpoczyna się istniejąca kolejno�
 
 Każdy test jest pełnym elementem badania w zwykłej sekwencji. **Shoulder Clearing jest zwykłym, kompletnym testem tej sekwencji**, a nie specjalnym trybem, dodatkową czynnością ani dwoma osobnymi testami. Zachowuje swoje własne odpowiedzi i kryteria.
 
-### Układ Shoulder Clearing
+### Dane testu Shoulder Clearing
 
-- Jeden kafelek testu `Shoulder Clearing`.
-- Najpierw sekcja **Lewa strona**, pod nią sekcja **Prawa strona**.
-- W każdej stronie znajdują się pola **Wzorzec górny** i **Wzorzec dolny**; każde zachowuje odpowiedzi bólu i zakresu zgodne z makietą.
-- Nie używaj etykiet „Osobny test clearingowy”, „test podrzędny” ani komunikatu „Komplet odpowiedzi”. Nie opisuj tego testu jako szczególnego przypadku.
-- Panel kryteriów nie zawiera niebieskiej belki informacyjnej.
+- Test zachowuje odpowiedzi dla lewej i prawej strony.
+- Dla każdej strony zapisz osobno ból i zakres dla wzorca górnego oraz dolnego.
+- Clearing jest pełnym testem w zwykłej sekwencji; jego odpowiedzi wpływają na wynik Shoulder Mobility zgodnie z regułami punktacji.
 
 Ta prezentacja nie zmienia merytorycznej relacji wyniku Shoulder Clearing do wyniku Shoulder Mobility ani reguł punktacji opisanych w źródłach scoringu.
