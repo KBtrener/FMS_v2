@@ -2,15 +2,21 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const safeUrl = value => /^https:\/\//i.test(String(value || '')) ? String(value) : '';
   const BLOCKS = window.QuickScreenReport.BLOCKS;
+
   function resourcesMarkup(resources) {
     if (!resources.length) return '<p>Trener nie dodał jeszcze materiałów do tego obszaru.</p>';
     return resources.map(resource => `<a class="report-resource" href="${esc(safeUrl(resource.url))}" target="_blank" rel="noopener noreferrer"><b>${esc(resource.title)}</b><span>${esc(resource.description || resource.type)}</span></a>`).join('');
   }
-  function reportMarkup(model) {
+
+  function reportMarkup(model, options = {}) {
+    const audience = options.audience || 'client';
+    const clientVisible = new Set(model.clientVisibleBlocks || model.visibleBlocks || BLOCKS.map(block => block.id));
+    const visible = new Set(audience === 'trainer' ? BLOCKS.map(block => block.id) : clientVisible);
+    const blockAttrs = id => `data-report-block="${id}" data-client-visible="${clientVisible.has(id)}"`;
     const b = model.blocks;
-    const visible = new Set(model.visibleBlocks || []);
     const sections = [];
-    if (visible.has('intro')) sections.push(`<section class="report-section"><p class="report-index">01 / Wstęp</p><h2>${esc(b.intro.title)}</h2><p>${esc(b.intro.text)}</p></section>`);
+
+    if (visible.has('intro')) sections.push(`<section class="report-section" ${blockAttrs('intro')}><p class="report-index">01 / Wstęp</p><h2>${esc(b.intro.title)}</h2><p>${esc(b.intro.text)}</p></section>`);
     if (visible.has('results')) {
       const priority = b.results.priority;
       const priorityMarkup = priority ? `<article class="insight ${priority.type === 'pain' ? 'problem' : 'watch'}"><b>Najważniejsze teraz · ${esc(priority.title)}</b><p>${esc(priority.reason)}</p></article>` : '<article class="insight good"><b>Brak jednego głównego priorytetu</b><p>Kontynuuj aktywność dopasowaną do swojego poziomu.</p></article>';
@@ -24,29 +30,32 @@
         const tone = item.status === 'pain' ? 'problem' : item.status === 'attention' ? 'warn' : '';
         return `<div class="report-score-row"><span><b>${esc(item.name)}</b>${item.description ? `<small>${esc(item.description)}</small>` : ''}${details ? `<small>${esc(details)}</small>` : ''}</span><b class="report-score-value ${tone}">${esc(statusText + score + sides)}</b></div>`;
       }).join('');
-      sections.push(`<section class="report-section"><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><p>${esc(b.results.summary)}</p><div class="report-insights">${priorityMarkup}${findings}${history}</div><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-scores">${tests}</div></details></section>`);
+      sections.push(`<section class="report-section" ${blockAttrs('results')}><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><p>${esc(b.results.summary)}</p><div class="report-insights">${priorityMarkup}${findings}${history}</div><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-scores">${tests}</div></details></section>`);
     }
     if (visible.has('plan')) {
       const steps = b.plan.steps.map((step, index) => `<article class="plan-step"><span class="plan-num">0${index + 1}</span><div class="plan-copy"><b>${esc(step.title)}</b><small>${esc(step.label)}</small><p>${esc(step.text)}</p></div></article>`).join('');
-      sections.push(`<section class="report-section"><p class="report-index">03 / Plan</p><h2>${esc(b.plan.title)}</h2><p>Na podstawie Twojego wyniku — oto kolejne kroki.</p><div class="report-plan">${steps}</div><p class="report-next-step"><b>Następny krok:</b> ${esc(b.plan.nextStep)}</p></section>`);
+      sections.push(`<section class="report-section" ${blockAttrs('plan')}><p class="report-index">03 / Plan</p><h2>${esc(b.plan.title)}</h2><p>Na podstawie Twojego wyniku — oto kolejne kroki.</p><div class="report-plan">${steps}</div><p class="report-next-step"><b>Następny krok:</b> ${esc(b.plan.nextStep)}</p></section>`);
     }
-    if (visible.has('help')) sections.push(`<section class="report-section"><p class="report-index">04 / Jak to zrobić</p><h2>${esc(b.help.title)}</h2><p>${esc(b.help.intro)}</p><div class="report-paths">${resourcesMarkup(b.help.resources)}</div></section>`);
-    return `<main class="report-page"><div class="report-toolbar"><a class="btn btn-small" href="#/results/${esc(model.assessmentId)}">← Wróć do wyników</a><button class="btn btn-small" onclick="window.print()">Drukuj raport</button></div><header class="report-hero"><span class="report-client-tag">Raport dla ${esc(`${model.client.firstName || ''} ${model.client.lastName || ''}`.trim())}${model.sport ? ` · ${esc(model.sport)}` : ''}</span><h1>${esc(model.assessmentName)}</h1><p>Badanie z ${esc(model.assessmentDate ? new Date(`${model.assessmentDate}T00:00:00`).toLocaleDateString('pl-PL') : '—')}${model.totalScore != null ? ` · Wynik ${esc(model.totalScore)}/${esc(model.maximum)}` : ''}</p></header>${sections.join('')}<p class="report-disclaimer">Badanie ma charakter przesiewowy. Pokazuje, które obszary wymagają uwagi i co można zrobić dalej, ale nie określa przyczyny bólu ani ograniczenia.</p><footer class="report-footer"><div class="report-footer-brand"><img src="assets/logo/kb-logo.png" alt="KB Trener"><span>KB Trener / QuickScreen</span></div><span class="report-footer-meta">Raport ruchowy<br>${esc(model.assessmentDate || '')} · ${esc(model.assessmentId || '')}</span></footer></main>`;
+    if (visible.has('help')) sections.push(`<section class="report-section" ${blockAttrs('help')}><p class="report-index">04 / Jak to zrobić</p><h2>${esc(b.help.title)}</h2><p>${esc(b.help.intro)}</p><div class="report-paths">${resourcesMarkup(b.help.resources)}</div></section>`);
+
+    return `<main class="report-page"><div class="report-toolbar"><a class="btn btn-small" href="#/results/${esc(model.assessmentId)}">← Wróć do wyników</a><button class="btn btn-small" onclick="window.QuickScreenReportUI.printClientReport()">Drukuj raport klienta</button></div><header class="report-hero"><span class="report-client-tag">Raport dla ${esc(`${model.client.firstName || ''} ${model.client.lastName || ''}`.trim())}${model.sport ? ` · ${esc(model.sport)}` : ''}</span><h1>${esc(model.assessmentName)}</h1><p>Badanie z ${esc(model.assessmentDate ? new Date(`${model.assessmentDate}T00:00:00`).toLocaleDateString('pl-PL') : '—')}${model.totalScore != null ? ` · Wynik ${esc(model.totalScore)}/${esc(model.maximum)}` : ''}</p></header>${sections.join('')}<p class="report-disclaimer">Badanie ma charakter przesiewowy. Pokazuje, które obszary wymagają uwagi i co można zrobić dalej, ale nie określa przyczyny bólu ani ograniczenia.</p><footer class="report-footer"><div class="report-footer-brand"><img src="assets/logo/kb-logo.png" alt="KB Trener"><span>KB Trener / QuickScreen</span></div><span class="report-footer-meta">Raport ruchowy<br>${esc(model.assessmentDate || '')} · ${esc(model.assessmentId || '')}</span></footer></main>`;
   }
-  function builder(model, settings, resources) {
-    const visible = settings.blockVisibility || {};
-    const activeResources = resources.filter(item => item.isActive !== false);
-    const resourceChecks = activeResources.map(item => `<label class="report-select-resource"><input type="checkbox" name="resourceIds" value="${esc(item.id)}" checked><span><b>${esc(item.title)}</b><small>${esc(item.type)}${item.testCode ? ` · ${esc(item.testCode)}` : ' · wszystkie wyniki'}</small></span></label>`).join('');
-    const blockChecks = BLOCKS.map(block => `<label class="report-select-block ${visible[block.id] === false ? 'unavailable' : ''}"><input type="checkbox" name="visibleBlocks" value="${block.id}" ${visible[block.id] === false ? 'disabled' : 'checked'}><span><b>${esc(block.title)}</b><small>${visible[block.id] === false ? 'Wyłączony w ustawieniach raportu' : 'Dostępny dla tego raportu'}</small></span></label>`).join('');
-    const preview = reportMarkup(model);
-    return `<main class="page report-builder"><div class="page-heading"><div><h1>Przygotuj raport</h1><p>${esc(model.client.firstName)} ${esc(model.client.lastName)} · ${esc(model.assessmentDate)}</p></div><a class="btn" href="#/results/${esc(model.assessmentId)}">Wróć do wyników</a></div><form id="report-build-form" class="card report-builder-controls"><h2>Bloki raportu</h2><p>Wybierz, które dostępne bloki umieścić w raporcie dla klienta.</p><div class="report-block-options">${blockChecks}</div><h2>Materiały</h2><p>Trener zarządza materiałami w ustawieniach raportu. Odznacz te, których nie chcesz dołączać.</p><div class="report-resource-options">${resourceChecks || '<p>Brak aktywnych materiałów. Dodaj je w ustawieniach raportu.</p>'}</div><button class="btn btn-primary" type="submit">Zapisz i wygeneruj raport</button><p class="report-form-status" id="report-form-status" role="status"></p></form><section class="report-preview"><h2>Podgląd</h2><div id="report-preview-content">${preview}</div></section></main>`;
-  }
+
   function settingsPage(settings, resources) {
     const visibility = settings.blockVisibility || {};
-    const checks = BLOCKS.map(block => `<label class="report-select-block"><input type="checkbox" name="blockVisibility" value="${block.id}" ${visibility[block.id] !== false ? 'checked' : ''}><span><b>${esc(block.title)}</b><small>Zezwalaj na dołączenie do raportu klienta</small></span></label>`).join('');
+    const checks = BLOCKS.map(block => `<label class="report-select-block"><input type="checkbox" name="blockVisibility" value="${block.id}" ${visibility[block.id] !== false ? 'checked' : ''}><span><b>${esc(block.title)}</b><small>Widoczny w raporcie klienta</small></span></label>`).join('');
     const items = resources.map(item => `<article class="report-resource-admin"><div><b>${esc(item.title)}</b><small>${esc(item.type)} · ${esc(item.testCode || 'wszystkie wyniki')} · <a href="${esc(safeUrl(item.url))}" target="_blank" rel="noopener noreferrer">Otwórz link</a></small></div><label><input type="checkbox" data-resource-active="${esc(item.id)}" ${item.isActive ? 'checked' : ''}> Aktywny</label></article>`).join('');
     const testOptions = [['','Wszystkie wyniki'],['cervical','Szyja'],['toe_touch','Skłon'],['shoulder_mobility','Barki'],['squat','Przysiad'],['balance','Równowaga'],['rotation','Rotacja'],['spine_extension_clearing','Wyprost kręgosłupa']].map(([value,label]) => `<option value="${value}">${label}</option>`).join('');
-    return `<main class="page report-settings"><div class="page-heading"><div><h1>Ustawienia raportu</h1><p>Zarządzaj dostępnością bloków i materiałami widocznymi klientom.</p></div><a class="btn" href="#/dashboard">Wróć do panelu</a></div><section class="card report-settings-card"><h2>Dostępność bloków</h2><p>Klient może zobaczyć tylko bloki dozwolone tutaj i wybrane przez Ciebie podczas generowania raportu.</p><form id="report-settings-form"><div class="report-block-options">${checks}</div><button class="btn btn-primary" type="submit">Zapisz dostępność</button><span id="report-settings-status" role="status"></span></form></section><section class="card report-settings-card"><h2>Materiały dla klientów</h2><p>Dodaj bezpośrednie linki HTTPS do filmów, programów lub innych materiałów. Dopasuj je do testu albo udostępnij przy każdym raporcie.</p><form id="report-resource-form" class="report-resource-form"><label>Tytuł<input name="title" required maxlength="160"></label><label>Adres HTTPS<input name="url" type="url" pattern="https://.*" required></label><label>Typ<select name="type"><option value="youtube">YouTube</option><option value="trainerize">Trainerize</option><option value="other">Inny</option></select></label><label>Dopasuj do<select name="testCode">${testOptions}</select></label><label>Opis<input name="description" maxlength="300"></label><button class="btn btn-primary" type="submit">Dodaj materiał</button></form><div class="report-resource-admin-list">${items || '<p>Nie dodano jeszcze materiałów.</p>'}</div><p id="report-resource-status" role="status"></p></section></main>`;
+    return `<main class="page report-settings"><div class="page-heading"><div><h1>Ustawienia raportu</h1><p>Wybierz bloki widoczne dla klienta. Trener zawsze widzi pełny raport.</p></div><a class="btn" href="#/dashboard">Wróć do panelu</a></div><section class="card report-settings-card"><h2>Bloki widoczne dla klienta</h2><p>Zmiana zapisuje się od razu i obowiązuje przy każdym następnym otwarciu raportu.</p><form id="report-settings-form"><div class="report-block-options">${checks}</div><span id="report-settings-status" class="report-save-status" role="status"></span></form></section><section class="card report-settings-card"><h2>Materiały dla klientów</h2><p>Dodaj bezpośrednie linki HTTPS do filmów, programów lub innych materiałów. Dopasuj je do testu albo udostępnij przy każdym raporcie.</p><form id="report-resource-form" class="report-resource-form"><label>Tytuł<input name="title" required maxlength="160"></label><label>Adres HTTPS<input name="url" type="url" pattern="https://.*" required></label><label>Typ<select name="type"><option value="youtube">YouTube</option><option value="trainerize">Trainerize</option><option value="other">Inny</option></select></label><label>Dopasuj do<select name="testCode">${testOptions}</select></label><label>Opis<input name="description" maxlength="300"></label><button class="btn btn-primary" type="submit">Dodaj materiał</button></form><div class="report-resource-admin-list">${items || '<p>Nie dodano jeszcze materiałów.</p>'}</div><p id="report-resource-status" role="status"></p></section></main>`;
   }
-  window.QuickScreenReportUI = { builder, render: reportMarkup, settings: settingsPage };
+
+  function printClientReport() {
+    document.body.classList.add('printing-client-report');
+    const cleanup = () => document.body.classList.remove('printing-client-report');
+    window.addEventListener('afterprint', cleanup, { once: true });
+    window.print();
+    setTimeout(cleanup, 1000);
+  }
+
+  window.QuickScreenReportUI = { render: reportMarkup, settings: settingsPage, printClientReport };
 })();

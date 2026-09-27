@@ -104,7 +104,6 @@
   let wizardIndex = 0;
   let selectedClient = null;
   let searchText = '';
-  let reportReturnRoute = '#/results';
   let scores = {};
   let notes = {};
   let activeAssessment = null;
@@ -187,18 +186,30 @@
   function resultsPage(){const date=selectedAssessment?.date?new Date(`${selectedAssessment.date}T00:00:00`).toLocaleDateString('pl-PL'):'';const client=selectedAssessment?.client;const name=client?`${client.firstName} ${client.lastName}`:'';const sport=clients.find(item=>item.id===client?.clientId)?.sport||'';const total=selectedAssessment?.totalScore??0;const maximum=selectedAssessment?.maximum??0;return shell(`<main class="page"><div class="page-heading"><div><h1>Badanie z ${date}</h1><p>Surowe dane badania technicznego dla trenera</p></div><div class="heading-actions"><a class="btn" href="#/dashboard">← Wróć do panelu trenera</a><a class="btn btn-primary" href="#/report">Otwórz raport badania ${icon('arrow',15)}</a></div></div><section class="results-summary card"><div class="total-score"><small>Wynik całkowity (score)</small><strong>${total}</strong> <span>/ ${maximum} punktów</span></div><div class="summary-person"><small>Oceniany</small><b>${esc(name)}</b><span>${esc(sport)} • QuickScreen</span></div></section><div class="result-mobile-actions"><a class="btn" href="#/dashboard">← Panel trenera</a><a class="btn btn-primary" href="#/report">Otwórz raport ${icon('arrow',14)}</a></div><div class="result-list-title">Szczegółowa lista wyników (${results.length} pozycji)</div><section class="result-table card"><div class="result-table-head"><span>#</span><span></span><span>Nazwa testu</span><span>L strona</span><span>P strona</span><span>Wynik końcowy</span></div>${resultRows()}</section><section class="result-table-mobile">${resultCards()}</section></main>${footer()}`,'#/clients',{subtitle:'Wyniki badania'});}
   function cheatSheet(){const order=['Odcinek szyjny (Kark)','Skłon do palców','Mobilność barku','Przysiad','Balans','Rotacje'];const priorities=['Ból / wynik 0 (Protect + specjalista)','Wynik 1 / FAIL / Asymetria','Wynik 2 (akceptowalny)','Wynik 3 (optymalny)'];const steps=[['KROK 1','Protect','Unikaj ruchów prowokujących ból, odciąż dany rejon.','protect'],['KROK 2','Correct','Wdróż celowane ćwiczenia zwiększające ruchomość.','correct'],['KROK 3','Retest','Sprawdź ponownie po skończonym cyklu.','retest'],['KROK 4','Develop','Rozwijaj wzorzec w normalnym, bezpiecznym treningu.','develop']];return shell(`<main class="page"><div class="page-heading"><div><h1>Ściąga trenera — Quick Screen</h1><p>Szybka pomoc przy interpretacji wyników i wyborze priorytetu korekcyjnego</p></div></div><div class="cheat-grid"><section class="cheat-card card"><h2>Krok 1: Jak wybrać priorytet</h2><div class="flow-list priority-list">${priorities.map((x,i)=>`<div class="flow-item"><span class="flow-number">${i+1}</span>${x}</div>${i<priorities.length-1?'<span class="flow-arrow">↓</span>':''}`).join('')}</div><p class="hint"><b>Uwaga:</b> Celem jest wybranie jednego głównego weak link, a nie poprawianie wszystkiego jednocześnie.</p></section><section class="cheat-card card"><h2>Krok 2: Hierarchia wzorców</h2><div class="flow-list">${order.map((x,i)=>`<div class="flow-item"><span class="flow-number">${i+1}</span>${x}</div>${i<order.length-1?'<span class="flow-arrow">↓</span>':''}`).join('')}</div><p class="hint"><b>Uwaga:</b> Mobility jest rozpatrywane przed stability/motor control. Ta kolejność jest hierarchią korekcyjną.</p></section></div><section class="cycle-card card"><h2>Co dalej?</h2><div class="cycle-steps">${steps.map(([n,title,txt,cls])=>`<article class="cycle-step ${cls}"><small>${n}</small><b>${title}</b><p>${txt}</p></article>`).join('')}</div></section></main>${footer()}`,'#/cheat-sheet',{subtitle:'Ściąga trenera'});}
   function report(){
-    if(!selectedAssessment)return shell('<main class="page"><section class="card"><h1>Brak wybranego badania</h1><p>Otwórz wyniki ukończonego badania, a następnie przygotuj raport.</p><a class="btn btn-primary" href="#/clients">Przejdź do klientów</a></section></main>','#/clients');
-    const client=selectedAssessment.client||{};
-    const sport=clients.find(item=>item.id===client.clientId)?.sport||'';
-    const resources=reportResources.filter(item=>item.isActive!==false).map(item=>({id:item.id,title:item.title,type:item.type,url:item.url,description:item.description,testCode:item.testCode,isActive:item.isActive}));
-    const model=window.QuickScreenReport.buildReport({...selectedAssessment,tests:selectedAssessment.tests||selectedAssessment.rows||[]},{sport,resources,blockVisibility:reportSettings.blockVisibility});
-    return shell(window.QuickScreenReportUI.builder(model,reportSettings,resources),'#/clients',{report:true,reportDate:selectedAssessment.date||''});
+    if(!selectedAssessment)return shell('<main class="page"><section class="card"><h1>Brak wybranego badania</h1><p>Otwórz wyniki ukończonego badania, a następnie wybierz raport.</p><a class="btn btn-primary" href="#/clients">Przejdź do klientów</a></section></main>','#/clients');
+    if(reportLoadError)return shell(`<main class="page"><section class="card"><h1>Nie udało się wygenerować raportu</h1><p>${esc(reportLoadError)}</p><a class="btn" href="#/results/${esc(selectedAssessment.assessmentId)}">Wróć do wyników</a></section></main>`,'#/clients',{report:true});
+    return shell('<main class="page report-loading"><section class="card"><h1>Generuję raport…</h1><p>Raport będzie zawierał wszystkie bloki dla trenera oraz bloki włączone dla klienta.</p></section></main>','#/clients',{report:true});
+  }
+  async function generateReport(){
+    if(!selectedAssessment){reportLoadError='Otwórz wyniki ukończonego badania i spróbuj ponownie.';render();return;}
+    reportLoadError='';
+    try {
+      const client=selectedAssessment.client||{};
+      const sport=clients.find(item=>item.id===client.clientId)?.sport||'';
+      const resources=reportResources.filter(item=>item.isActive!==false).map(item=>({id:item.id,title:item.title,type:item.type,url:item.url,description:item.description,testCode:item.testCode,isActive:item.isActive}));
+      const clientVisibleBlocks=window.QuickScreenReport.BLOCKS.filter(block=>reportSettings.blockVisibility?.[block.id]!==false).map(block=>block.id);
+      const resourceIds=resources.map(resource=>resource.id);
+      const snapshot=window.QuickScreenReport.buildReport({...selectedAssessment,tests:selectedAssessment.tests||selectedAssessment.rows||[]},{sport,resources,selectedBlocks:window.QuickScreenReport.BLOCKS.map(block=>block.id)});
+      const created=await apiRequest('/reports',{method:'POST',body:JSON.stringify({assessmentId:selectedAssessment.assessmentId,visibleBlocks:clientVisibleBlocks,resourceIds,snapshot})});
+      activeReport={reportId:created.reportId,snapshot:created.snapshot};
+      setRoute(`client-report/${created.reportId}`);
+    } catch(error) {reportLoadError=error.message;render();}
   }
   function reportSettingsPage(){return shell(window.QuickScreenReportUI.settings(reportSettings,reportResources),'#/dashboard',{subtitle:'Ustawienia raportu'});}
   function savedReportPage(){
     const snapshot=activeReport?.snapshot;
     if(!snapshot)return shell('<main class="page"><section class="card"><h1>Nie udało się otworzyć raportu</h1><p>Raport nie istnieje albo nie masz do niego dostępu.</p><a class="btn" href="#/dashboard">Wróć do panelu</a></section></main>','#/dashboard');
-    return shell(window.QuickScreenReportUI.render(snapshot),'#/clients',{report:true,reportDate:snapshot.assessmentDate||''});
+    return shell(window.QuickScreenReportUI.render(snapshot,{audience:'trainer'}),'#/clients',{report:true,reportDate:snapshot.assessmentDate||''});
   }  function profileSettings(clientMode=false){return shell(`<main class="page profile-screen"><div class="page-heading"><div><h1>Mój profil</h1><p>Dane ${clientMode?'klienta':'konta trenerskiego'}</p></div></div><section class="profile-banner card"><span class="initials">${clientMode?'GK':'K'}</span><div class="profile-main"><h1>${clientMode?'Gaweł Kot':'Trener Karol'}</h1><p>${clientMode?'Piłka nożna':'KB Trener · QuickScreen'}</p></div><button class="btn">Edytuj profil</button></section><section class="card"><h2>Dane profilu</h2><div class="field"><label>Imię i nazwisko</label><input value="${clientMode?'Gaweł Kot':'Karol Bilecki'}" readonly></div><div class="field"><label>E-mail</label><input value="${clientMode?'gawel.kot@example.com':'trener@kbtrener.pl'}" readonly></div><div class="field"><label>${clientMode?'Dyscyplina':'Organizacja'}</label><input value="${clientMode?'Piłka nożna':'KB Trener'}" readonly></div></section></main>${footer()}`,clientMode?'#/client-profile':'#/profile',{client:clientMode});}
   function render(){const r=route();document.body.classList.toggle('is-report',r==='report'||r.startsWith('client-report/'));if(recoverySession){document.body.classList.remove('is-report');app.innerHTML=passwordResetPage(authError);return;}if(!authSession?.access_token){if(r!=='login')setRoute('login');app.innerHTML=loginPage(authError);return;}if(r==='login')setRoute('dashboard');if(r==='dashboard')app.innerHTML=dashboard();else if(r==='clients')app.innerHTML=clientsPage();else if(r.startsWith('client/'))app.innerHTML=profilePage(false,r.split('/')[1]);else if(r==='client-dashboard'||r==='my-results')app.innerHTML=profilePage(true);else if(r==='client-profile')app.innerHTML=profileSettings(true);else if(r==='new-assessment')app.innerHTML=newAssessment();else if(r.startsWith('assessment/')){wizardIndex=Math.max(0,Math.min(tests.length-1,Number(r.split('/')[1])-1||0));app.innerHTML=assessment();}else if(r==='results'||r.startsWith('results/'))app.innerHTML=resultsPage();else if(r==='report')app.innerHTML=report();else if(r==='report-settings')app.innerHTML=reportSettingsPage();else if(r.startsWith('client-report/'))app.innerHTML=savedReportPage();else if(r==='cheat-sheet')app.innerHTML=cheatSheet();else if(r==='profile')app.innerHTML=profileSettings();else app.innerHTML=dashboard();window.scrollTo(0,0);}
   app.addEventListener('submit', async event => {
@@ -261,38 +272,8 @@
   app.addEventListener('keydown',e=>{const clientRow=e.target.closest('[data-client-row]');if(clientRow&&!e.target.closest('a,button,input,select,textarea')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();location.hash=clientRow.dataset.clientRow;}});
   app.addEventListener('submit', async event => {
     const form = event.target;
-    if (form.id === 'report-build-form') {
-      event.preventDefault();
-      const status = $('#report-form-status');
-      const button = form.querySelector('button[type="submit"]');
-      const data = new FormData(form);
-      const visibleBlocks = data.getAll('visibleBlocks').map(String);
-      const resourceIds = data.getAll('resourceIds').map(String);
-      if (!visibleBlocks.length) { if (status) status.textContent = 'Wybierz co najmniej jeden blok.'; return; }
-      button.disabled = true;
-      if (status) status.textContent = 'Zapisywanie raportu…';
-      try {
-        const sport = clients.find(item => item.id === selectedAssessment?.client?.clientId)?.sport || '';
-        const resources = reportResources.filter(item => resourceIds.includes(item.id)).map(item => ({ id: item.id, title: item.title, type: item.type, url: item.url, description: item.description, testCode: item.testCode, isActive: item.isActive }));
-        const snapshot = window.QuickScreenReport.buildReport({ ...selectedAssessment, tests: selectedAssessment.tests || selectedAssessment.rows || [] }, { sport, resources, blockVisibility: reportSettings.blockVisibility, selectedBlocks: visibleBlocks });
-        const created = await apiRequest('/reports', { method: 'POST', body: JSON.stringify({ assessmentId: selectedAssessment.assessmentId, visibleBlocks, resourceIds, snapshot }) });
-        activeReport = { reportId: created.reportId, snapshot: created.snapshot };
-        setRoute(`client-report/${created.reportId}`);
-      } catch (error) {
-        if (status) status.textContent = error.message;
-        button.disabled = false;
-      }
-      return;
-    }
     if (form.id === 'report-settings-form') {
       event.preventDefault();
-      const status = $('#report-settings-status');
-      const blockVisibility = Object.fromEntries(window.QuickScreenReport.BLOCKS.map(block => [block.id, Boolean(form.querySelector(`[name="blockVisibility"][value="${block.id}"]`)?.checked)]));
-      try {
-        reportSettings = await apiRequest('/report-settings', { method: 'PATCH', body: JSON.stringify({ blockVisibility }) });
-        if (status) status.textContent = 'Dostępność bloków została zapisana.';
-        render();
-      } catch (error) { if (status) status.textContent = error.message; }
       return;
     }
     if (form.id === 'report-resource-form') {
@@ -307,16 +288,20 @@
     }
   });
   app.addEventListener('change', async event => {
-    if (event.target.name === 'visibleBlocks' || event.target.name === 'resourceIds') {
-      if (!selectedAssessment) return;
-      const form = $('#report-build-form');
-      const data = new FormData(form);
-      const sport = clients.find(item => item.id === selectedAssessment.client?.clientId)?.sport || '';
-      const resourceIds = data.getAll('resourceIds').map(String);
-      const resources = reportResources.filter(item => resourceIds.includes(item.id) && item.isActive !== false);
-      const model = window.QuickScreenReport.buildReport({ ...selectedAssessment, tests: selectedAssessment.tests || selectedAssessment.rows || [] }, { sport, resources, blockVisibility: reportSettings.blockVisibility, selectedBlocks: data.getAll('visibleBlocks').map(String) });
-      const preview = $('#report-preview-content');
-      if (preview) preview.innerHTML = window.QuickScreenReportUI.render(model);
+    if (event.target.name === 'blockVisibility') {
+      const form = $('#report-settings-form');
+      const status = $('#report-settings-status');
+      const blockVisibility = Object.fromEntries(window.QuickScreenReport.BLOCKS.map(block => [block.id, Boolean(form.querySelector(`[name="blockVisibility"][value="${block.id}"]`)?.checked)]));
+      const checkboxes = [...form.querySelectorAll('[name="blockVisibility"]')];
+      checkboxes.forEach(input => { input.disabled = true; });
+      if (status) status.textContent = 'Zapisywanie…';
+      try {
+        reportSettings = await apiRequest('/report-settings', { method: 'PATCH', body: JSON.stringify({ blockVisibility }) });
+        if (status) status.textContent = 'Zapisano. Ustawienie obowiązuje przy następnym otwarciu raportu.';
+      } catch (error) {
+        if (status) status.textContent = `Nie udało się zapisać: ${error.message}`;
+        checkboxes.forEach(input => { input.checked = reportSettings.blockVisibility?.[input.value] !== false; });
+      } finally { checkboxes.forEach(input => { input.disabled = false; }); }
       return;
     }
     const checkbox = event.target.closest('[data-resource-active]');
@@ -328,7 +313,7 @@
     } catch (error) { window.alert(error.message); }
   });
   window.addEventListener('hashchange', async event => {
-    if (route() === 'report') { const previousHash = new URL(event.oldURL).hash; reportReturnRoute = previousHash || '#/results'; }
+    if (route() === 'report') { render(); await generateReport(); return; }
     if (activeAssessment) {
       try {
         await saveDraft();

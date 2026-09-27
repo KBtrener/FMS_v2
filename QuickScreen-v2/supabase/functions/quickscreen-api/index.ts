@@ -109,7 +109,7 @@ Deno.serve(async request => {
       const blockIds = ['intro', 'results', 'plan', 'help'];
       if (!Array.isArray(input.visibleBlocks)) return response({ error: 'invalid_report_selection' }, 400);
       const selected = [...new Set((input.visibleBlocks || []).filter((id: string) => blockIds.includes(id)))];
-      if (!input.assessmentId || !selected.length || selected.length !== (input.visibleBlocks || []).length) return response({ error: 'invalid_report_selection' }, 400);
+      if (!input.assessmentId || selected.length !== (input.visibleBlocks || []).length) return response({ error: 'invalid_report_selection' }, 400);
       const { data: settings, error: settingsError } = await db.from('report_settings').select('block_visibility').eq('trainer_id', ownerId).maybeSingle();
       if (settingsError) throw settingsError;
       const visibility = settings?.block_visibility || { intro: true, results: true, plan: true, help: true };
@@ -124,11 +124,13 @@ Deno.serve(async request => {
         if (resourcesError) throw resourcesError;
         if ((owned || []).length !== resources.length) return response({ error: 'invalid_report_resources' }, 403);
       }
-      const snapshot = { ...input.snapshot, visibleBlocks: selected, manualVersion: assessment.manual_version, generatorVersion: '5.0.0', snapshotVersion: 1 };
+      const snapshot = { ...input.snapshot, visibleBlocks: blockIds, clientVisibleBlocks: selected, manualVersion: assessment.manual_version, generatorVersion: '5.0.0', snapshotVersion: 1 };
       const { data: report, error: reportError } = await db.from('report_instances').insert({ client_id: assessment.client_id, assessment_id: assessment.assessment_id, trainer_id: ownerId, report_profile_code: 'full_coaching_report', manual_version: assessment.manual_version, generator_version: '5.0.0', snapshot, document_status: 'generating' }).select('report_instance_id').single();
       if (reportError) throw reportError;
-      const { error: sectionsError } = await db.from('report_instance_sections').insert(selected.map((section_code: string, index: number) => ({ report_instance_id: report.report_instance_id, section_code, sort_order: index + 1 })));
-      if (sectionsError) throw sectionsError;
+      if (selected.length) {
+        const { error: sectionsError } = await db.from('report_instance_sections').insert(selected.map((section_code: string, index: number) => ({ report_instance_id: report.report_instance_id, section_code, sort_order: index + 1 })));
+        if (sectionsError) throw sectionsError;
+      }
       const { error: finalizeError } = await db.from('report_instances').update({ document_status: 'ready' }).eq('report_instance_id', report.report_instance_id).eq('trainer_id', ownerId);
       if (finalizeError) throw finalizeError;
       return response({ reportId: report.report_instance_id, snapshot }, 201);
