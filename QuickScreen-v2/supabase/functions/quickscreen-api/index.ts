@@ -12,6 +12,33 @@ const headers = {
 
 const response = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
 
+function assessmentIndicator(answers: any[] = []) {
+  let hasPain = false;
+  let needsAttention = false;
+  const bilateralFields = new Map<string, { answerSetCode: string; sides: Record<string, Array<{ attempt: number; value: number | string | null }>> }>();
+  for (const answer of answers) {
+    const answerSetCode = answer.test_fields?.answer_sets?.code || '';
+    const answerCode = answer.answer_options?.code || '';
+    if ((answerSetCode === 'pain_status' && answerCode === 'positive') || (answerSetCode === 'score_0_3' && answer.numeric_value === 0)) hasPain = true;
+    else if ((answerSetCode === 'pass_fail' && answerCode === 'fail') || (answerSetCode === 'score_0_3' && answer.numeric_value === 1)) needsAttention = true;
+    if (answer.test_fields?.side_mode === 'bilateral' && (answer.side === 'left' || answer.side === 'right')) {
+      let field = bilateralFields.get(answer.test_field_id);
+      if (!field) {
+        field = { answerSetCode, sides: { left: [], right: [] } };
+        bilateralFields.set(answer.test_field_id, field);
+      }
+      field.sides[answer.side].push({ attempt: answer.attempt_number, value: answerSetCode === 'score_0_3' ? answer.numeric_value : answerCode });
+    }
+  }
+  for (const field of bilateralFields.values()) {
+    const bestSideValue = (side: Array<{ attempt: number; value: number | string | null }>) => field.answerSetCode === 'score_0_3'
+      ? Math.max(...side.map(attempt => Number(attempt.value)))
+      : [...side].sort((a, b) => b.attempt - a.attempt)[0]?.value;
+    if (field.sides.left.length && field.sides.right.length && bestSideValue(field.sides.left) !== bestSideValue(field.sides.right)) needsAttention = true;
+  }
+  return hasPain ? 'problem' : needsAttention ? 'warn' : 'ok';
+}
+
 Deno.serve(async request => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers });
   const token = request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
@@ -76,10 +103,19 @@ Deno.serve(async request => {
     if (request.method === 'GET' && route === '/clients') {
       const { data, error } = await db.from('clients').select('client_id,first_name,last_name,email,is_archived,created_at,client_disciplines(discipline,is_primary),assessments(assessment_id,assessment_date,status,total_score,max_score)').eq('owner_id', ownerId).order('last_name').order('first_name');
       if (error) throw error;
+      const assessmentIds = (data || []).flatMap(client => (client.assessments || []).filter(item => item.status === 'completed').map(item => item.assessment_id));
+      const indicators = new Map<string, string>();
+      if (assessmentIds.length) {
+        const { data: answers, error: answersError } = await db.from('assessment_answers').select('assessment_id,side,test_field_id,attempt_number,numeric_value,test_fields(side_mode,answer_sets(code)),answer_options(code)').in('assessment_id', assessmentIds);
+        if (answersError) throw answersError;
+        const answersByAssessment = new Map<string, any[]>();
+        for (const answer of answers || []) answersByAssessment.set(answer.assessment_id, [...(answersByAssessment.get(answer.assessment_id) || []), answer]);
+        for (const assessmentId of assessmentIds) indicators.set(assessmentId, assessmentIndicator(answersByAssessment.get(assessmentId) || []));
+      }
       const term = new URL(request.url).searchParams.get('q')?.trim().toLocaleLowerCase('pl');
       return response((data || []).filter(client => !client.is_archived && (!term || `${client.first_name} ${client.last_name} ${client.email}`.toLocaleLowerCase('pl').includes(term))).map(client => {
         const latest = [...(client.assessments || [])].filter(item => item.status === 'completed').sort((a, b) => b.assessment_date.localeCompare(a.assessment_date))[0];
-        return { clientId: client.client_id, firstName: client.first_name, lastName: client.last_name, email: client.email, isArchived: client.is_archived, createdAt: client.created_at, discipline: [...(client.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', latestAssessment: latest ? { id: latest.assessment_id, date: latest.assessment_date, status: latest.status, score: latest.total_score, maximum: latest.max_score } : null, history: [...(client.assessments || [])].filter(item => item.status === 'completed').sort((a, b) => b.assessment_date.localeCompare(a.assessment_date)).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, status: item.status, score: item.total_score, maximum: item.max_score })) };
+        return { clientId: client.client_id, firstName: client.first_name, lastName: client.last_name, email: client.email, isArchived: client.is_archived, createdAt: client.created_at, discipline: [...(client.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', latestAssessment: latest ? { id: latest.assessment_id, date: latest.assessment_date, status: latest.status, indicator: indicators.get(latest.assessment_id) || 'ok', score: latest.total_score, maximum: latest.max_score } : null, history: [...(client.assessments || [])].filter(item => item.status === 'completed').sort((a, b) => b.assessment_date.localeCompare(a.assessment_date)).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, status: item.status, indicator: indicators.get(item.assessment_id) || 'ok', score: item.total_score, maximum: item.max_score })) };
       }));
     }
 
@@ -87,30 +123,7 @@ Deno.serve(async request => {
       const { data, error } = await db.from('assessments').select('assessment_id,assessment_date,status,total_score,max_score,clients!inner(client_id,first_name,last_name,client_disciplines(discipline,is_primary)),assessment_answers(side,test_field_id,attempt_number,numeric_value,test_fields(side_mode,answer_sets(code)),answer_options(code))').eq('owner_id', ownerId).eq('status', 'completed').order('assessment_date', { ascending: false }).limit(8);
       if (error) throw error;
       return response((data || []).map(item => {
-        let hasPain = false;
-        let needsAttention = false;
-        const bilateralFields = new Map<string, { answerSetCode: string; sides: Record<string, Array<{ attempt: number; value: number | string | null }>> }>();
-        for (const answer of item.assessment_answers || []) {
-          const answerSetCode = answer.test_fields?.answer_sets?.code || '';
-          const answerCode = answer.answer_options?.code || '';
-          if ((answerSetCode === 'pain_status' && answerCode === 'positive') || (answerSetCode === 'score_0_3' && answer.numeric_value === 0)) hasPain = true;
-          else if ((answerSetCode === 'pass_fail' && answerCode === 'fail') || (answerSetCode === 'score_0_3' && answer.numeric_value === 1)) needsAttention = true;
-          if (answer.test_fields?.side_mode === 'bilateral' && (answer.side === 'left' || answer.side === 'right')) {
-            let field = bilateralFields.get(answer.test_field_id);
-            if (!field) {
-              field = { answerSetCode, sides: { left: [], right: [] } };
-              bilateralFields.set(answer.test_field_id, field);
-            }
-            field.sides[answer.side].push({ attempt: answer.attempt_number, value: answerSetCode === 'score_0_3' ? answer.numeric_value : answerCode });
-          }
-        }
-        for (const field of bilateralFields.values()) {
-          const bestSideValue = (side: Array<{ attempt: number; value: number | string | null }>) => field.answerSetCode === 'score_0_3'
-            ? Math.max(...side.map(attempt => Number(attempt.value)))
-            : side.sort((a, b) => b.attempt - a.attempt)[0]?.value;
-          if (field.sides.left.length && field.sides.right.length && bestSideValue(field.sides.left) !== bestSideValue(field.sides.right)) needsAttention = true;
-        }
-        const indicator = hasPain ? 'problem' : needsAttention ? 'warn' : 'ok';
+        const indicator = assessmentIndicator(item.assessment_answers || []);
         return { assessmentId: item.assessment_id, clientId: item.clients.client_id, name: `${item.clients.first_name} ${item.clients.last_name}`, sport: [...(item.clients.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', date: item.assessment_date, status: item.status, indicator, score: item.total_score, maximum: item.max_score };
       }));
     }
