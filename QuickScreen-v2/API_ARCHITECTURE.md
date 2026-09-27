@@ -2,7 +2,7 @@
 
 ## Zakres
 
-QuickScreen pozostaje osobnym modułem w `v2.1`. Makieta korzysta obecnie z danych demonstracyjnych. Schemat Supabase jest przygotowany z istniejących tabel, zasad punktacji, odpowiedzi, clearingów, notatek i raportów.
+QuickScreen pozostaje osobnym modułem w `QuickScreen-v2`. Makieta korzysta obecnie z danych demonstracyjnych. Schemat Supabase w `supabase/` jest przygotowany z istniejących tabel, zasad punktacji, odpowiedzi, clearingów, notatek i raportów.
 
 Aplikacja główna ma integrować moduł przez stabilne API. Widoki nie powinny zależeć od wewnętrznych tabel Supabase ani wywoływać ich bezpośrednio po wprowadzeniu tej integracji.
 

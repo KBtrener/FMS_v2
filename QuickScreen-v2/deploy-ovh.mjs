@@ -4,7 +4,7 @@ import { dirname, join, posix, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const projectDir = dirname(fileURLToPath(import.meta.url));
-const rootDir = resolve(projectDir, '../..');
+const rootDir = resolve(projectDir, '..');
 const env = {};
 for (const line of (await readFile(join(rootDir, '.env.deploy.local'), 'utf8')).split(/\r?\n/)) {
   const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
@@ -26,7 +26,7 @@ await client.connect({
 
 const remoteDirectories = process.argv.length > 2 ? process.argv.slice(2) : ['quickscreen v2', 'quick-screen-v2'];
 if (remoteDirectories.some(path => path.includes('..') || path.startsWith('/') || path.includes('\\'))) {
-  throw new Error('Nieprawidłowy katalog docelowy OVH.');
+  throw new Error('NieprawidĹ‚owy katalog docelowy OVH.');
 }
 const allowedRoots = new Set(['index.html', '.htaccess', 'css', 'js', 'assets']);
 async function uploadTree(localDir, remoteDir) {

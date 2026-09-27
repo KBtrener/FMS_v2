@@ -1,22 +1,29 @@
-# QuickScreen V2 · KB Trener
+# QuickScreen V2 — KB Trener
 
-Samodzielna, statyczna makieta frontendowa modułu QuickScreen dla systemu KB Trener. To demonstrator wyglądu, UX i nawigacji — bez backendu, Supabase, API, autoryzacji, zapisu, localStorage, logiki biznesowej i prawdziwych operacji.
+QuickScreen jest niezależnym modułem do oceny funkcjonalnej. Aktualny interfejs to statyczna makieta z danymi demonstracyjnymi — nie uwierzytelnia użytkowników ani nie zapisuje badań.
 
-## Uruchomienie
+## Uruchomienie lokalne
 
-Otwórz `index.html` bezpośrednio w przeglądarce. Główny entrypoint nie wymaga Node ani npm. Hash routing działa również z `file://`. Opcjonalnie można uruchomić prosty serwer statyczny w tym katalogu.
+W katalogu głównym repozytorium uruchom:
 
-## Nawigacja
+```powershell
+python -m http.server 8000 --directory QuickScreen-v2
+```
 
-Klikalne karty i akcje nawigacyjne prowadzą do statycznych stanów. `Prototype Navigator` otwiera się przyciskiem w prawym dolnym rogu i pozwala przejść bezpośrednio do każdego widoku demonstracyjnego.
+Otwórz `http://localhost:8000`.
 
 ## Struktura
 
-- `docs/` — kanoniczny design system i audyt zakresu.
-- `references/` — wybrane materiały Stitch jako referencje wizualne.
-- `assets/` — lokalne logo, fonty, grafika instruktażowa i ikony.
-- `css/` — tokeny, baza, komponenty, layouty i strony.
-- `js/` — fixture data, routing, komponenty, widoki i bootstrap aplikacji.
+- `index.html`, `css/`, `js/`, `assets/` — aktualna makieta.
+- `supabase/` — konfiguracja, migracje, dane startowe i test izolacji RLS dla przyszłego backendu.
+- `API_ARCHITECTURE.md` — granica modułu i zasady integracji.
+- `design.md` i `agents.md` — zasady wyglądu i pracy nad aplikacją.
+- `docs/` i `sources/` — logika badań, raportów i reguły domenowe.
 
-Struktura odpowiada przyszłym komponentom React: `AppShell`, `ClientCard`, `AssessmentWizard`, `ScoreSelector`, `ReportPreview` itd.
-Flow wyboru klienta i wizarda opisuje `docs/ASSESSMENT_FLOW_V2.md`; jest nadrzędny dla tych widoków względem audytu produkcyjnego. Szczegółowe ustalenia dla podglądu zapisanego badania znajdują się w `docs/ASSESSMENT_DETAILS_UI.md`.
+## Przygotowanie backendu
+
+Interfejs nadal korzysta z danych demonstracyjnych. Przy wdrażaniu backendu dostęp do danych należy zamknąć w jednym adapterze; widoki mają korzystać z modelu QuickScreen, a nie bezpośrednio z tabel Supabase. Przed integracją z aplikacją główną trzeba uzgodnić uwierzytelnianie, adres API, role dostępu i kontrakt endpointów. Migracji nie należy nakładać na produkcyjną bazę przed wskazaniem projektu Supabase i planu migracji. Szczegóły opisuje `API_ARCHITECTURE.md`.
+
+## Publikacja makiety na OVH
+
+Z katalogu głównego repozytorium uruchom `node QuickScreen-v2/deploy-ovh.mjs`. Skrypt odczytuje `.env.deploy.local` z katalogu głównego repozytorium i publikuje tylko pliki interfejsu do `quickscreen v2` oraz `quick-screen-v2`.
