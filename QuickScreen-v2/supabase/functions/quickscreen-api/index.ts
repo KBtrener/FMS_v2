@@ -50,7 +50,7 @@ Deno.serve(async request => {
       const locale = new URL(request.url).searchParams.get('locale') === 'en' ? 'en' : 'pl';
       const { data: scenario, error: scenarioError } = await db.from('screen_types').select('*').eq('screen_type_id', definition[1]).eq('is_active', true).single();
       if (scenarioError) throw scenarioError;
-      const { data: steps, error: stepsError } = await db.from('screen_tests').select('*,tests(*),test_fields(*,answer_sets(*),answer_options(*))').eq('screen_type_id', definition[1]).eq('is_active', true).order('sort_order');
+      const { data: steps, error: stepsError } = await db.from('screen_tests').select('*,tests(*),test_fields(*,answer_sets(*,answer_options(*)))').eq('screen_type_id', definition[1]).eq('is_active', true).order('sort_order');
       if (stepsError) throw stepsError;
       const testIds = (steps || []).map(step => step.tests?.test_id).filter(Boolean);
       const { data: descriptions, error: descriptionsError } = await db.from('test_descriptions').select('*').in('test_id', testIds).eq('locale', locale).eq('is_active', true);
@@ -66,7 +66,7 @@ Deno.serve(async request => {
           attemptMode: field.attempt_mode,
           scoring: field.is_scoring_input,
           answerSet: { id: field.answer_sets.answer_set_id, code: field.answer_sets.code, valueKind: field.answer_sets.value_kind },
-          answers: (field.answer_options || []).filter(answer => answer.is_active).sort((a, b) => a.sort_order - b.sort_order).map(answer => ({ id: answer.answer_option_id, code: answer.code, label: locale === 'en' ? answer.label_en : answer.label_pl, value: answer.numeric_value })),
+          answers: (field.answer_sets?.answer_options || []).filter(answer => answer.is_active).sort((a, b) => a.sort_order - b.sort_order).map(answer => ({ id: answer.answer_option_id, code: answer.code, label: locale === 'en' ? answer.label_en : answer.label_pl, value: answer.numeric_value })),
         }));
         return { id: step.screen_test_id, order: step.sort_order, calculation: step.calculation_type, parentId: step.parent_screen_test_id, test: { id: test.test_id, code: test.code, name: locale === 'en' ? test.name_en : test.name_pl, originalEnglishName: test.name_en, criteriaSummary: test.criteria_summary, description: descriptionByTest.get(test.test_id) || null }, fields };
       });
@@ -133,7 +133,7 @@ Deno.serve(async request => {
       if (answersError) throw answersError;
       const { data: effects, error: effectsError } = await db.from('applied_effects').select('target_screen_test_id,after_score,reason_pl').eq('assessment_id', assessment.assessment_id);
       if (effectsError) throw effectsError;
-      const { data: steps, error: stepsError } = await db.from('screen_tests').select('*,tests(*),test_fields(*,answer_sets(*),answer_options(*))').eq('screen_type_id', assessment.screen_type_id).eq('is_active', true).order('sort_order');
+      const { data: steps, error: stepsError } = await db.from('screen_tests').select('*,tests(*),test_fields(*,answer_sets(*,answer_options(*)))').eq('screen_type_id', assessment.screen_type_id).eq('is_active', true).order('sort_order');
       if (stepsError) throw stepsError;
       const finalScores: Record<string, number> = {};
       const rows: Record<string, unknown>[] = [];
@@ -154,13 +154,13 @@ Deno.serve(async request => {
         const details = fields.flatMap(field => {
           const fieldAnswers = (answers || []).filter(answer => answer.test_field_id === field.test_field_id);
           return fieldAnswers.map(answer => {
-            const option = field.answer_options.find(item => item.answer_option_id === answer.answer_option_id);
+            const option = field.answer_sets?.answer_options?.find(item => item.answer_option_id === answer.answer_option_id);
             const detail = `${field.label_pl}: ${option?.label_pl || ''}`;
             (sides[answer.side] || sides.none).push(detail);
             return `${answer.side === 'left' ? 'L' : answer.side === 'right' ? 'P' : ''}${answer.side === 'none' ? '' : ': '}${detail}`;
           });
         });
-        const codes = fields.flatMap(field => (answers || []).filter(answer => answer.test_field_id === field.test_field_id).map(answer => field.answer_options.find(option => option.answer_option_id === answer.answer_option_id)?.code || ''));
+        const codes = fields.flatMap(field => (answers || []).filter(answer => answer.test_field_id === field.test_field_id).map(answer => field.answer_sets?.answer_options?.find(option => option.answer_option_id === answer.answer_option_id)?.code || ''));
         const state = codes.some(code => /positive|pain|yes/i.test(code)) ? 'problem' : codes.some(code => /fail/i.test(code)) ? 'warn' : 'ok';
         const bilateral = sides.left.length > 0 || sides.right.length > 0;
         rows.push({ name: step.tests.name_pl, kind: 'summary', merged: !bilateral, l: sides.left.join(' · '), r: sides.right.join(' · '), value: sides.none.join(' · '), detail: details.join(' · '), status: state, child: step.tests.code === 'shoulder_clearing', groupKey: step.tests.code === 'shoulder_clearing' ? 'shoulder' : null, sharedScore: step.tests.code === 'shoulder_clearing' ? 'shoulder' : null });
