@@ -1,6 +1,7 @@
 # QuickScreen V2 — wytyczne wizualne
 
 > Aplikacja QuickScreen V2 dla KB Trener / Karol Bilecki
+> Wersja specyfikacji: 2.1 (musi odpowiadać wersji pokazywanej w stopce aplikacji).
 > Źródło prawdy projektu: Figma `eUlk8pZzLoeMtggipYvy97`
 
 Ten dokument opisuje nowy system wizualny aplikacji. Przy implementacji należy zachować poniższe tokeny, zasady responsywności i komponenty. W przypadku rozbieżności między tym dokumentem a wskazanym plikiem Figma, Figma jest źródłem prawdy.
