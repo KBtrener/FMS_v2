@@ -199,7 +199,7 @@ W środku raportu nie powtarzaj disclaimerów. Wystarczy jeden na końcu.
 
 ## 14. Kolejność komunikatu
 
-Generator ma przekazywać informacje w następującej kolejności merytorycznej; sposób ich wizualnego przedstawienia określają wyłącznie PNG z Figmy:
+Generator ma przekazywać informacje w następującej kolejności merytorycznej; sposób ich wizualnego przedstawienia określa wyłącznie `QuickScreen-v2/design.md`:
 
 1. **Kontekst** — czym jest raport i czego dotyczy.
 2. **Wynik** — krótkie, naturalne opisy obserwacji.

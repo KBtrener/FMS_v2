@@ -1,6 +1,6 @@
 # Przykłady raportów
 
-> Przykłady określają treść komunikatów i dane, a nie wygląd raportu. Wygląd odtwarzaj wyłącznie z PNG z Figmy. Merytoryczna kolejność komunikatów jest opisana w `FMS_REPORT_LANGUAGE_GUIDE.md`.
+> Przykłady określają treść komunikatów i dane, a nie wygląd raportu. Wygląd odtwarzaj wyłącznie według `QuickScreen-v2/design.md`. Merytoryczna kolejność komunikatów jest opisana w `FMS_REPORT_LANGUAGE_GUIDE.md`.
 
 Wersja: 4.2
 

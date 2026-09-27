@@ -147,7 +147,7 @@ Nie wprowadzaj ograniczeń tylko z powodu 3/2.
 
 # 7. Składanie raportu klienta
 
-Nie pokazuj dwóch sąsiadujących komunikatów, które powtarzają nazwę `PRIMARY`. Wygląd raportu określają wyłącznie PNG z Figmy.
+Nie pokazuj dwóch sąsiadujących komunikatów, które powtarzają nazwę `PRIMARY`. Wygląd raportu określa wyłącznie `QuickScreen-v2/design.md`.
 
 Generator tworzy bloki w tej kolejności:
 
