@@ -1,4 +1,4 @@
--- Idempotent protocol catalog seed. Application data is never written here.
+-- Populate the protocol catalog before schema migrations that extend it.
 insert into quickscreen_v2.screen_types (screen_type_id, code, name, is_active) values
 ('screen_quick_screen','quick_screen','FMS Quick Screen',true)
 on conflict (screen_type_id) do update set name=excluded.name,is_active=excluded.is_active;
@@ -66,35 +66,3 @@ insert into quickscreen_v2.effect_rules values
 ('effect_rule_shoulder_clearing_to_shoulder_mobility','screen_quick_screen','field_shoulder_clearing_pain','option_positive','any','screen_test_shoulder_mobility','set_final_score',0,false,'Shoulder Clearing - Ból po stronie {side}'),
 ('effect_rule_spine_extension_clearing_to_squat','screen_quick_screen','field_spine_extension_clearing_pain','option_positive','none','screen_test_squat','set_final_score',0,true,'Spine Extension Clearing - ból zeruje wynik Squat')
 on conflict (effect_rule_id) do update set is_active=excluded.is_active,reason_template=excluded.reason_template;
-
-update quickscreen_v2.screen_types
-set name_pl = case code when 'quick_screen' then 'Bazowy test funkcjonalny' else name end,
-    name_en = name;
-
-update quickscreen_v2.tests
-set name_en = name,
-    name_pl = case code
-      when 'cervical_flexion' then 'Zgięcie karku'
-      when 'cervical_rotation_extension' then 'Rotacje karku'
-      when 'neck_extension_clearing' then 'Wyprost karku'
-      when 'toe_touch' then 'Skłon do palców'
-      when 'shoulder_mobility' then 'Mobilność barku'
-      when 'shoulder_clearing' then 'Shoulder Clearing'
-      when 'rotation' then 'Rotacje'
-      when 'balance' then 'Balans'
-      when 'squat' then 'Przysiad'
-      when 'spine_extension_clearing' then 'Wyprost kręgosłupa'
-      else name end;
-
-update quickscreen_v2.test_fields
-set label_en = initcap(replace(code, '_', ' '));
-
-update quickscreen_v2.answer_options
-set label_en = case code
-  when 'positive' then 'Pain'
-  when 'negative' then 'No pain'
-  when 'pass' then 'Pass'
-  when 'fail' then 'Fail'
-  else coalesce(numeric_value::text, initcap(replace(code, '_', ' '))) end;
-
-\ir test_descriptions_seed.sql

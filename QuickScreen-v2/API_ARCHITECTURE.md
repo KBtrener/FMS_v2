@@ -1,25 +1,35 @@
-# Granica modułu i przyszłe API
+# QuickScreen V2 REST API
 
-## Zakres
+QuickScreen V2 uses the existing Supabase project and a separate PostgreSQL schema named `quickscreen_v2`. The frontend communicates through one Edge Function; other applications can use the same versioned HTTP contract. Supabase Edge Functions run in Deno/TypeScript, while an application written in FastAPI can consume this API over HTTP.
 
-QuickScreen pozostaje osobnym modułem w `QuickScreen-v2`. Makieta korzysta obecnie z danych demonstracyjnych. Schemat Supabase w `supabase/` jest przygotowany z istniejących tabel, zasad punktacji, odpowiedzi, clearingów, notatek i raportów.
+## Base URL and authorization
 
-Aplikacja główna ma integrować moduł przez stabilne API. Widoki nie powinny zależeć od wewnętrznych tabel Supabase ani wywoływać ich bezpośrednio po wprowadzeniu tej integracji.
+`https://<project-ref>.supabase.co/functions/v1/quickscreen-api/v1`
 
-## Dane i identyfikatory
+Send the Supabase publishable key in `apikey` and the signed-in user's access token as `Authorization: Bearer <access_token>`. The function validates the token and uses it for database requests, so row-level security remains active. Every route requires an authenticated session.
 
-Zachowujemy klucze domenowe backendu: `client_id`, `assessment_id`, `screen_test_id`, `test_field_id`, `answer_option_id`, kody stron `left/right/none` i wersję manuala. Pozwala to zachować wyniki historyczne i reguły oceniania przy zmianach prezentacji.
+## Routes
 
-Kontrakt obejmuje zasoby:
+| Method | Route | Purpose |
+|---|---|---|
+| `GET` | `/me` | Signed-in profile |
+| `GET` | `/scenarios` | Active scenarios |
+| `GET` | `/scenarios/{id}/definition?locale=pl` | Ordered tests, fields, choices, criteria and version |
+| `GET` | `/clients?q=...` | Search accessible clients |
+| `POST` | `/clients/resolve` | Resolve or create a client |
+| `GET` | `/clients/{id}` | Read a client profile |
+| `GET` | `/dashboard` | Recent completed assessments |
+| `POST` | `/assessments` | Start a draft |
+| `GET` | `/assessments/{id}` | Read an assessment |
+| `PATCH` | `/assessments/{id}` | Atomically replace its current answers and notes |
+| `POST` | `/assessments/{id}/complete` | Validate answers, apply rules, calculate and finalize |
+| `GET` | `/assessments/latest` | Latest completed assessment ID |
+| `GET` | `/assessments/{id}/results` | Results for the existing results view |
 
-- profile i dostęp trenera do klientów;
-- konfigurację protokołu oraz opisów testów;
-- badania, odpowiedzi, notatki i zastosowane efekty clearingów;
-- raporty, ich sekcje i niezmienne snapshoty;
-- pliki prywatne powiązane z klientem lub badaniem.
+Request and response property names are camelCase. Database IDs and stable field codes identify domain records; translated labels are presentation values. The default locale is Polish. English names and labels are stored alongside Polish ones.
 
-## Zasada integracji
+## Data and access
 
-Przed połączeniem z aplikacją główną należy ustalić jej uwierzytelnianie, bazowy URL i wersjonowanie API. Następnie należy dodać jeden adapter danych dla QuickScreen i mapować odpowiedzi API na model modułu. Proponowana granica wersji to `/api/v1/quickscreen`; konkretne endpointy i role ustalimy przy implementacji integracji, żeby nie utrwalać teraz nieuzgodnionego kontraktu.
+Migrations in this module create V2 tables and policies only in `quickscreen_v2`. The data-copy migration reads the existing `public` schema and inserts matching columns into the isolated V2 tables; it does not update or delete V1 rows. Profiles retain their Supabase Auth UUID. Assessment drafts, answers, completion checks and scoring run under the authenticated user's RLS context.
 
-Makieta i seed nie zawierają kluczy ani adresów żadnego projektu Supabase. Migracje można zastosować w wybranym środowisku, a konfigurację klienta dodać dopiero po wskazaniu projektu.
+Before deployment, add `quickscreen_v2` to the Supabase project's exposed Data API schemas. Never expose a service-role key in the browser. Existing Storage objects need a separate transfer because SQL cannot copy their binary contents.

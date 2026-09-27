@@ -1,4 +1,44 @@
 -- Generated from 09_manual_test_descriptions_bilingual.md.
+-- Do not edit content values by hand; update the Markdown and regenerate.
+
+begin;
+
+create table if not exists quickscreen_v2.test_descriptions (
+  test_description_id uuid primary key default gen_random_uuid(),
+  test_id text not null references quickscreen_v2.tests(test_id) on delete cascade,
+  locale text not null check (locale in ('en', 'pl')),
+  purpose text not null default '',
+  procedure text not null default '',
+  verbal_instruction text not null default '',
+  side_definition text not null default '',
+  scoring_criteria text not null default '',
+  report_description text not null default '',
+  source_reference text not null default '',
+  manual_version text not null,
+  content_hash text not null,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (test_id, locale, manual_version)
+);
+
+create unique index if not exists test_descriptions_active_idx
+  on quickscreen_v2.test_descriptions(test_id, locale) where is_active;
+create index if not exists test_descriptions_lookup_idx
+  on quickscreen_v2.test_descriptions(test_id, locale, is_active);
+
+drop trigger if exists test_descriptions_touch on quickscreen_v2.test_descriptions;
+create trigger test_descriptions_touch before update on quickscreen_v2.test_descriptions
+  for each row execute procedure quickscreen_v2.touch_updated_at();
+
+alter table quickscreen_v2.test_descriptions enable row level security;
+drop policy if exists config_test_descriptions_read on quickscreen_v2.test_descriptions;
+create policy config_test_descriptions_read on quickscreen_v2.test_descriptions
+  for select to authenticated using (is_active);
+
+revoke insert, update, delete on quickscreen_v2.test_descriptions from authenticated;
+grant select on quickscreen_v2.test_descriptions to authenticated;
+
 update quickscreen_v2.test_descriptions set is_active = false where manual_version <> '1.0';
 
 insert into quickscreen_v2.test_descriptions (test_id, locale, purpose, procedure, verbal_instruction, side_definition, scoring_criteria, report_description, source_reference, manual_version, content_hash, is_active) values
@@ -315,3 +355,5 @@ flaga bólu i nie zmienia automatycznie wyniku Squat.', 'Sprawdzenie, czy wypros
 test clearing służący do oznaczenia bolesnej reakcji, a nie do diagnozowania
 problemów kręgosłupa.', 'FMS Quick Screen Manual, 26', '1.0', '3985cc5343736ed9b2139f902731cfde0ea92210a6172c626b02d5ad4201aebc', true)
 on conflict (test_id, locale, manual_version) do update set purpose = excluded.purpose, procedure = excluded.procedure, verbal_instruction = excluded.verbal_instruction, side_definition = excluded.side_definition, scoring_criteria = excluded.scoring_criteria, report_description = excluded.report_description, source_reference = excluded.source_reference, content_hash = excluded.content_hash, is_active = true;
+
+commit;
