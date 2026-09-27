@@ -118,7 +118,6 @@
       { title: 'Co działa dobrze', text: positiveNames.length ? `Bez bólu i większych trudności wypadły: ${positiveNames.join(', ')}.` : 'Nie ma wyników, które można wyróżnić jako bezbolesne i bez większych trudności.', tone: 'good' },
       { title: 'Co wymaga uwagi', text: observations.length ? observations.join(' ') : 'W ocenionych testach nie pojawił się ból ani wyraźne ograniczenie.', tone: observations.length ? allPain ? 'problem' : 'watch' : 'good' },
       { title: 'Priorytet', text: main ? (allPain ? `Ból jest najważniejszą informacją z badania. W pierwszej kolejności zajmij się: ${priority.items.map(nameOf).join(', ')}.` : `Skup teraz uwagę na teście ${nameOf(main)}. Nie musisz poprawiać wszystkiego jednocześnie.`) : 'Badanie nie wskazuje jednego obszaru, od którego trzeba zacząć.', tone: main ? allPain ? 'problem' : 'priority' : 'overview' },
-      { title: 'Co dalej', text: plan[1].text, tone: 'next' },
     ];
     return {
       generatorVersion: '5.0.0', assessmentId: assessment.assessmentId, client: assessment.client || {}, assessmentDate: assessment.date || '',
