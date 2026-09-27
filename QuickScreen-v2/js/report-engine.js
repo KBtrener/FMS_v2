@@ -25,6 +25,18 @@
     spine_extension_clearing: { name: 'wyprost kręgosłupa', limit: 'Ogranicz powtarzane lub obciążone odchylanie do tyłu, jeśli odtwarza ból.', do: 'Pozostań aktywny w zakresie, który nie wywołuje bólu. Przy utrzymującym się bólu skonsultuj obszar ze specjalistą.', continue: 'Możesz kontynuować codzienne ruchy, które nie prowokują bólu.' },
     default: { name: 'ten ruch', limit: 'Nie zwiększaj trudności ruchu, jeśli nie utrzymujesz jego kontroli.', do: 'Pracuj nad jakością ruchu w komfortowym zakresie.', continue: 'Możesz kontynuować pozostałe bezbolesne aktywności.' },
   };
+  const PATTERN_CONTEXT = {
+    cervical_flexion: 'Swobodne pochylenie głowy pomaga patrzeć w dół podczas pracy przy ziemi, na przykład w ogrodzie, i kontrolować ustawienie ciała przy schylaniu.',
+    cervical_rotation_extension: 'Swobodny obrót głowy pomaga kierować wzrok na boki i ku górze: przy szukaniu chwytów podczas wspinania, obserwowaniu trasy podczas biegu oraz rozglądaniu się przy pracy w ogrodzie.',
+    neck_extension_clearing: 'Ten test sprawdza ból przy odchyleniu głowy po obrocie. Taki ruch pojawia się, gdy patrzysz w górę lub za siebie, między innymi podczas wspinania i pracy w ogrodzie.',
+    toe_touch: 'Kontrolowany skłon pomaga sięgać do podłoża, podnosić rzeczy i pracować w pochyleniu, na przykład przy zakładaniu butów lub pieleniu.',
+    shoulder_mobility: 'Ruchomość barków ułatwia sięganie nad głowę i za plecy, co przydaje się przy wspinaniu, ubieraniu się i odkładaniu rzeczy na wysoką półkę.',
+    shoulder_clearing: 'Pozycje z ręką nad głową lub za plecami występują przy wspinaniu, ubieraniu się i sięganiu po przedmioty. Ból w tym teście jest sygnałem, by nie forsować bolesnej pozycji.',
+    rotation: 'Kontrolowany obrót tułowia pomaga zmieniać kierunek, sięgać na bok i obracać się podczas biegu, sportu oraz pracy z narzędziami.',
+    balance: 'Równowaga na jednej nodze pomaga utrzymać stabilność przy każdym kroku, na schodach, nierównym podłożu i podczas biegania.',
+    squat: 'Kontrolowany przysiad pomaga siadać i wstawać, schodzić nisko oraz podnosić przedmioty z podłogi; te ruchy często powtarzają się w ogrodzie.',
+    spine_extension_clearing: 'Test sprawdza ból przy odchyleniu tułowia do tyłu. Ten ruch pojawia się przy patrzeniu w górę, sięganiu wysoko i zmianie pozycji podczas pracy.',
+  };
   const codeOf = test => String(test.code || '').toLowerCase();
   const baseCode = code => code.startsWith('cervical_') ? 'cervical' : code === 'shoulder_clearing' ? 'shoulder_mobility' : code;
   const nameOf = test => LABELS[codeOf(test)] || LABELS[baseCode(codeOf(test))] || test.name || 'Test ruchowy';
@@ -91,19 +103,25 @@
       const affectedSides = [...new Set(fieldsOf(test).filter(field => isPain({ fields: [field] }) || isFail({ fields: [field] })).map(field => field.side).filter(sideName => sideName === 'left' || sideName === 'right'))];
       const side = affectedSides.length === 2 ? ' po obu stronach' : affectedSides[0] === 'left' ? ' po lewej stronie' : affectedSides[0] === 'right' ? ' po prawej stronie' : '';
       const asymmetric = test.leftScore != null && test.rightScore != null && test.leftScore !== test.rightScore;
-      if (isPain(test) || scoreOf(test) === 0) return `Podczas testu ${nameOf(test)}${side} pojawił się ból.`;
-      if (isFail(test)) return `W teście ${nameOf(test)}${side} zakres ruchu nie spełnił kryterium.`;
-      if (asymmetric) return `W teście ${nameOf(test)} widać różnicę między stronami.`;
-      return `Test ${nameOf(test)} wymaga dalszej pracy.`;
+      const context = PATTERN_CONTEXT[codeOf(test)] || 'Ten wzorzec pomaga wykonywać codzienne ruchy w sposób kontrolowany.';
+      const weakerSide = test.leftScore < test.rightScore ? 'lewa' : 'prawa';
+      const asymmetryNote = asymmetric ? ` Różnica między stronami jest ważna do poprawy: ${weakerSide} strona wymaga większej pracy, bo ciało wykonuje ten sam ruch inaczej po lewej i prawej stronie.` : '';
+      const observation = isPain(test) || scoreOf(test) === 0
+        ? `Podczas testu ${nameOf(test)}${side} pojawił się ból.`
+        : isFail(test)
+          ? `W teście ${nameOf(test)}${side} zakres ruchu nie spełnił kryterium.`
+          : asymmetric
+            ? `W teście ${nameOf(test)} widać różnicę między stronami.`
+            : `Test ${nameOf(test)} wymaga dalszej pracy.`;
+      return `${observation} ${context}${asymmetryNote}`;
     };
     const observations = important.map(describeObservation);
-    const positiveNames = positive.slice(0, 5).map(nameOf);
-    const positiveSummary = positiveNames.length ? ` Bez bólu i większych trudności wypadły: ${positiveNames.join(', ')}.` : '';
+    const positiveNames = positive.map(nameOf);
     const summary = priority.type === 'none'
-      ? 'W badaniu nie pojawił się ból ani wyraźny obszar wymagający pierwszeństwa. Ocenione ruchy spełniają podstawowy standard, więc możesz kontynuować aktywność odpowiednią do swojego poziomu.'
-      : allPain
-        ? `${observations.join(' ')} To najważniejsza informacja z badania i obszar, którym warto zająć się w pierwszej kolejności.${positiveSummary}`
-        : `${observations.join(' ')} To obszar, któremu warto poświęcić teraz najwięcej uwagi.${positiveSummary} Nie musisz poprawiać wszystkiego jednocześnie; szczegółowe wyniki są poniżej.`;
+        ? 'Ocenione wzorce spełniły podstawowe kryteria. W badaniu nie pojawił się ból ani wyraźna asymetria wymagająca pierwszeństwa.'
+        : allPain
+        ? `W badaniu pojawił się ból w obszarze: ${priority.items.map(nameOf).join(', ')}. To wymaga uwagi w pierwszej kolejności.`
+        : `Najwięcej uwagi wymaga ${nameOf(main)}. Pozostałe obserwacje i ich znaczenie opisano poniżej.`;
     const plan = main ? [
       { title: 'Chroń', label: title, text: allPain ? painRules.join(' ') : (mainCode === 'cervical' && isFail(main) ? 'Nie wymuszaj końcowego zakresu szyi. Stopniowo zwiększaj zakres przed ruchem gwałtownym, szybkimi zmianami kierunku i sportami walki, które wymagają szybkiego ustawienia głowy.' : mildAsymmetry ? 'Nie ma potrzeby ograniczać aktywności tylko z powodu asymetrii 3/2.' : (scoreOf(main) === 1 || isFail(main) ? action.limit : 'Nie ma potrzeby automatycznie ograniczać całej aktywności z powodu tej różnicy.')) },
       { title: 'Popraw', label: title, text: mildAsymmetry ? `Obie strony spełniają podstawowy standard. Skup dodatkową pracę na stronie z niższym wynikiem (${main.leftScore < main.rightScore ? 'lewa' : 'prawa'}).` : allPain ? (mainCode === 'cervical' ? action.do : `${action.do} Przy bólu warto skonsultować się ze specjalistą, zwłaszcza jeśli utrzymuje się lub ogranicza codzienne czynności. Do tego czasu samodzielnie pozostań przy bezbolesnej aktywności i nie forsuj bolesnego zakresu.`) : action.do },
@@ -115,7 +133,7 @@
     ];
     const descriptionSections = [
       { title: 'Obraz całości', text: summary, tone: 'overview' },
-      { title: 'Co działa dobrze', text: positiveNames.length ? `Bez bólu i większych trudności wypadły: ${positiveNames.join(', ')}.` : 'Nie ma wyników, które można wyróżnić jako bezbolesne i bez większych trudności.', tone: 'good' },
+      { title: 'Co działa dobrze', text: positiveNames.length ? `Bez bólu i większych trudności wypadły: ${positiveNames.join(', ')}. Ruchy korzystające z tych wzorców powinny być bezpieczne i nie powinny powodować problemów, o ile nie wywołują bólu.` : 'Nie ma wyników, które można wyróżnić jako bezbolesne i bez większych trudności.', tone: 'good' },
       { title: 'Co wymaga uwagi', text: observations.length ? observations.join(' ') : 'W ocenionych testach nie pojawił się ból ani wyraźne ograniczenie.', tone: observations.length ? allPain ? 'problem' : 'watch' : 'good' },
       { title: 'Priorytet', text: main ? (allPain ? `Ból jest najważniejszą informacją z badania. W pierwszej kolejności zajmij się: ${priority.items.map(nameOf).join(', ')}.` : `Skup teraz uwagę na teście ${nameOf(main)}. Nie musisz poprawiać wszystkiego jednocześnie.`) : 'Badanie nie wskazuje jednego obszaru, od którego trzeba zacząć.', tone: main ? allPain ? 'problem' : 'priority' : 'overview' },
     ];
