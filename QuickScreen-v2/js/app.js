@@ -205,7 +205,7 @@
       setRoute(`client-report/${created.reportId}`);
     } catch(error) {reportLoadError=error.message;render();}
   }
-  function reportSettingsPage(){return shell(window.QuickScreenReportUI.settings(reportSettings,reportResources),'#/dashboard',{subtitle:'Ustawienia raportu'});}
+  function reportSettingsPage(){return shell(window.QuickScreenReportUI.settings(reportSettings),'#/dashboard',{subtitle:'Ustawienia raportu'});}
   function savedReportPage(){
     const snapshot=activeReport?.snapshot;
     if(!snapshot)return shell('<main class="page"><section class="card"><h1>Nie udało się otworzyć raportu</h1><p>Raport nie istnieje albo nie masz do niego dostępu.</p><a class="btn" href="#/dashboard">Wróć do panelu</a></section></main>','#/dashboard');
@@ -276,16 +276,6 @@
       event.preventDefault();
       return;
     }
-    if (form.id === 'report-resource-form') {
-      event.preventDefault();
-      const status = $('#report-resource-status');
-      const fields = Object.fromEntries(new FormData(form));
-      try {
-        await apiRequest('/report-resources', { method: 'POST', body: JSON.stringify({ ...fields, testCode: fields.testCode || null }) });
-        await loadReportConfiguration();
-        render();
-      } catch (error) { if (status) status.textContent = error.message; }
-    }
   });
   app.addEventListener('change', async event => {
     if (event.target.name === 'blockVisibility') {
@@ -304,13 +294,6 @@
       } finally { checkboxes.forEach(input => { input.disabled = false; }); }
       return;
     }
-    const checkbox = event.target.closest('[data-resource-active]');
-    if (!checkbox) return;
-    try {
-      await apiRequest(`/report-resources/${encodeURIComponent(checkbox.dataset.resourceActive)}`, { method: 'PATCH', body: JSON.stringify({ isActive: checkbox.checked }) });
-      await loadReportConfiguration();
-      render();
-    } catch (error) { window.alert(error.message); }
   });
   window.addEventListener('hashchange', async event => {
     if (route() === 'report') { render(); await generateReport(); return; }
