@@ -28,3 +28,6 @@
 .chart-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:var(--accent);vertical-align:1px}
 .result-table-mobile{display:none}.status-icon{width:18px;height:18px}.status-icon svg{width:18px;height:18px}.result-value b.pain{color:var(--red)}.result-value b.warn{color:var(--amber)}body.is-report{background:#fff}
 @media(max-width:760px){.result-table-mobile{display:grid}}
+
+.criteria-list{display:grid;gap:9px}.criteria-point{display:grid;grid-template-columns:88px minmax(0,1fr);gap:10px;font-size:13px;line-height:1.45}.criteria-point>b{color:var(--navy)}@media(max-width:620px){.criteria-point{grid-template-columns:68px minmax(0,1fr);gap:8px;font-size:12px}}
+.sides.single-field .side-card{grid-column:1/-1}
