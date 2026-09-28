@@ -7,12 +7,6 @@ values ('cccccccc-cccc-4ccc-8ccc-cccccccccccc','Assessment completion test');
 insert into quickscreen_v2.clients (client_id,owner_id,first_name,last_name,email)
 values ('cccccccc-1111-4111-8111-cccccccccccc','cccccccc-cccc-4ccc-8ccc-cccccccccccc','Assessment','Test','assessment-client@example.invalid');
 select set_config('request.jwt.claim.sub','cccccccc-cccc-4ccc-8ccc-cccccccccccc',true);
-insert into quickscreen_v2.assessments (assessment_id,owner_id,client_id,screen_type_id,assessment_date,status)
-values
-  ('cccccccc-2222-4222-8222-cccccccccccc','cccccccc-cccc-4ccc-8ccc-cccccccccccc','cccccccc-1111-4111-8111-cccccccccccc','screen_quick_screen',current_date,'in_progress'),
-  ('cccccccc-3333-4333-8333-cccccccccccc','cccccccc-cccc-4ccc-8ccc-cccccccccccc','cccccccc-1111-4111-8111-cccccccccccc','screen_quick_screen',current_date,'in_progress'),
-  ('cccccccc-4444-4444-8444-cccccccccccc','cccccccc-cccc-4ccc-8ccc-cccccccccccc','cccccccc-1111-4111-8111-cccccccccccc','screen_quick_screen',current_date,'in_progress');
-
 set local role authenticated;
 select set_config('request.jwt.claim.sub','cccccccc-cccc-4ccc-8ccc-cccccccccccc',true);
 
@@ -53,39 +47,30 @@ begin
     into v_answers_no_effect
   from jsonb_array_elements(v_answers) item;
 
-  perform quickscreen_v2.save_assessment_draft('cccccccc-2222-4222-8222-cccccccccccc','',v_answers_no_effect,'[]'::jsonb);
-  v_result := quickscreen_v2.complete_assessment_v2('cccccccc-2222-4222-8222-cccccccccccc');
+  v_result := quickscreen_v2.submit_assessment_v2('cccccccc-2222-4222-8222-cccccccccccc','cccccccc-1111-4111-8111-cccccccccccc','screen_quick_screen',current_date,null,v_answers_no_effect,'[]'::jsonb);
   if (v_result->>'totalScore')::integer <> 15 then raise exception 'unexpected score without effect: %', v_result; end if;
   select status::text,total_score,max_score into v_status,v_total,v_max from quickscreen_v2.assessments where assessment_id='cccccccc-2222-4222-8222-cccccccccccc';
   if v_status <> 'completed' or v_total <> 15 or v_max <> 15 then raise exception 'unexpected completed assessment state: %, %, %',v_status,v_total,v_max; end if;
 
-  perform quickscreen_v2.save_assessment_draft('cccccccc-3333-4333-8333-cccccccccccc','',v_answers,'[]'::jsonb);
-  v_result := quickscreen_v2.complete_assessment_v2('cccccccc-3333-4333-8333-cccccccccccc');
+  v_result := quickscreen_v2.submit_assessment_v2('cccccccc-3333-4333-8333-cccccccccccc','cccccccc-1111-4111-8111-cccccccccccc','screen_quick_screen',current_date,null,v_answers,'[]'::jsonb);
   if (v_result->>'totalScore')::integer <> 12 then raise exception 'unexpected score with shoulder effect: %', v_result; end if;
   select count(*) into v_effect_count from quickscreen_v2.applied_effects where assessment_id='cccccccc-3333-4333-8333-cccccccccccc' and after_score=0;
   if v_effect_count <> 1 then raise exception 'expected one applied shoulder effect, found %',v_effect_count; end if;
 
-  begin
-    perform quickscreen_v2.complete_assessment_v2('cccccccc-3333-4333-8333-cccccccccccc');
-    raise exception 'completed assessment was accepted a second time';
-  exception when others then
-    if sqlerrm = 'completed assessment was accepted a second time' then raise; end if;
-    if sqlerrm <> 'assessment_not_editable' then raise; end if;
-  end;
+  v_result := quickscreen_v2.submit_assessment_v2('cccccccc-3333-4333-8333-cccccccccccc','cccccccc-1111-4111-8111-cccccccccccc','screen_quick_screen',current_date,null,v_answers,'[]'::jsonb);
+  if v_result->>'alreadyCompleted' <> 'true' then raise exception 'retry did not reuse completed assessment: %',v_result; end if;
 
   select jsonb_agg(item) into v_incomplete_answers
   from jsonb_array_elements(v_answers) item
   where item->>'fieldId' <> 'field_spine_extension_clearing_pain';
-  perform quickscreen_v2.save_assessment_draft('cccccccc-4444-4444-8444-cccccccccccc','',v_incomplete_answers,'[]'::jsonb);
   begin
-    perform quickscreen_v2.complete_assessment_v2('cccccccc-4444-4444-8444-cccccccccccc');
+    perform quickscreen_v2.submit_assessment_v2('cccccccc-4444-4444-8444-cccccccccccc','cccccccc-1111-4111-8111-cccccccccccc','screen_quick_screen',current_date,null,v_incomplete_answers,'[]'::jsonb);
     raise exception 'incomplete assessment was accepted';
   exception when others then
     if sqlerrm = 'incomplete assessment was accepted' then raise; end if;
     if sqlerrm not like 'missing_answer:%' then raise; end if;
   end;
-  select status::text into v_status from quickscreen_v2.assessments where assessment_id='cccccccc-4444-4444-8444-cccccccccccc';
-  if v_status <> 'in_progress' then raise exception 'incomplete assessment did not remain a draft: %',v_status; end if;
+  if exists (select 1 from quickscreen_v2.assessments where assessment_id='cccccccc-4444-4444-8444-cccccccccccc') then raise exception 'failed submission left a partial assessment behind'; end if;
 end;
 $$;
 

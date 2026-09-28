@@ -184,7 +184,7 @@ Deno.serve(async request => {
     }
 
     if (request.method === 'GET' && route === '/clients') {
-      const { data, error } = await db.from('clients').select('client_id,first_name,last_name,email,is_archived,created_at,client_disciplines(discipline,is_primary),assessments(assessment_id,assessment_date,status,total_score,max_score)').eq('owner_id', ownerId).order('last_name').order('first_name');
+      const { data, error } = await db.from('clients').select('client_id,first_name,last_name,email,is_archived,created_at,client_disciplines(discipline,is_primary),assessments(assessment_id,assessment_date,created_at,status,total_score,max_score)').eq('owner_id', ownerId).order('last_name').order('first_name');
       if (error) throw error;
       const assessmentIds = (data || []).flatMap(client => (client.assessments || []).filter(item => item.status === 'completed').map(item => item.assessment_id));
       const indicators = new Map<string, string>();
@@ -197,13 +197,14 @@ Deno.serve(async request => {
       }
       const term = new URL(request.url).searchParams.get('q')?.trim().toLocaleLowerCase('pl');
       return response((data || []).filter(client => !client.is_archived && (!term || `${client.first_name} ${client.last_name} ${client.email}`.toLocaleLowerCase('pl').includes(term))).map(client => {
-        const latest = [...(client.assessments || [])].filter(item => item.status === 'completed').sort((a, b) => b.assessment_date.localeCompare(a.assessment_date))[0];
-        return { clientId: client.client_id, firstName: client.first_name, lastName: client.last_name, email: client.email, isArchived: client.is_archived, createdAt: client.created_at, discipline: [...(client.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', latestAssessment: latest ? { id: latest.assessment_id, date: latest.assessment_date, status: latest.status, indicator: indicators.get(latest.assessment_id) || 'ok', score: latest.total_score, maximum: latest.max_score } : null, history: [...(client.assessments || [])].filter(item => item.status === 'completed').sort((a, b) => b.assessment_date.localeCompare(a.assessment_date)).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, status: item.status, indicator: indicators.get(item.assessment_id) || 'ok', score: item.total_score, maximum: item.max_score })) };
+        const byRecentAssessment = (a: any, b: any) => b.assessment_date.localeCompare(a.assessment_date) || b.created_at.localeCompare(a.created_at);
+        const latest = [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment)[0];
+        return { clientId: client.client_id, firstName: client.first_name, lastName: client.last_name, email: client.email, isArchived: client.is_archived, createdAt: client.created_at, discipline: [...(client.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', latestAssessment: latest ? { id: latest.assessment_id, date: latest.assessment_date, status: latest.status, indicator: indicators.get(latest.assessment_id) || 'ok', score: latest.total_score, maximum: latest.max_score } : null, history: [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, status: item.status, indicator: indicators.get(item.assessment_id) || 'ok', score: item.total_score, maximum: item.max_score })) };
       }));
     }
 
     if (request.method === 'GET' && route === '/dashboard') {
-      const { data, error } = await db.from('assessments').select('assessment_id,assessment_date,status,total_score,max_score,clients!inner(client_id,first_name,last_name,client_disciplines(discipline,is_primary)),assessment_answers(side,test_field_id,attempt_number,numeric_value,test_fields(side_mode,answer_sets(code)),answer_options(code))').eq('owner_id', ownerId).eq('status', 'completed').order('assessment_date', { ascending: false }).limit(8);
+      const { data, error } = await db.from('assessments').select('assessment_id,assessment_date,created_at,status,total_score,max_score,clients!inner(client_id,first_name,last_name,client_disciplines(discipline,is_primary)),assessment_answers(side,test_field_id,attempt_number,numeric_value,test_fields(side_mode,answer_sets(code)),answer_options(code))').eq('owner_id', ownerId).eq('status', 'completed').order('assessment_date', { ascending: false }).order('created_at', { ascending: false }).limit(8);
       if (error) throw error;
       return response((data || []).map(item => {
         const indicator = assessmentIndicator(item.assessment_answers || []);
@@ -241,7 +242,7 @@ Deno.serve(async request => {
     }
 
     if (request.method === 'GET' && route === '/assessments/latest') {
-      const { data, error } = await db.from('assessments').select('assessment_id').eq('owner_id', ownerId).eq('status', 'completed').order('assessment_date', { ascending: false }).limit(1).maybeSingle();
+      const { data, error } = await db.from('assessments').select('assessment_id').eq('owner_id', ownerId).eq('status', 'completed').order('assessment_date', { ascending: false }).order('created_at', { ascending: false }).limit(1).maybeSingle();
       if (error) throw error;
       return response(data ? { assessmentId: data.assessment_id } : null);
     }
@@ -387,25 +388,11 @@ Deno.serve(async request => {
       return response(data);
     }
 
-    if (request.method === 'POST' && route === '/assessments') {
-      const input = await request.json();
-      const { data, error } = await db.from('assessments').insert({ owner_id: ownerId, client_id: input.clientId, screen_type_id: input.scenarioId, assessment_date: input.date, manual_version: input.manualVersion, note: input.note || '', status: 'in_progress' }).select('assessment_id,client_id,screen_type_id,assessment_date,manual_version,status').single();
-      if (error) throw error;
-      return response({ assessmentId: data.assessment_id, clientId: data.client_id, scenarioId: data.screen_type_id, date: data.assessment_date, manualVersion: data.manual_version, status: data.status }, 201);
-    }
-
-    if (request.method === 'PATCH' && assessmentRoute) {
+    if (request.method === 'POST' && route === '/assessments/complete') {
       const input = await request.json();
       const answers = (input.answers || []).map((answer: Record<string, unknown>) => ({ fieldId: answer.fieldId, side: answer.side || 'none', attemptNumber: answer.attemptNumber || 1, answerId: answer.answerId }));
       const notes = Object.entries(input.notes || {}).map(([testId, note]) => ({ testId, note: String(note || '') }));
-      const { error } = await db.rpc('save_assessment_draft', { p_assessment_id: assessmentRoute[1], p_note: String(input.note || ''), p_answers: answers, p_notes: notes });
-      if (error) throw error;
-      return response({ assessmentId: assessmentRoute[1], saved: true });
-    }
-
-    const completeRoute = route.match(/^\/assessments\/([^/]+)\/complete$/);
-    if (request.method === 'POST' && completeRoute) {
-      const { data, error } = await db.rpc('complete_assessment_v2', { p_assessment_id: completeRoute[1] });
+      const { data, error } = await db.rpc('submit_assessment_v2', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes });
       if (error) throw error;
       return response(data);
     }
