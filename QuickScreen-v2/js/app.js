@@ -52,8 +52,15 @@
     if (!scenario) throw new Error('Brak aktywnego scenariusza badania.');
     currentScenario = await apiRequest(`/scenarios/${encodeURIComponent(scenario.screenTypeId)}/definition?locale=pl`);
     tests = currentScenario.steps.map(step => ({ key: step.test.code, name: step.test.name, en: step.test.originalEnglishName, mode: uiMode(step), criteria: String(step.test.description?.scoring_criteria || '').split(/\r?\n/).map(line => line.match(/^-\s*\*\*(.+?):\*\*\s*(.+)$/)).filter(Boolean).map(match => [match[1], match[2]]), definition: step }));
+    updateClientData(clientsData, activity);
+  }
+  function updateClientData(clientsData, activity) {
     clients = clientsData.map(client => ({ id: client.clientId, name: `${client.firstName} ${client.lastName}`, email: client.email, sport: client.discipline || '', date: client.latestAssessment?.date || '', score: client.latestAssessment?.score ?? null, maxScore: client.latestAssessment?.maximum ?? null, points: client.latestAssessment?.score ?? null, status: client.latestAssessment?.indicator || 'ok', latestAssessmentId: client.latestAssessment?.id || client.history?.[0]?.assessmentId || null, history: client.history || [], createdAt: client.createdAt }));
-    latestActivity = activity.map(item => ({ clientId: item.clientId, name: item.name, sport: item.sport || '', date: item.date, points: item.score ?? 0, status: item.indicator || (item.status === 'completed' ? 'ok' : 'warn') }));
+    if (activity) latestActivity = activity.map(item => ({ clientId: item.clientId, name: item.name, sport: item.sport || '', date: item.date, points: item.score ?? 0, status: item.indicator || (item.status === 'completed' ? 'ok' : 'warn') }));
+  }
+  async function refreshClientHistory() {
+    const clientsData = await apiRequest('/clients');
+    updateClientData(clientsData);
   }
   async function startAssessment() {
     const firstName = $('#client-first')?.value.trim() || '';
@@ -317,6 +324,8 @@
           await apiRequest(`/assessments/${activeAssessment.assessmentId}/complete`, { method: 'POST' });
           await loadResults(activeAssessment.assessmentId);
           activeAssessment = null;
+          try { await refreshClientHistory(); }
+          catch { window.alert('Badanie zostało zapisane, ale nie udało się odświeżyć historii klienta. Odśwież stronę, aby zobaczyć nowy wynik.'); }
         }
       } catch (error) {
         if (route() === 'results') { window.alert(error.message); setRoute(`assessment/${tests.length}`); return; }
