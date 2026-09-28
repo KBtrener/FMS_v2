@@ -71,6 +71,7 @@
     scores = {}; notes = {}; wizardIndex = 0;
     setRoute('assessment/1');
   }
+  let draftSaveQueue = Promise.resolve();
   async function saveDraft() {
     if (!activeAssessment || !authSession?.access_token) return;
     const answers = [];
@@ -82,7 +83,12 @@
       }
     }
     const testNotes = Object.fromEntries(Object.entries(notes).map(([index, note]) => [tests[Number(index)-1]?.definition.test.id, note]).filter(([id]) => id));
-    return apiRequest(`/assessments/${activeAssessment.assessmentId}`, { method: 'PATCH', body: JSON.stringify({ answers, notes: testNotes }) });
+    const assessmentId = activeAssessment.assessmentId;
+    const save = () => apiRequest(`/assessments/${assessmentId}`, { method: 'PATCH', body: JSON.stringify({ answers, notes: testNotes }) });
+    // Each PATCH replaces all answers, so keep rapid selection/navigation saves ordered.
+    const pending = draftSaveQueue.catch(() => {}).then(save);
+    draftSaveQueue = pending;
+    return pending;
   }
   async function loadResults(assessmentId) {
     selectedAssessment = await apiRequest(`/assessments/${assessmentId}/results`);
