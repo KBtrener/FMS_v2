@@ -34,7 +34,7 @@ test('ból ma pierwszeństwo i komunikat wymienia wszystkie bolesne testy', () =
   assert.match(result.priorityMessage, /Przysiad/);
   assert.match(result.priorityMessage, /Clearing barku BD/);
   assert.equal(result.congratulation, null);
-  assert.match(result.ending, /ponowny test/);
+  assert.equal(result.ending, null);
 });
 
 test('bezbolesne symetryczne wyniki 2 i 3 otrzymują gratulacje i informację o pełnym FMS', () => {

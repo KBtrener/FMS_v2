@@ -240,6 +240,23 @@ Deno.serve(async request => {
       return response({ client: { clientId: created.client_id, firstName: created.first_name, lastName: created.last_name, email: created.email }, created: true }, 201);
     }
 
+    const shoulderHandLengthRoute = route.match(/^\/clients\/([^/]+)\/shoulder-hand-length$/);
+    if (request.method === 'GET' && shoulderHandLengthRoute) {
+      const clientId = shoulderHandLengthRoute[1];
+      const { data: client, error: clientError } = await db.from('clients').select('client_id').eq('client_id', clientId).eq('owner_id', ownerId).single();
+      if (clientError) throw clientError;
+      const screenTypeId = new URL(request.url).searchParams.get('screenTypeId');
+      if (!screenTypeId) return response({ error: 'missing_screen_type' }, 400);
+      const { data: previous, error: previousError } = await db.from('assessments').select('assessment_id').eq('client_id', client.client_id).eq('owner_id', ownerId).eq('screen_type_id', screenTypeId).eq('status', 'completed').order('assessment_date', { ascending: false }).order('created_at', { ascending: false });
+      if (previousError) throw previousError;
+      if (!previous?.length) return response({ handLengthCm: null });
+      const { data: measurements, error: measurementError } = await db.from('assessment_measurements').select('assessment_id,value_cm').in('assessment_id', previous.map(item => item.assessment_id)).eq('measurement_code', 'shoulder_hand_length').eq('side', 'none');
+      if (measurementError) throw measurementError;
+      const measurementByAssessment = new Map((measurements || []).map(item => [item.assessment_id, item.value_cm]));
+      const handLengthCm = previous.map(item => measurementByAssessment.get(item.assessment_id)).find(value => value !== undefined) ?? null;
+      return response({ handLengthCm });
+    }
+
     const clientRoute = route.match(/^\/clients\/([^/]+)$/);
     if (request.method === 'GET' && clientRoute) {
       const { data, error } = await db.from('clients').select('client_id,first_name,last_name,email,is_archived,created_at').eq('client_id', clientRoute[1]).eq('owner_id', ownerId).single();
@@ -262,6 +279,10 @@ Deno.serve(async request => {
       if (screenTypeError) throw screenTypeError;
       const { data: answers, error: answersError } = await db.from('assessment_answers').select('answer_id,test_field_id,side,attempt_number,answer_option_id,numeric_value').eq('assessment_id', assessment.assessment_id);
       if (answersError) throw answersError;
+      const { data: measurements, error: measurementsError } = await db.from('assessment_measurements').select('measurement_code,side,value_cm').eq('assessment_id', assessment.assessment_id);
+      if (measurementsError) throw measurementsError;
+      const measurementValue = (code: string, side: string) => (measurements || []).find(item => item.measurement_code === code && item.side === side)?.value_cm ?? null;
+      const shoulderMeasurements = { handLengthCm: measurementValue('shoulder_hand_length', 'none'), leftDistanceCm: measurementValue('shoulder_fist_gap', 'left'), rightDistanceCm: measurementValue('shoulder_fist_gap', 'right') };
       const { data: effects, error: effectsError } = await db.from('applied_effects').select('target_screen_test_id,after_score,reason_pl').eq('assessment_id', assessment.assessment_id);
       if (effectsError) throw effectsError;
       const { data: steps, error: stepsError } = await db.from('screen_tests').select('*,tests(*),test_fields(*,answer_sets(*,answer_options(*)))').eq('screen_type_id', assessment.screen_type_id).eq('is_active', true).order('sort_order');
@@ -301,8 +322,9 @@ Deno.serve(async request => {
           const finalScore = baseScore === null ? null : scoreEffects.reduce((value, effect) => Math.min(value, effect.after_score), baseScore);
           if (finalScore !== null) finalScores[step.screen_test_id] = finalScore;
           const scoreStatus = finalScore === null ? 'unknown' : finalScore === 0 ? 'problem' : finalScore === 1 ? 'warn' : 'ok';
-          rows.push({ code: step.tests.code, order: step.sort_order, name: step.tests.name_pl, kind: 'score', l: sideValues.left, r: sideValues.right, value: sideValues.none, leftScore: sideValues.left, rightScore: sideValues.right, merged: sideValues.none != null, finalScore, status: scoreStatus, groupKey: step.tests.code === 'shoulder_mobility' ? 'shoulder' : null, sharedScore: step.tests.code === 'shoulder_mobility' ? 'shoulder' : null });
-          reportTests.push({ code: step.tests.code, order: step.sort_order, name: step.tests.name_pl, description: step.tests.description_short || '', leftScore: sideValues.left, rightScore: sideValues.right, finalScore, fields: reportFields });
+          const withDistance = (score: number | null, distance: number | null) => step.tests.code !== 'shoulder_mobility' || distance == null ? score : score == null ? `(${Number(distance).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} cm)` : `${score} (${Number(distance).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} cm)`;
+          rows.push({ code: step.tests.code, order: step.sort_order, name: step.tests.name_pl, kind: 'score', l: withDistance(sideValues.left, shoulderMeasurements.leftDistanceCm), r: withDistance(sideValues.right, shoulderMeasurements.rightDistanceCm), value: sideValues.none, leftScore: sideValues.left, rightScore: sideValues.right, leftDistanceCm: shoulderMeasurements.leftDistanceCm, rightDistanceCm: shoulderMeasurements.rightDistanceCm, merged: sideValues.none != null, finalScore, status: scoreStatus, groupKey: step.tests.code === 'shoulder_mobility' ? 'shoulder' : null, sharedScore: step.tests.code === 'shoulder_mobility' ? 'shoulder' : null });
+          reportTests.push({ code: step.tests.code, order: step.sort_order, name: step.tests.name_pl, description: step.tests.description_short || '', leftScore: sideValues.left, rightScore: sideValues.right, leftDistanceCm: step.tests.code === 'shoulder_mobility' ? shoulderMeasurements.leftDistanceCm : null, rightDistanceCm: step.tests.code === 'shoulder_mobility' ? shoulderMeasurements.rightDistanceCm : null, finalScore, fields: reportFields });
           continue;
         }
         if (step.tests.code === 'shoulder_clearing') {
@@ -390,7 +412,7 @@ Deno.serve(async request => {
       const { data: sameCategoryHistory, error: trendError } = await db.from('assessments').select('assessment_id,assessment_date,created_at,total_score,max_score').eq('owner_id', ownerId).eq('client_id', assessment.client_id).eq('screen_type_id', assessment.screen_type_id).eq('status', 'completed').order('assessment_date', { ascending: false }).order('created_at', { ascending: false }).limit(4);
       if (trendError) throw trendError;
       const trendHistory = (sameCategoryHistory || []).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, score: item.assessment_id === assessment.assessment_id ? assessment.total_score ?? totalScore : item.total_score, maximum: item.assessment_id === assessment.assessment_id ? assessment.max_score ?? Object.keys(finalScores).length * 3 : item.max_score }));
-      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history, trendHistory });
+      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history, trendHistory, shoulderMeasurements });
     }
 
     if (request.method === 'GET' && assessmentRoute) {
@@ -403,7 +425,7 @@ Deno.serve(async request => {
       const input = await request.json();
       const answers = (input.answers || []).map((answer: Record<string, unknown>) => ({ fieldId: answer.fieldId, side: answer.side || 'none', attemptNumber: answer.attemptNumber || 1, answerId: answer.answerId }));
       const notes = Object.entries(input.notes || {}).map(([testId, note]) => ({ testId, note: String(note || '') }));
-      const { data, error } = await db.rpc('submit_assessment_v2', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes });
+      const { data, error } = await db.rpc('submit_assessment_v2', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] });
       if (error) throw error;
       return response(data);
     }

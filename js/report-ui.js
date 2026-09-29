@@ -42,7 +42,7 @@
           const right = sideValue(patternFields, 'right');
           return [{ name: `${item.name} — wzorzec ${pattern === 'upper' ? 'górny' : 'dolny'}`, value: [left, right].filter(Boolean).join(' / ') || '—' }];
         });
-        if (item.leftScore != null || item.rightScore != null) return [{ name: item.name, value: `${item.leftScore ?? '—'}/${item.rightScore ?? '—'}` }];
+        if (item.leftScore != null || item.rightScore != null || item.leftDistanceCm != null || item.rightDistanceCm != null) { const scoreText = (score, distance) => score == null ? distance == null ? '—' : `(${Number(distance).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} cm)` : `${score}${distance == null ? '' : ` (${Number(distance).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} cm)`}`; return [{ name: item.name, value: `L: ${scoreText(item.leftScore, item.leftDistanceCm)} / P: ${scoreText(item.rightScore, item.rightDistanceCm)}` }]; }
         const left = sideValue(fields, 'left');
         const right = sideValue(fields, 'right');
         const single = sideValue(fields, 'none');
@@ -54,7 +54,7 @@
       const groupStyle = { veryGood: ['very-good', '✓'], good: ['good', '✓✓'], asymmetry: ['asymmetry', '△'], improve: ['improve', '!'], pain: ['pain', '!'] };
       const groups = (b.results.groups || []).map(group => {
         const [tone, icon] = groupStyle[group.items[0]?.status] || ['good', '✓'];
-        const items = group.items.map(item => `<li>${esc(item.name)}${item.leftScore != null || item.rightScore != null ? ` (${esc(item.leftScore ?? '—')}/${esc(item.rightScore ?? '—')})` : item.score != null ? ` (${esc(item.score)})` : ''}</li>`).join('');
+        const items = group.items.map(item => { const sideValue = (score, distance) => score == null ? distance == null ? '—' : `(${Number(distance).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} cm)` : `${score}${distance == null ? '' : ` (${Number(distance).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} cm)`}`; const value = item.leftDistanceCm != null || item.rightDistanceCm != null ? `L: ${sideValue(item.leftScore, item.leftDistanceCm)} / P: ${sideValue(item.rightScore, item.rightDistanceCm)}` : item.leftScore != null || item.rightScore != null ? `${item.leftScore ?? '—'}/${item.rightScore ?? '—'}` : item.score; return `<li>${esc(item.name)}${value != null ? ` (${esc(value)})` : ''}</li>`; }).join('');
         return `<article class="report-result-group ${tone}"><div class="report-result-group-head"><b>${esc(group.title)}</b><span aria-hidden="true">${icon}</span></div><ul>${items}</ul></article>`;
       }).join('');
       const callouts = [

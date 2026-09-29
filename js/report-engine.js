@@ -122,7 +122,7 @@
     const groupDefinitions = [
       ['veryGood', 'Bardzo dobrze'], ['good', 'Dobrze'], ['asymmetry', 'Asymetria'], ['improve', 'Do poprawy'], ['pain', 'Ból'],
     ];
-    const groups = groupDefinitions.map(([key, label]) => ({ title: label, items: tests.filter(test => categoryOf(test) === key).map(test => ({ name: nameOf(test), score: scoreOf(test), leftScore: test.leftScore ?? null, rightScore: test.rightScore ?? null, status: key })) })).filter(group => group.items.length);
+    const groups = groupDefinitions.map(([key, label]) => ({ title: label, items: tests.filter(test => categoryOf(test) === key).map(test => ({ name: nameOf(test), score: scoreOf(test), leftScore: test.leftScore ?? null, rightScore: test.rightScore ?? null, leftDistanceCm: test.leftDistanceCm ?? null, rightDistanceCm: test.rightDistanceCm ?? null, status: key })) })).filter(group => group.items.length);
     const allPainful = tests.filter(test => categoryOf(test) === 'pain');
     const candidates = tests.filter(test => categoryOf(test) === 'improve' || categoryOf(test) === 'asymmetry').sort((a, b) => {
       const ai = PRIORITY.indexOf(baseCode(codeOf(a))), bi = PRIORITY.indexOf(baseCode(codeOf(b)));

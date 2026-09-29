@@ -74,8 +74,10 @@
     }
     const date = new Date();
     const dateValue = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    let savedHandLength = null;
+    try { savedHandLength = (await apiRequest(`/clients/${encodeURIComponent(selectedClient.id)}/shoulder-hand-length?screenTypeId=${encodeURIComponent(currentScenario.id)}`)).handLengthCm; } catch {}
     activeAssessment = { assessmentId: crypto.randomUUID(), clientId: selectedClient.id, date: dateValue, manualVersion: currentScenario.manualVersion };
-    scores = {}; notes = {}; wizardIndex = 0;
+    scores = {}; notes = {}; shoulderAutoScores = {}; shoulderMeasurements = { handLengthCm: savedHandLength ?? '', gaps: { left: '', right: '' } }; wizardIndex = 0;
     saveLocalDraft();
     setRoute('assessment/1');
   }
@@ -90,10 +92,10 @@
   function removeLocalDraft() { localStorage.removeItem(draftKey()); }
   function saveLocalDraft() {
     if (!activeAssessment || !authSession?.access_token) return;
-    localStorage.setItem(draftKey(), JSON.stringify({ savedAt: Date.now(), assessment: activeAssessment, client: selectedClient, scores, notes, wizardIndex }));
+    localStorage.setItem(draftKey(), JSON.stringify({ savedAt: Date.now(), assessment: activeAssessment, client: selectedClient, scores, notes, shoulderMeasurements, wizardIndex }));
   }
   function restoreLocalDraft(draft) {
-    activeAssessment = draft.assessment; selectedClient = draft.client; scores = draft.scores || {}; notes = draft.notes || {}; wizardIndex = Number(draft.wizardIndex) || 0;
+    activeAssessment = draft.assessment; selectedClient = draft.client; scores = draft.scores || {}; notes = draft.notes || {}; shoulderMeasurements = { handLengthCm: draft.shoulderMeasurements?.handLengthCm ?? '', gaps: { left: draft.shoulderMeasurements?.gaps?.left ?? '', right: draft.shoulderMeasurements?.gaps?.right ?? '' } }; shoulderAutoScores = {}; wizardIndex = Number(draft.wizardIndex) || 0;
     setRoute(`assessment/${wizardIndex + 1}`);
   }
   function offerResumeDraft() {
@@ -114,7 +116,15 @@
       }
     }
     const testNotes = Object.fromEntries(Object.entries(notes).map(([index, note]) => [tests[Number(index)-1]?.definition.test.id, note]).filter(([id]) => id));
-    return { assessmentId: activeAssessment.assessmentId, clientId: activeAssessment.clientId, scenarioId: currentScenario.id, date: activeAssessment.date, manualVersion: activeAssessment.manualVersion, answers, notes: testNotes };
+    const measurements = [];
+    const handLength = Number(shoulderMeasurements.handLengthCm);
+    if (shoulderMeasurements.handLengthCm !== '' && Number.isFinite(handLength) && handLength > 0) measurements.push({ measurementCode: 'shoulder_hand_length', side: 'none', valueCm: handLength });
+    for (const side of ['left', 'right']) {
+      const rawGap = shoulderMeasurements.gaps[side];
+      const gap = Number(rawGap);
+      if (rawGap !== '' && Number.isFinite(gap) && gap >= 0) measurements.push({ measurementCode: 'shoulder_fist_gap', side, valueCm: gap });
+    }
+    return { assessmentId: activeAssessment.assessmentId, clientId: activeAssessment.clientId, scenarioId: currentScenario.id, date: activeAssessment.date, manualVersion: activeAssessment.manualVersion, answers, notes: testNotes, measurements };
   }
   async function loadResults(assessmentId) {
     selectedAssessment = await apiRequest(`/assessments/${assessmentId}/results`);
@@ -138,6 +148,8 @@
   let searchText = '';
   let scores = {};
   let notes = {};
+  let shoulderMeasurements = { handLengthCm: '', gaps: { left: '', right: '' } };
+  let shoulderAutoScores = {};
   let activeAssessment = null;
   let recoveryPrompted = false;
   let selectedAssessment = null;
@@ -212,9 +224,38 @@
   function scoreOptions(step,side){const val=scores[`${step}-${side}`];return `<span class="score-label">Wybierz wynik (score)</span><div class="score-options">${[['0','Ból'],['1','Słabo'],['2','W normie'],['3','Super!']].map(([n,label])=>`<button type="button" class="score-option ${String(val)===n?'selected':''}" data-score="${n}" data-key="${step}-${side}"><span class="n">${n}</span><span>${label}</span></button>`).join('')}</div>`;}
   function binaryOptions(step,key,label,kind){const val=scores[`${step}-${key}`];return `<span class="field-label">${label}</span><div class="binary-options">${(kind==='pain'?[['no','Brak bólu'],['yes','Ból']]:[['pass','Pass'],['fail','Fail']]).map(([v,text])=>`<button class="binary-option ${val===v?`selected ${v==='yes'||v==='fail'?'pain':'pass'}`:''}" data-value="${v}" data-key="${step}-${key}">${text}</button>`).join('')}</div>`;}
   function sideScore(step,side){return `<article class="side-card"><h3>${side==='left'?'Lewa strona':'Prawa strona'}</h3>${scoreOptions(step,side)}</article>`;}
-  function testFields(test,index){const fields=test.definition.fields.filter(field=>field.scoring);const renderField=(field,side)=>{const key=`${field.code}:${side}`;const numeric=field.answerSet.code==='score_0_3';return `<div class="field-control"><span class="field-label">${esc(field.label)}</span><div class="${numeric?'score-options':'binary-options'}">${field.answers.map(answer=>{const selected=String(scores[key])===String(numeric?answer.value:answer.code);const tone=/positive|pain|yes|fail/i.test(answer.code)?'pain':'pass';return `<button type="button" class="${numeric?'score-option':'binary-option'} ${selected?`selected ${numeric?'':tone}`:''}" data-key="${esc(key)}" data-value="${esc(answer.code)}" ${numeric?`data-score="${answer.value}"`:''} aria-pressed="${selected}">${numeric?`<span class="n">${esc(answer.value)}</span>`:''}<span>${esc(answer.label)}</span></button>`}).join('')}</div></div>`;};const groups=fields.some(field=>field.sideMode==='bilateral')?['left','right']:['none'];return `<div class="sides ${groups.length===1?'single-field':''}">${groups.map(side=>`<article class="side-card"><h3>${side==='left'?'Lewa strona':side==='right'?'Prawa strona':'Wynik testu'}</h3>${fields.map(field=>field.sideMode==='bilateral'?renderField(field,side):renderField(field,'none')).join('')}</article>`).join('')}</div>`;}
-  function criteriaMarkup(test){return `<div class="criteria-list">${test.criteria.map(([label,text])=>`<div class="criteria-point"><b>${label}</b><span>${text}</span></div>`).join('')}</div>`;}
-  function assessment(){const ix=Math.min(tests.length-1,Math.max(0,wizardIndex)),test=tests[ix];const prev=ix===0?'new-assessment':`assessment/${ix}`;const next=ix===tests.length-1?'results':`assessment/${ix+2}`;const following=tests[ix+1];return shell(`<main class="page"><div class="assessment-meta card"><span class="client-ident"><i class="mini-dot"></i>${selectedClient?.name||''}</span><span>Dyscyplina: ${selectedClient?.sport||''}</span><span>Data badania: ${activeAssessment?.date||""}</span><span class="protocol-tag">Protokół QuickScreen</span></div><section class="progress-card card"><div class="progress-label"><b>Postęp badania (Krok ${ix+1} z ${tests.length})</b><span>Test: ${test.en}</span></div><div class="progress-track">${tests.map((_,n)=>`<a class="progress-segment ${n<ix?'done':n===ix?'current':''}" href="#/assessment/${n+1}" aria-label="Przejdź do kroku ${n+1}"></a>`).join('')}</div></section><section class="test-card card"><div class="test-head"><h1>Test ${ix+1} z ${tests.length}: ${test.name}</h1><button class="btn" data-action="criteria">${icon('info',14)} Standardy</button></div><div class="criteria-panel" id="criteria-panel">${criteriaMarkup(test)}</div>${testFields(test,ix)}<div class="notes"><label for="test-note">Notatka / uwagi do testu (opcjonalnie)</label><textarea id="test-note" data-note="${ix+1}" placeholder="Wpisz ewentualne obserwacje dotyczące kompensacji ruchowych...">${esc(notes[ix+1]||'')}</textarea></div><div class="test-actions"><a class="btn" href="#/${prev}">${icon('left',15)} Wstecz</a><a class="btn btn-primary" href="#/${next}">Dalej${following?`: ${following.name}`:''} ${icon('arrow',15)}</a></div></section></main>${footer()}`,'#/new-assessment',{subtitle:`Krok ${ix+1} z ${tests.length} — Test`});}
+  function shoulderFieldCode() { return tests.find(test => test.key === 'shoulder_mobility')?.definition.fields.find(field => field.answerSet.code === 'score_0_3')?.code || ''; }
+  function syncShoulderAutoScores(updateControls = true) {
+    const fieldCode = shoulderFieldCode();
+    if (!fieldCode) return;
+    for (const side of ['left', 'right']) {
+      const score = window.QuickScreenShoulderMeasurements.score(shoulderMeasurements.handLengthCm, shoulderMeasurements.gaps[side]);
+      const key = `${fieldCode}:${side}`;
+      if (score === null) {
+        if (shoulderAutoScores[side]) delete scores[key];
+        delete shoulderAutoScores[side];
+      } else {
+        scores[key] = score;
+        shoulderAutoScores[side] = true;
+      }
+      if (!updateControls) continue;
+      document.querySelectorAll(`[data-key="${key}"]`).forEach(button => {
+        const selected = score === null ? String(scores[key]) === button.dataset.score : Number(button.dataset.score) === score;
+        button.classList.toggle('selected', selected);
+        button.setAttribute('aria-pressed', String(selected));
+        button.disabled = score !== null;
+        button.title = score !== null ? 'Wynik wyliczony z pomiarów' : '';
+      });
+    }
+  }
+  function testFields(test,index) {
+    const fields=test.definition.fields.filter(field=>field.scoring);
+    if(test.key==='shoulder_mobility') syncShoulderAutoScores(false);
+    const renderField=(field,side)=>{const key=`${field.code}:${side}`;const numeric=field.answerSet.code==='score_0_3';const derived=numeric&&test.key==='shoulder_mobility'&&window.QuickScreenShoulderMeasurements.score(shoulderMeasurements.handLengthCm,shoulderMeasurements.gaps[side])!==null;return `<div class="field-control"><span class="field-label">${esc(field.label)}</span><div class="${numeric?'score-options':'binary-options'}">${field.answers.map(answer=>{const selected=String(scores[key])===String(numeric?answer.value:answer.code);const tone=/positive|pain|yes|fail/i.test(answer.code)?'pain':'pass';return `<button type="button" class="${numeric?'score-option':'binary-option'} ${selected?`selected ${numeric?'':tone}`:''}" data-key="${esc(key)}" data-value="${esc(answer.code)}" ${numeric?`data-score="${answer.value}"`:''} ${derived?'disabled title="Wynik wyliczony z pomiarów"':''} aria-pressed="${selected}">${numeric?`<span class="n">${esc(answer.value)}</span>`:''}<span>${esc(answer.label)}</span></button>`}).join('')}</div></div>`;};
+    const groups=fields.some(field=>field.sideMode==='bilateral')?['left','right']:['none'];
+    const handLengthInput=test.key==='shoulder_mobility'?`<div class="shoulder-measurement-fields"><label for="shoulder-hand-length">Długość dłoni (cm)<input id="shoulder-hand-length" type="number" min="0.1" max="100" step="0.1" inputmode="decimal" data-shoulder-measurement="handLengthCm" value="${esc(shoulderMeasurements.handLengthCm)}"><small>Od bruzdy nadgarstka do końca środkowego palca.</small></label></div>`:'';
+    return `${handLengthInput}<div class="sides ${groups.length===1?'single-field':''}">${groups.map(side=>`<article class="side-card"><h3>${side==='left'?'Lewa strona':side==='right'?'Prawa strona':'Wynik testu'}</h3>${fields.map(field=>field.sideMode==='bilateral'?renderField(field,side):renderField(field,'none')).join('')}${test.key==='shoulder_mobility'&&side!=='none'?`<label class="shoulder-distance-field">Odległość między pięściami — ${side==='left'?'lewa':'prawa'} strona (cm)<input type="number" min="0" max="100" step="0.1" inputmode="decimal" data-shoulder-measurement="gap" data-side="${side}" value="${esc(shoulderMeasurements.gaps[side])}"></label>`:''}</article>`).join('')}</div>`;
+  }  function assessment(){const ix=Math.min(tests.length-1,Math.max(0,wizardIndex)),test=tests[ix];const prev=ix===0?'new-assessment':`assessment/${ix}`;const next=ix===tests.length-1?'results':`assessment/${ix+2}`;const following=tests[ix+1];return shell(`<main class="page"><div class="assessment-meta card"><span class="client-ident"><i class="mini-dot"></i>${selectedClient?.name||''}</span><span>Dyscyplina: ${selectedClient?.sport||''}</span><span>Data badania: ${activeAssessment?.date||""}</span><span class="protocol-tag">Protokół QuickScreen</span></div><section class="progress-card card"><div class="progress-label"><b>Postęp badania (Krok ${ix+1} z ${tests.length})</b><span>Test: ${test.en}</span></div><div class="progress-track">${tests.map((_,n)=>`<a class="progress-segment ${n<ix?'done':n===ix?'current':''}" href="#/assessment/${n+1}" aria-label="Przejdź do kroku ${n+1}"></a>`).join('')}</div></section><section class="test-card card"><div class="test-head"><h1>Test ${ix+1} z ${tests.length}: ${test.name}</h1><button class="btn" data-action="criteria">${icon('info',14)} Standardy</button></div><div class="criteria-panel" id="criteria-panel">${criteriaMarkup(test)}</div>${testFields(test,ix)}<div class="notes"><label for="test-note">Notatka / uwagi do testu (opcjonalnie)</label><textarea id="test-note" data-note="${ix+1}" placeholder="Wpisz ewentualne obserwacje dotyczące kompensacji ruchowych...">${esc(notes[ix+1]||'')}</textarea></div><div class="test-actions"><a class="btn" href="#/${prev}">${icon('left',15)} Wstecz</a><a class="btn btn-primary" href="#/${next}">Dalej${following?`: ${following.name}`:''} ${icon('arrow',15)}</a></div></section></main>${footer()}`,'#/new-assessment',{subtitle:`Krok ${ix+1} z ${tests.length} — Test`});}
   function resultDetail(value,kind){if(value===null||value===undefined||value==='')return '';if(kind==='summary'||kind==='score')return esc(value);return esc(value);}
   function resultDetails(items=[]){return items.map(item=>`<span class="result-detail ${esc(item.tone||'')}"><b>${esc(item.label)}:</b> ${esc(item.value)}</span>`).join('');}
   function finalResult(r){if(r.finalScore===undefined)return status(r.status);const tone=r.finalScore===0?'problem':r.finalScore===1?'warn':r.status==='warn'?'warn':'ok';return `<b class="numeric-final ${tone}">${r.finalScore}</b>`;}
@@ -324,7 +365,7 @@
       if (currentButton) { currentButton.disabled = false; currentButton.textContent = 'Zaloguj się'; }
     }
   });
-  app.addEventListener('input',e=>{if(['client-first','client-last','client-email'].includes(e.target.id)){selectedClient=null;const field=e.target.id;const query=e.target.value.trim();const normalize=value=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase();const boxes=['first','last','email'].map(name=>$('#suggestions-'+name));boxes.forEach(box=>{if(box)box.classList.remove('show');});const box=$('#suggestions-'+field.replace('client-',''));if(box&&query.length>=3){const matches=clients.filter(c=>[c.name,c.email].some(value=>normalize(value).includes(normalize(query))));box.innerHTML=matches.length?matches.map(c=>`<div class="suggestion" data-client="${c.id}"><span><b>${c.name}</b><small>${c.email} (${c.sport})</small></span><small>Wybierz profil</small></div>`).join(''):'<div class="suggestion-empty">Brak pasujących profili</div>';box.classList.add('show');}return;}if(e.target.id==='client-search'){searchText=e.target.value;const pos=e.target.selectionStart;app.innerHTML=clientsPage();const input=$('#client-search');input.focus();input.setSelectionRange(pos,pos);}if(e.target.id==='test-note'){notes[e.target.dataset.note]=e.target.value;saveLocalDraft();}});
+  app.addEventListener('input',e=>{if(['client-first','client-last','client-email'].includes(e.target.id)){selectedClient=null;const field=e.target.id;const query=e.target.value.trim();const normalize=value=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase();const boxes=['first','last','email'].map(name=>$('#suggestions-'+name));boxes.forEach(box=>{if(box)box.classList.remove('show');});const box=$('#suggestions-'+field.replace('client-',''));if(box&&query.length>=3){const matches=clients.filter(c=>[c.name,c.email].some(value=>normalize(value).includes(normalize(query))));box.innerHTML=matches.length?matches.map(c=>`<div class="suggestion" data-client="${c.id}"><span><b>${c.name}</b><small>${c.email} (${c.sport})</small></span><small>Wybierz profil</small></div>`).join(''):'<div class="suggestion-empty">Brak pasujących profili</div>';box.classList.add('show');}return;}if(e.target.id==='client-search'){searchText=e.target.value;const pos=e.target.selectionStart;app.innerHTML=clientsPage();const input=$('#client-search');input.focus();input.setSelectionRange(pos,pos);}if(e.target.id==='test-note'){notes[e.target.dataset.note]=e.target.value;saveLocalDraft();return;}if(e.target.matches('[data-shoulder-measurement]')){if(e.target.dataset.shoulderMeasurement==='handLengthCm')shoulderMeasurements.handLengthCm=e.target.value;else shoulderMeasurements.gaps[e.target.dataset.side]=e.target.value;syncShoulderAutoScores();saveLocalDraft();}});
   app.addEventListener('click',e=>{const clientRow=e.target.closest('[data-client-row]');if(clientRow&&!e.target.closest('a,button,input,select,textarea')){location.hash=clientRow.dataset.clientRow;return;}const option=e.target.closest('[data-value]');if(option){const key=option.dataset.key;const test=tests[wizardIndex];const field=test?.definition.fields.find(item=>key.startsWith(`${item.code}:`));scores[key]=field?.answerSet.code==='score_0_3'?Number(option.dataset.score):option.dataset.value;saveLocalDraft();option.parentElement.querySelectorAll('.score-option,.binary-option').forEach(item=>{const selected=item===option;item.classList.toggle('selected',selected);item.setAttribute('aria-pressed',String(selected));item.classList.remove('pass','pain');if(selected&&item.classList.contains('binary-option'))item.classList.add(/positive|pain|yes|fail/i.test(item.dataset.value)?'pain':'pass');});return;}const suggestion=e.target.closest('[data-client]');if(suggestion){selectedClient=clients.find(c=>c.id===suggestion.dataset.client)||null;document.querySelectorAll('.suggestions').forEach(x=>x.classList.remove('show'));const first=$('#client-first');if(first)first.value=selectedClient.name.split(' ')[0];const last=$('#client-last');if(last)last.value=selectedClient.name.split(' ').slice(1).join(' ');const email=$('#client-email');if(email)email.value=selectedClient.email;const sport=$('#client-sport');if(sport)sport.value=selectedClient.sport;setRoute(`new-assessment/${encodeURIComponent(selectedClient.id)}`);return;}const action=e.target.closest('[data-action]');if(action){if(action.dataset.action==='criteria'){$('#criteria-panel')?.classList.toggle('open');return;}if(action.dataset.action==='start-assessment'){startAssessment().catch(error=>window.alert(error.message));return;}if(action.dataset.action==='add-client'){setRoute('new-assessment');return;}}});
   app.addEventListener('keydown',e=>{const clientRow=e.target.closest('[data-client-row]');if(clientRow&&!e.target.closest('a,button,input,select,textarea')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();location.hash=clientRow.dataset.clientRow;}});
   app.addEventListener('submit', async event => {
