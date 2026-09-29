@@ -285,7 +285,7 @@ Deno.serve(async request => {
       const shoulderMeasurements = { handLengthCm: measurementValue('shoulder_hand_length', 'none'), leftDistanceCm: measurementValue('shoulder_fist_gap', 'left'), rightDistanceCm: measurementValue('shoulder_fist_gap', 'right') };
       const { data: effects, error: effectsError } = await db.from('applied_effects').select('target_screen_test_id,after_score,reason_pl').eq('assessment_id', assessment.assessment_id);
       if (effectsError) throw effectsError;
-      const { data: testNotes, error: testNotesError } = await db.from('assessment_test_notes').select('test_id,note,tests!inner(name_pl)').eq('assessment_id', assessment.assessment_id).order('created_at');
+      const { data: testNotes, error: testNotesError } = await db.from('assessment_test_notes').select('test_id,note').eq('assessment_id', assessment.assessment_id).order('created_at');
       if (testNotesError) throw testNotesError;
       const { data: steps, error: stepsError } = await db.from('screen_tests').select('*,tests(*),test_fields(*,answer_sets(*,answer_options(*)))').eq('screen_type_id', assessment.screen_type_id).eq('is_active', true).order('sort_order');
       if (stepsError) throw stepsError;
@@ -414,7 +414,8 @@ Deno.serve(async request => {
       const { data: sameCategoryHistory, error: trendError } = await db.from('assessments').select('assessment_id,assessment_date,created_at,total_score,max_score').eq('owner_id', ownerId).eq('client_id', assessment.client_id).eq('screen_type_id', assessment.screen_type_id).eq('status', 'completed').order('assessment_date', { ascending: false }).order('created_at', { ascending: false }).limit(4);
       if (trendError) throw trendError;
       const trendHistory = (sameCategoryHistory || []).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, score: item.assessment_id === assessment.assessment_id ? assessment.total_score ?? totalScore : item.total_score, maximum: item.assessment_id === assessment.assessment_id ? assessment.max_score ?? Object.keys(finalScores).length * 3 : item.max_score }));
-      const notes = (testNotes || []).map(item => ({ testId: item.test_id, testName: item.tests?.name_pl || 'Test', note: item.note }));
+      const testNameById = new Map((steps || []).map(item => [item.tests.test_id, item.tests.name_pl || item.tests.name]));
+      const notes = (testNotes || []).map(item => ({ testId: item.test_id, testName: testNameById.get(item.test_id) || 'Test', note: item.note }));
       return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history, trendHistory, shoulderMeasurements, notes });
     }
 

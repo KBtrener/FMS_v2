@@ -8,8 +8,8 @@ const read = path => readFileSync(resolve(__dirname, '..', path), 'utf8');
 test('widok wyników pokazuje notatki testowe zwracane przez API', () => {
   const api = read('supabase/functions/quickscreen-api/index.ts');
   const app = read('js/app.js');
-  assert.match(api, /assessment_test_notes'\)\.select\('test_id,note,tests!inner\(name_pl\)'\)/);
-  assert.match(api, /testName: item\.tests\?\.name_pl/);
+  assert.ok(api.includes("assessment_test_notes').select('test_id,note')"));
+  assert.ok(api.includes('testNameById.get(item.test_id)'));
   assert.match(app, /function assessmentNotesMarkup\(\)/);
   assert.match(app, /Notatki do testów/);
   assert.match(app, /\$\{assessmentNotesMarkup\(\)\}/);
@@ -21,6 +21,8 @@ test('edycja zakończonego badania odtwarza i zapisuje odpowiedzi, notatki i pom
   const migration = read('supabase/migrations/20260929140000_edit_completed_assessments.sql');
   assert.match(api, /request\.method === 'PATCH' && assessmentRoute/);
   assert.match(app, /async function editAssessment\(assessmentId\)/);
+  assert.match(app, /firstMissingEditAnswer/);
+  assert.match(app, /results-load-error/);
   assert.match(api, /assessment_measurements\(\*\)/);
   assert.match(app, /data-action="edit-assessment"/);
   assert.match(app, /data-shoulder-measurement="handLengthCm"/);
