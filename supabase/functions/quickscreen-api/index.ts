@@ -252,6 +252,8 @@ Deno.serve(async request => {
     if (request.method === 'GET' && resultsRoute) {
       const { data: assessment, error: assessmentError } = await db.from('assessments').select('assessment_id,assessment_date,manual_version,client_id,screen_type_id,total_score,max_score,clients!inner(client_id,first_name,last_name,email)').eq('assessment_id', resultsRoute[1]).eq('owner_id', ownerId).eq('status', 'completed').single();
       if (assessmentError) throw assessmentError;
+      const { data: screenType, error: screenTypeError } = await db.from('screen_types').select('name_pl').eq('screen_type_id', assessment.screen_type_id).single();
+      if (screenTypeError) throw screenTypeError;
       const { data: answers, error: answersError } = await db.from('assessment_answers').select('answer_id,test_field_id,side,attempt_number,answer_option_id,numeric_value').eq('assessment_id', assessment.assessment_id);
       if (answersError) throw answersError;
       const { data: effects, error: effectsError } = await db.from('applied_effects').select('target_screen_test_id,after_score,reason_pl').eq('assessment_id', assessment.assessment_id);
@@ -379,7 +381,7 @@ Deno.serve(async request => {
           if (changes.length) history.push({ assessmentId: old.assessment_id, date: old.assessment_date, changes });
         }
       }
-      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, scenarioName: 'Bazowy Test Funkcjonalny', client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history });
+      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history });
     }
 
     if (request.method === 'GET' && assessmentRoute) {
