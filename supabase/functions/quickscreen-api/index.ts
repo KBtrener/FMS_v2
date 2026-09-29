@@ -387,7 +387,10 @@ Deno.serve(async request => {
           if (changes.length) history.push({ assessmentId: old.assessment_id, date: old.assessment_date, changes });
         }
       }
-      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history });
+      const { data: sameCategoryHistory, error: trendError } = await db.from('assessments').select('assessment_id,assessment_date,created_at,total_score,max_score').eq('owner_id', ownerId).eq('client_id', assessment.client_id).eq('screen_type_id', assessment.screen_type_id).eq('status', 'completed').order('assessment_date', { ascending: false }).order('created_at', { ascending: false }).limit(4);
+      if (trendError) throw trendError;
+      const trendHistory = (sameCategoryHistory || []).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, score: item.assessment_id === assessment.assessment_id ? assessment.total_score ?? totalScore : item.total_score, maximum: item.assessment_id === assessment.assessment_id ? assessment.max_score ?? Object.keys(finalScores).length * 3 : item.max_score }));
+      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history, trendHistory });
     }
 
     if (request.method === 'GET' && assessmentRoute) {

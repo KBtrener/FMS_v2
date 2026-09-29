@@ -152,21 +152,21 @@
     const hasIssue = allPainful.length > 0 || candidates.length > 0;
     const congratulation = !hasIssue && tests.some(test => categoryOf(test) !== null)
       ? 'Gratulacje! Wyniki są bezbolesne i symetryczne, a ocenione ruchy uzyskały 2 lub 3.' : null;
-    const ending = !hasIssue
-      ? 'Pełny FMS nie wskazuje obszaru wymagającego poprawy.'
-      : 'Po osiągnięciu bezbolesnych, symetrycznych wyników 2 lub 3 wykonaj ponowny test.';
-    const plan = allPain ? [
-      { title: 'Krok 1', text: pairedPriorityText || summary },
-    ] : [
+    const minimumGood = !hasIssue && tests.some(assessable);
+    const ending = minimumGood ? 'Pełny FMS nie wskazuje obszaru wymagającego poprawy.' : null;
+    const primaryWorkTest = allPainful[0] || candidates[0] || null;
+    const remainingCandidates = candidates.filter(test => test !== primaryWorkTest && test !== secondWorkTest && !allPainful.includes(test));
+    const stepThreeText = minimumGood
+      ? 'Wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.'
+      : remainingCandidates.length
+        ? `Popraw kolejne błędne testy: ${remainingCandidates.map(nameOf).join(', ')}.`
+        : 'Po ponownym teście popraw każdy wzorzec, który nadal nie będzie bezbolesny, symetryczny i na poziomie minimum 2.';
+    const plan = [
       { title: 'Krok 1', text: cervicalIssue && cervicalSecondTest
         ? pairedPriorityText
-        : candidates.length ? `Popraw test ${nameOf(candidates[0])}.` : 'Nie ma obecnie testu oznaczonego do poprawy.' },
+        : pairedPriorityText || (allPainful.length ? summary : candidates.length ? `Popraw test ${nameOf(candidates[0])}.` : 'Nie ma obecnie testu oznaczonego do poprawy.') },
       { title: 'Krok 2', text: 'Wykonaj ponowny test, aby sprawdzić, co się zmieniło.' },
-      { title: 'Krok 3', text: cervicalIssue && cervicalSecondTest
-        ? `${candidates.filter(test => test !== candidates[0] && test !== cervicalSecondTest).length ? `Dodatkowe testy wymagające uwagi: ${candidates.filter(test => test !== candidates[0] && test !== cervicalSecondTest).map(nameOf).join(', ')}. ` : ''}Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.`
-        : candidates.length > 1
-          ? `Popraw kolejne testy wymagające uwagi: ${candidates.slice(1).map(nameOf).join(', ')}. Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.`
-        : 'Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.' },
+      { title: 'Krok 3', text: stepThreeText },
     ];
     const absentFindings = [];
     if (!allPainful.length) absentFindings.push('bólu');
@@ -177,7 +177,7 @@
       : null;
     return {
       generatorVersion: '5.0.0', assessmentId: assessment.assessmentId, client: assessment.client || {}, assessmentDate: assessment.date || '',
-      assessmentName, sport, profile, totalScore: assessment.totalScore ?? null, maximum: assessment.maximum ?? null,
+      assessmentName, sport, profile, totalScore: assessment.totalScore ?? null, maximum: assessment.maximum ?? null, trendHistory: assessment.trendHistory || [],
       visibleBlocks: visibleBlocks.map(block => block.id), blocks: {
         intro: { title: 'Hej! Oto Twój raport z badania.', text: 'Badanie sprawdza podstawowe wzorce ruchu, różnice między stronami i ból, aby pomóc ustalić kolejność dalszej pracy.' },
         results: { title: 'Obraz całości i priorytety', summary, descriptionSections, groups, priorityMessage, congratulation, ending, encouragement, priority: main ? { title, reason, side, type: priority.type } : null,

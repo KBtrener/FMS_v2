@@ -8,6 +8,16 @@
     return resources.map(resource => `<a class="report-path-link" href="${esc(safeUrl(resource.url))}" target="_blank" rel="noopener noreferrer">${esc(resource.title)}${resource.description ? `<small>${esc(resource.description)}</small>` : ''}</a>`).join('');
   }
 
+  function trendChart(history = []) {
+    const points = [...history].filter(item => Number.isFinite(item.score) && item.maximum > 0).reverse().slice(-4);
+    const coordinates = points.map((item, index) => ({ x: points.length === 1 ? 250 : 42 + index * (429 / (points.length - 1)), y: 150 - (item.score / item.maximum) * 120, item }));
+    const labels = coordinates.map(point => `<text x="${point.x}" y="178">${new Date(`${point.item.date}T00:00:00`).toLocaleDateString('pl-PL')}</text>`).join('');
+    const values = coordinates.map(point => `<text x="${point.x}" y="${point.y - 12}" fill="#3A353B">${point.item.score}/${point.item.maximum}</text>`).join('');
+    const circles = coordinates.map(point => `<circle cx="${point.x}" cy="${point.y}" r="4"/>`).join('');
+    const line = coordinates.map(point => `${point.x},${point.y}`).join(' ');
+    return `<svg class="trend-svg" viewBox="0 0 500 190" role="img" aria-label="Wykres trendu wyników QuickScreen"><g stroke="#E0DDD9" stroke-dasharray="2 3"><path d="M0 30H500M0 90H500M0 150H500"/></g>${coordinates.length > 1 ? `<polyline points="${line}" fill="none" stroke="#C1D445" stroke-width="2.5"/>` : ''}<g fill="#C1D445" stroke="white" stroke-width="2">${circles}</g><g fill="#3A353B" font-size="12" font-weight="700" text-anchor="middle">${values}</g><g fill="#8A8389" font-size="10" text-anchor="middle">${labels}</g></svg>`;
+  }
+
   function reportMarkup(model, options = {}) {
     const audience = options.audience || 'client';
     const clientVisible = new Set(model.clientVisibleBlocks || model.visibleBlocks || BLOCKS.map(block => block.id));
@@ -52,8 +62,10 @@
         b.results.ending && ['recommendation', '↻', b.results.ending],
         (b.results.encouragement || b.results.congratulation) && ['comfort', '☻', b.results.encouragement || b.results.congratulation],
       ].filter(Boolean).map(([tone, icon, text]) => `<article class="report-result-callout ${tone}"><span class="report-result-callout-icon" aria-hidden="true">${icon}</span><p>${esc(text)}</p></article>`).join('');
+      const trendHistory = (model.trendHistory || []).filter(item => Number.isFinite(item.score) && Number.isFinite(item.maximum) && item.maximum > 0);
+      const trend = trendHistory.length > 1 ? `<section class="report-trend-card trend-card card"><div class="section-title"><h2>Podsumowanie trendów</h2><span class="body-copy"><i class="chart-dot"></i><small>Wynik QS</small></span></div>${trendChart(trendHistory)}</section>` : '';
       const fallback = (b.results.descriptionSections || [{ title: 'Obraz całości', text: b.results.summary, tone: 'overview' }]).map(item => `<article class="report-description-card ${esc(item.tone)}"><b>${esc(item.title)}</b><p>${esc(item.text)}</p></article>`).join('');
-      const description = groups ? `<div class="report-result-groups">${groups}</div>${callouts}` : fallback;
+      const description = `${groups ? `<div class="report-result-groups">${groups}</div>` : fallback}${trend}${callouts}`;
       sections.push(`<section class="report-section" ${blockAttrs('results')}><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><div class="report-description-sections">${description}</div><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-test-grid"><div class="report-test-column">${leftColumn}</div><div class="report-test-column">${rightColumn}</div></div></details></section>`);
     }
     if (visible.has('plan')) {
@@ -86,5 +98,5 @@
     setTimeout(cleanup, 1000);
   }
 
-  window.QuickScreenReportUI = { render: reportMarkup, settings: settingsPage, printClientReport };
+  window.QuickScreenReportUI = { render: reportMarkup, settings: settingsPage, printClientReport, trendChart };
 })();
