@@ -21,6 +21,9 @@ test('edycja zakończonego badania odtwarza i zapisuje odpowiedzi, notatki i pom
   const migration = read('supabase/migrations/20260929140000_edit_completed_assessments.sql');
   assert.match(api, /request\.method === 'PATCH' && assessmentRoute/);
   assert.match(app, /async function editAssessment\(assessmentId\)/);
+  assert.match(app, /function criteriaMarkup\(test\)/);
+  assert.ok(app.includes("if (isEditingAssessment && route().startsWith('results/'))"));
+  assert.ok(app.includes('if (activeAssessment) {'));
   assert.match(app, /firstMissingEditAnswer/);
   assert.match(app, /results-load-error/);
   assert.match(api, /assessment_measurements\(\*\)/);
