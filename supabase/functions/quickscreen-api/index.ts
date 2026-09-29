@@ -114,9 +114,11 @@ Deno.serve(async request => {
       if (settingsError) throw settingsError;
       const visibility = settings?.block_visibility || { intro: true, results: true, plan: true, help: true };
       if (selected.some((id: string) => visibility[id] !== true)) return response({ error: 'report_block_not_available' }, 403);
-      const { data: assessment, error: assessmentError } = await db.from('assessments').select('assessment_id,client_id,manual_version,status').eq('assessment_id', input.assessmentId).eq('owner_id', ownerId).single();
+      const { data: assessment, error: assessmentError } = await db.from('assessments').select('assessment_id,client_id,screen_type_id,manual_version,status').eq('assessment_id', input.assessmentId).eq('owner_id', ownerId).single();
       if (assessmentError) throw assessmentError;
       if (assessment.status !== 'completed') return response({ error: 'assessment_not_complete' }, 409);
+      const { data: screenType, error: screenTypeError } = await db.from('screen_types').select('name_pl').eq('screen_type_id', assessment.screen_type_id).single();
+      if (screenTypeError) throw screenTypeError;
       if (input.resourceIds !== undefined && !Array.isArray(input.resourceIds)) return response({ error: 'invalid_report_resources' }, 400);
       const resources = [...new Set(input.resourceIds || [])];
       if (resources.length) {
@@ -124,7 +126,7 @@ Deno.serve(async request => {
         if (resourcesError) throw resourcesError;
         if ((owned || []).length !== resources.length) return response({ error: 'invalid_report_resources' }, 403);
       }
-      const snapshot = { ...input.snapshot, visibleBlocks: blockIds, clientVisibleBlocks: selected, manualVersion: assessment.manual_version, generatorVersion: '5.0.0', snapshotVersion: 1 };
+      const snapshot = { ...input.snapshot, assessmentName: screenType.name_pl, visibleBlocks: blockIds, clientVisibleBlocks: selected, manualVersion: assessment.manual_version, generatorVersion: '5.0.0', snapshotVersion: 1 };
       const { data: report, error: reportError } = await db.from('report_instances').insert({ client_id: assessment.client_id, assessment_id: assessment.assessment_id, trainer_id: ownerId, report_profile_code: 'full_coaching_report', manual_version: assessment.manual_version, generator_version: '5.0.0', snapshot, document_status: 'generating' }).select('report_instance_id').single();
       if (reportError) throw reportError;
       if (selected.length) {
@@ -138,9 +140,13 @@ Deno.serve(async request => {
 
     const reportRoute = route.match(/^\/reports\/([^/]+)$/);
     if (request.method === 'GET' && reportRoute) {
-      const { data, error } = await db.from('report_instances').select('report_instance_id,snapshot,document_status,generated_at').eq('report_instance_id', reportRoute[1]).eq('trainer_id', ownerId).single();
+      const { data, error } = await db.from('report_instances').select('report_instance_id,assessment_id,snapshot,document_status,generated_at').eq('report_instance_id', reportRoute[1]).eq('trainer_id', ownerId).single();
       if (error) throw error;
-      return response({ reportId: data.report_instance_id, snapshot: data.snapshot, status: data.document_status, generatedAt: data.generated_at });
+      const { data: assessment, error: assessmentError } = await db.from('assessments').select('screen_type_id').eq('assessment_id', data.assessment_id).eq('owner_id', ownerId).single();
+      if (assessmentError) throw assessmentError;
+      const { data: screenType, error: screenTypeError } = await db.from('screen_types').select('name_pl').eq('screen_type_id', assessment.screen_type_id).single();
+      if (screenTypeError) throw screenTypeError;
+      return response({ reportId: data.report_instance_id, snapshot: { ...data.snapshot, assessmentName: screenType.name_pl }, status: data.document_status, generatedAt: data.generated_at });
     }
 
     if (request.method === 'GET' && route === '/me') {
