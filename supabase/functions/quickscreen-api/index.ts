@@ -285,6 +285,8 @@ Deno.serve(async request => {
       const shoulderMeasurements = { handLengthCm: measurementValue('shoulder_hand_length', 'none'), leftDistanceCm: measurementValue('shoulder_fist_gap', 'left'), rightDistanceCm: measurementValue('shoulder_fist_gap', 'right') };
       const { data: effects, error: effectsError } = await db.from('applied_effects').select('target_screen_test_id,after_score,reason_pl').eq('assessment_id', assessment.assessment_id);
       if (effectsError) throw effectsError;
+      const { data: testNotes, error: testNotesError } = await db.from('assessment_test_notes').select('test_id,note,tests!inner(name_pl)').eq('assessment_id', assessment.assessment_id).order('created_at');
+      if (testNotesError) throw testNotesError;
       const { data: steps, error: stepsError } = await db.from('screen_tests').select('*,tests(*),test_fields(*,answer_sets(*,answer_options(*)))').eq('screen_type_id', assessment.screen_type_id).eq('is_active', true).order('sort_order');
       if (stepsError) throw stepsError;
       const finalScores: Record<string, number> = {};
@@ -412,11 +414,21 @@ Deno.serve(async request => {
       const { data: sameCategoryHistory, error: trendError } = await db.from('assessments').select('assessment_id,assessment_date,created_at,total_score,max_score').eq('owner_id', ownerId).eq('client_id', assessment.client_id).eq('screen_type_id', assessment.screen_type_id).eq('status', 'completed').order('assessment_date', { ascending: false }).order('created_at', { ascending: false }).limit(4);
       if (trendError) throw trendError;
       const trendHistory = (sameCategoryHistory || []).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, score: item.assessment_id === assessment.assessment_id ? assessment.total_score ?? totalScore : item.total_score, maximum: item.assessment_id === assessment.assessment_id ? assessment.max_score ?? Object.keys(finalScores).length * 3 : item.max_score }));
-      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history, trendHistory, shoulderMeasurements });
+      const notes = (testNotes || []).map(item => ({ testId: item.test_id, testName: item.tests?.name_pl || 'Test', note: item.note }));
+      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history, trendHistory, shoulderMeasurements, notes });
     }
 
     if (request.method === 'GET' && assessmentRoute) {
-      const { data, error } = await db.from('assessments').select('*,clients!inner(client_id,first_name,last_name,email),assessment_answers(*),applied_effects(*),assessment_test_notes(*)').eq('assessment_id', assessmentRoute[1]).eq('owner_id', ownerId).single();
+      const { data, error } = await db.from('assessments').select('*,clients!inner(client_id,first_name,last_name,email),assessment_answers(*),applied_effects(*),assessment_test_notes(*),assessment_measurements(*)').eq('assessment_id', assessmentRoute[1]).eq('owner_id', ownerId).single();
+      if (error) throw error;
+      return response(data);
+    }
+
+    if (request.method === 'PATCH' && assessmentRoute) {
+      const input = await request.json();
+      const answers = (input.answers || []).map((answer: Record<string, unknown>) => ({ fieldId: answer.fieldId, side: answer.side || 'none', attemptNumber: answer.attemptNumber || 1, answerId: answer.answerId }));
+      const notes = Object.entries(input.notes || {}).map(([testId, note]) => ({ testId, note: String(note || '') }));
+      const { data, error } = await db.rpc('edit_assessment_v2', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] });
       if (error) throw error;
       return response(data);
     }

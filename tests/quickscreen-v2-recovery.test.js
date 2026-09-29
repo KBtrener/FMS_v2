@@ -24,7 +24,8 @@ test('QuickScreen V2 submits completed assessments through one idempotent RPC', 
   assert.match(migration, /security definer/);
   assert.match(migration, /alreadyCompleted/);
   assert.match(migration, /revoke insert, update, delete on quickscreen_v2\.assessments from authenticated/);
-  assert.doesNotMatch(api, /route === '\/assessments'|request\.method === 'PATCH' && assessmentRoute/);
+  assert.match(api, /request\.method === 'PATCH' && assessmentRoute/);
+  assert.match(api, /db\.rpc\('edit_assessment_v2'/);
 });
 
 test('history routes each report to its assessment and removes inert client controls', () => {
