@@ -1,8 +1,8 @@
 -- Generated from 09_manual_test_descriptions_bilingual.md.
-update public.test_descriptions set is_active = false where manual_version <> '1.0';
+update quickscreen_v2.test_descriptions set is_active = false where manual_version <> '1.0';
 
-insert into public.test_descriptions (test_id, locale, purpose, procedure, verbal_instruction, side_definition, scoring_criteria, report_description, source_reference, manual_version, content_hash, is_active) values
-((select test_id from public.tests where code = 'cervical_flexion'), 'en', 'Assesses whether the person can comfortably flex the neck forward without
+insert into quickscreen_v2.test_descriptions (test_id, locale, purpose, procedure, verbal_instruction, side_definition, scoring_criteria, report_description, source_reference, manual_version, content_hash, is_active) values
+((select test_id from quickscreen_v2.tests where code = 'cervical_flexion'), 'en', 'Assesses whether the person can comfortably flex the neck forward without
 pain or restriction. Observe smooth, controlled movement and whether
 discomfort is present rather than the exact degree of range.', 'The person stands upright with feet together, arms relaxed at the sides, and
 mouth closed. Two fingers are placed vertically at the top of the sternum.
@@ -14,7 +14,7 @@ to your fingers, hold for one count, and return to the starting position.', '', 
 - **Pain:** Positive when pain is present; Negative when there is no pain.', 'Assesses whether the person can comfortably flex the neck forward without
 pain or restriction. Observe smooth, controlled movement and whether
 discomfort is present rather than the exact degree of range.', 'FMS Quick Screen Manual, 9', '1.0', 'c0a829d53674df4ca37663a03d82f2a1e62fad27e2e42330ff1757b8779eefb7', true),
-((select test_id from public.tests where code = 'cervical_flexion'), 'pl', 'Ocena, czy osoba może komfortowo wykonać zgięcie szyi do przodu bez bólu lub
+((select test_id from quickscreen_v2.tests where code = 'cervical_flexion'), 'pl', 'Ocena, czy osoba może komfortowo wykonać zgięcie szyi do przodu bez bólu lub
 ograniczenia. Obserwuj płynność i kontrolę ruchu oraz obecność bólu, a nie
 dokładny kąt zakresu.', 'Osoba stoi prosto, ze stopami razem, rękami wzdłuż tułowia i zamkniętymi
 ustami. Dwa palce ustawia pionowo na górze mostka. Powoli opuszcza brodę w
@@ -26,7 +26,7 @@ przez jedno odliczenie i wróć do pozycji wyjściowej.', '', '- **Zakres:** Pas
 - **Ból:** Positive, gdy występuje ból; Negative, gdy bólu nie ma.', 'Ocena, czy osoba może komfortowo wykonać zgięcie szyi do przodu bez bólu lub
 ograniczenia. Obserwuj płynność i kontrolę ruchu oraz obecność bólu, a nie
 dokładny kąt zakresu.', 'FMS Quick Screen Manual, 9', '1.0', '5f07bc803e53811cedb7916bf98670b800edebc9b059d2d3916b9837c59a1c1a', true),
-((select test_id from public.tests where code = 'cervical_rotation_extension'), 'en', 'Assesses comfortable, controlled head rotation to both sides and checks for
+((select test_id from quickscreen_v2.tests where code = 'cervical_rotation_extension'), 'en', 'Assesses comfortable, controlled head rotation to both sides and checks for
 pain during rotation and during the combined rotation-and-extension position.
 Side-to-side differences should be observed.', 'The person stands upright with feet together, arms at the sides, and mouth
 closed. They slowly rotate the head as far as possible to one side and hold
@@ -45,7 +45,7 @@ side.', '', '- **Rotation range:** Pass when the chin reaches at least the midpo
 Record all three fields independently for the left and right sides.', 'Assesses comfortable, controlled head rotation to both sides and checks for
 pain during rotation and during the combined rotation-and-extension position.
 Side-to-side differences should be observed.', 'FMS Quick Screen Manual, 10-11', '1.0', '23816f2c2f4fb7fb3916c65774c6280f2d0adfc937b2c2f2b362bd07be1be9ef', true),
-((select test_id from public.tests where code = 'cervical_rotation_extension'), 'pl', 'Ocena kontrolowanego obrotu głowy w obie strony oraz bólu podczas samej
+((select test_id from quickscreen_v2.tests where code = 'cervical_rotation_extension'), 'pl', 'Ocena kontrolowanego obrotu głowy w obie strony oraz bólu podczas samej
 rotacji i podczas pozycji łączącej rotację z wyprostem. Obserwuj różnice
 między stronami.', 'Osoba stoi prosto, ze stopami razem, rękami wzdłuż tułowia i zamkniętymi
 ustami. Powoli obraca głowę maksymalnie w jedną stronę i utrzymuje pozycję
@@ -63,19 +63,19 @@ stronie.', '', '- **Zakres rotacji:** Pass, gdy broda dochodzi co najmniej do po
 Zapisz wszystkie trzy pola niezależnie dla lewej i prawej strony.', 'Ocena kontrolowanego obrotu głowy w obie strony oraz bólu podczas samej
 rotacji i podczas pozycji łączącej rotację z wyprostem. Obserwuj różnice
 między stronami.', 'FMS Quick Screen Manual, 10-11', '1.0', 'baa7d9ecce9a3e7950e8d17696042319ac079c7694c8106aff72b48fcb4e94d2', true),
-((select test_id from public.tests where code = 'neck_extension_clearing'), 'en', 'Checks whether neck extension after rotation produces pain. This is a clearing
+((select test_id from quickscreen_v2.tests where code = 'neck_extension_clearing'), 'en', 'Checks whether neck extension after rotation produces pain. This is a clearing
 test and does not receive a 0-3 movement score.', 'After rotating the head to one side, gently extend the neck in the instructed
 pattern. Return to neutral and repeat on the other side.', '', '', 'Record pain independently for the left and right sides. Positive means pain;
 Negative means no pain. An active clearing rule may change only the final score
 of the configured parent test; the rotation result remains preserved.', 'Checks whether neck extension after rotation produces pain. This is a clearing
 test and does not receive a 0-3 movement score.', 'FMS Quick Screen Manual, 10-11', '1.0', '4ff652e81549ffbe5a7a43b31427669db188e2ebd2a307214bfdb6e546e00277', true),
-((select test_id from public.tests where code = 'neck_extension_clearing'), 'pl', 'Sprawdzenie, czy wyprost szyi po rotacji wywołuje ból. To test clearing, bez
+((select test_id from quickscreen_v2.tests where code = 'neck_extension_clearing'), 'pl', 'Sprawdzenie, czy wyprost szyi po rotacji wywołuje ból. To test clearing, bez
 wyniku ruchowego 0-3.', 'Po rotacji głowy w jedną stronę delikatnie wykonaj wyprost szyi. Wróć do
 pozycji neutralnej i powtórz po drugiej stronie.', '', '', 'Zapisz ból niezależnie po lewej i prawej stronie. Positive oznacza ból,
 Negative jego brak. Reguła może zmienić tylko wynik końcowy testu nadrzędnego;
 wynik rotacji pozostaje zachowany.', 'Sprawdzenie, czy wyprost szyi po rotacji wywołuje ból. To test clearing, bez
 wyniku ruchowego 0-3.', 'FMS Quick Screen Manual, 10-11', '1.0', '047049e139ed7b3229fe936e210d064bbd6bb4025cc606e979fa5363f8b31258', true),
-((select test_id from public.tests where code = 'toe_touch'), 'en', 'Screens how the body coordinates mobility and stability during forward bending.
+((select test_id from quickscreen_v2.tests where code = 'toe_touch'), 'en', 'Screens how the body coordinates mobility and stability during forward bending.
 The focus is movement sequencing, control, balance, and pain-free execution,
 not a diagnosis of flexibility or tissue restriction.', 'Start standing with feet together and arms relaxed. Step one foot forward so
 the inside of the forward heel aligns with the end of the opposite big toe.
@@ -93,7 +93,7 @@ The side is named for the leg in the back position. Record left and right
 separately; the final bilateral score is the lower side score.', 'Screens how the body coordinates mobility and stability during forward bending.
 The focus is movement sequencing, control, balance, and pain-free execution,
 not a diagnosis of flexibility or tissue restriction.', 'FMS Quick Screen Manual, 12-14', '1.0', '33481dee84c8c1fb4233cb622c7da69ae266da4e943077781a459eb4a44ef9c9', true),
-((select test_id from public.tests where code = 'toe_touch'), 'pl', 'Ocena tego, jak ciało koordynuje mobilność i stabilność podczas skłonu do
+((select test_id from quickscreen_v2.tests where code = 'toe_touch'), 'pl', 'Ocena tego, jak ciało koordynuje mobilność i stabilność podczas skłonu do
 przodu. Liczy się kolejność ruchu, kontrola, równowaga i wykonanie bez bólu,
 a nie diagnoza elastyczności ani ograniczenia tkanek.', 'Zacznij od stania ze stopami razem i rękami wzdłuż tułowia. Zrób krok jedną
 stopą do przodu tak, aby wewnętrzna część pięty nogi z przodu była na
@@ -112,7 +112,7 @@ Strona jest nazywana od nogi znajdującej się z tyłu. Zapisz lewą i prawą
 stronę osobno; końcowy wynik obustronny to niższy wynik strony.', 'Ocena tego, jak ciało koordynuje mobilność i stabilność podczas skłonu do
 przodu. Liczy się kolejność ruchu, kontrola, równowaga i wykonanie bez bólu,
 a nie diagnoza elastyczności ani ograniczenia tkanek.', 'FMS Quick Screen Manual, 12-14', '1.0', 'd9bb1ae64e587595440f476805d5a2a1a6680822d8e4e6755aecc384ec1ecc4e', true),
-((select test_id from public.tests where code = 'shoulder_mobility'), 'en', 'Assesses upper-quarter mobility, postural control, coordination, and
+((select test_id from quickscreen_v2.tests where code = 'shoulder_mobility'), 'en', 'Assesses upper-quarter mobility, postural control, coordination, and
 side-to-side asymmetry while both shoulders work in reciprocal positions.', 'First measure the dominant hand from the wrist crease to the tip of the
 middle finger for scoring reference. The person stands with feet together and
 arms relaxed. With both hands in fists, one fist reaches overhead and down the
@@ -126,7 +126,7 @@ The side is named for the arm moving overhead. Record left and right
 separately; the final bilateral score is the lower side score unless a
 clearing rule sets it to zero.', 'Assesses upper-quarter mobility, postural control, coordination, and
 side-to-side asymmetry while both shoulders work in reciprocal positions.', 'FMS Quick Screen Manual, 15-16', '1.0', 'cfcc0dd97ac9d66800f4237b7f3a1e4acd1525e1e88f8490c8a7cf94750cc352', true),
-((select test_id from public.tests where code = 'shoulder_mobility'), 'pl', 'Ocena ruchomości górnej części ciała, kontroli postawy, koordynacji i
+((select test_id from quickscreen_v2.tests where code = 'shoulder_mobility'), 'pl', 'Ocena ruchomości górnej części ciała, kontroli postawy, koordynacji i
 asymetrii podczas pracy obu barków w pozycjach wzajemnych.', 'Najpierw zmierz dominującą dłoń od bruzdy nadgarstka do końca palca
 środkowego, aby użyć jej jako odniesienia w punktacji. Osoba stoi ze stopami
 razem i rękami rozluźnionymi. Obie dłonie są zaciśnięte w pięści; jedna pięść
@@ -140,7 +140,7 @@ Strona jest nazywana od ręki przechodzącej nad głową. Zapisz lewą i prawą
 stronę osobno; końcowy wynik obustronny to niższy wynik strony, chyba że
 reguła clearing ustawi go na zero.', 'Ocena ruchomości górnej części ciała, kontroli postawy, koordynacji i
 asymetrii podczas pracy obu barków w pozycjach wzajemnych.', 'FMS Quick Screen Manual, 15-16', '1.0', 'd73a24c75bd332d32213c8711670052758fe4c29825c0c7d2bb074bf3d3c4f42', true),
-((select test_id from public.tests where code = 'shoulder_clearing'), 'en', 'Checks whether shoulder pain is present in overhead and behind-the-back
+((select test_id from quickscreen_v2.tests where code = 'shoulder_clearing'), 'en', 'Checks whether shoulder pain is present in overhead and behind-the-back
 positions. Pain changes how the Shoulder Mobility result should be
 interpreted and must be recorded separately.', 'Standing upright, reach one arm overhead, bend the elbow, and try to touch the
 top of the opposite shoulder blade. Return to the start. Then reach the same
@@ -156,7 +156,7 @@ is Positive, the final Shoulder Mobility score is set to 0. The report should
 identify the side and pattern that produced the Positive response.', 'Checks whether shoulder pain is present in overhead and behind-the-back
 positions. Pain changes how the Shoulder Mobility result should be
 interpreted and must be recorded separately.', 'FMS Quick Screen Manual, 17', '1.0', 'c90f8a3b2353488ad414fdb5738a19276bef8317305dfde63b1b3219cef4b656', true),
-((select test_id from public.tests where code = 'shoulder_clearing'), 'pl', 'Sprawdzenie, czy ból występuje w barku podczas pozycji ręki nad głową oraz
+((select test_id from quickscreen_v2.tests where code = 'shoulder_clearing'), 'pl', 'Sprawdzenie, czy ból występuje w barku podczas pozycji ręki nad głową oraz
 podczas pozycji ręki za plecami. Ból zmienia sposób interpretacji wyniku
 Shoulder Mobility i musi być zapisany osobno.', 'Stojąc prosto, przeprowadź jedną rękę nad głową, zegnij łokieć i spróbuj
 dotknąć górnej części przeciwnej łopatki. Wróć do początku. Następnie
@@ -171,7 +171,7 @@ pole ma wartość Positive, końcowy wynik Shoulder Mobility wynosi 0. Raport
 powinien wskazać stronę i wzorzec, przy którym pojawił się wynik Positive.', 'Sprawdzenie, czy ból występuje w barku podczas pozycji ręki nad głową oraz
 podczas pozycji ręki za plecami. Ból zmienia sposób interpretacji wyniku
 Shoulder Mobility i musi być zapisany osobno.', 'FMS Quick Screen Manual, 17', '1.0', '75763095c122003f03c79e9ed27e4be1f29ba9a00f4c1d6b3d72814fb949b23a', true),
-((select test_id from public.tests where code = 'rotation'), 'en', 'Screens total-body rotation and side-to-side asymmetry. Observe how the feet,
+((select test_id from quickscreen_v2.tests where code = 'rotation'), 'en', 'Screens total-body rotation and side-to-side asymmetry. Observe how the feet,
 hips, pelvis, trunk, shoulders, and balance system coordinate without trying
 to diagnose the source of a limitation.', 'Start standing with feet together. Step one foot forward into a narrow,
 staggered stance. Extend the arms in front of the chest with fingers
@@ -190,7 +190,7 @@ The side is named for the direction of rotation. Record left and right
 separately; the final bilateral score is the lower side score.', 'Screens total-body rotation and side-to-side asymmetry. Observe how the feet,
 hips, pelvis, trunk, shoulders, and balance system coordinate without trying
 to diagnose the source of a limitation.', 'FMS Quick Screen Manual, 18-20', '1.0', '19c8c9573946b56e977f47f1a60dee146eeb47a4147f39eed21d4648eaad9b9e', true),
-((select test_id from public.tests where code = 'rotation'), 'pl', 'Ocena rotacji całego ciała i asymetrii między stronami. Obserwuj współpracę
+((select test_id from quickscreen_v2.tests where code = 'rotation'), 'pl', 'Ocena rotacji całego ciała i asymetrii między stronami. Obserwuj współpracę
 stóp, bioder, miednicy, tułowia, barków i układu równowagi, bez prób ustalania
 źródła ograniczenia.', 'Zacznij od stania ze stopami razem. Zrób krok jedną nogą do przodu do wąskiej
 pozycji wykrocznej. Wyprostuj ręce przed klatką piersiową, spleć palce,
@@ -208,7 +208,7 @@ Strona jest nazywana od kierunku rotacji. Zapisz lewy i prawy kierunek osobno;
 końcowy wynik obustronny to niższy wynik strony.', 'Ocena rotacji całego ciała i asymetrii między stronami. Obserwuj współpracę
 stóp, bioder, miednicy, tułowia, barków i układu równowagi, bez prób ustalania
 źródła ograniczenia.', 'FMS Quick Screen Manual, 18-20', '1.0', 'c540c58c36556054250b294e01be15b6d379c1d08d97f056727fb2b7bfa633e5', true),
-((select test_id from public.tests where code = 'balance'), 'en', 'Assesses single-leg stability and balance under different sensory conditions.
+((select test_id from quickscreen_v2.tests where code = 'balance'), 'en', 'Assesses single-leg stability and balance under different sensory conditions.
 Observe side-to-side differences, posture, alignment, and control with and
 without visual input.', 'Stand with feet together and arms relaxed. Lift one knee and thigh to about
 waist height and hold a single-leg stance with the eyes open. If the position
@@ -224,7 +224,7 @@ The side is named for the supporting leg. Record left and right separately;
 the final bilateral score is the lower side score.', 'Assesses single-leg stability and balance under different sensory conditions.
 Observe side-to-side differences, posture, alignment, and control with and
 without visual input.', 'FMS Quick Screen Manual, 21-22', '1.0', '903952e2912f959c90952147b96c54b07e88f17c7cd41f61eab196f5c904e67f', true),
-((select test_id from public.tests where code = 'balance'), 'pl', 'Ocena stabilności na jednej nodze i równowagi w różnych warunkach czuciowych.
+((select test_id from quickscreen_v2.tests where code = 'balance'), 'pl', 'Ocena stabilności na jednej nodze i równowagi w różnych warunkach czuciowych.
 Obserwuj różnice między stronami, postawę, ustawienie i kontrolę z otwartymi
 oraz zamkniętymi oczami.', 'Stań ze stopami razem i rękami wzdłuż tułowia. Unieś jedno kolano i udo mniej
 więcej do wysokości talii, a następnie utrzymaj stanie na jednej nodze z
@@ -241,7 +241,7 @@ Strona jest nazywana od nogi podporowej. Zapisz lewą i prawą stronę osobno;
 końcowy wynik obustronny to niższy wynik strony.', 'Ocena stabilności na jednej nodze i równowagi w różnych warunkach czuciowych.
 Obserwuj różnice między stronami, postawę, ustawienie i kontrolę z otwartymi
 oraz zamkniętymi oczami.', 'FMS Quick Screen Manual, 21-22', '1.0', '2f2e8937a408b27f54b0aa568b09b9c00886819906c3f1d8b597ca597add7027', true),
-((select test_id from public.tests where code = 'squat'), 'en', 'Assesses lower-body mobility, stability, and the ability to perform a deep
+((select test_id from quickscreen_v2.tests where code = 'squat'), 'en', 'Assesses lower-body mobility, stability, and the ability to perform a deep
 squat with control and without pain. The simplified arms-down pattern focuses
 on the hips, knees, ankles, and trunk.', 'Stand with feet together and arms extended in front, first with fists. Squat
 as deeply as possible while keeping the heels on the floor and chest upright.
@@ -258,7 +258,7 @@ same depth, heel, and posture criteria.', '', '', '- **3:** Touches the floor be
 This is a single, non-bilateral score.', 'Assesses lower-body mobility, stability, and the ability to perform a deep
 squat with control and without pain. The simplified arms-down pattern focuses
 on the hips, knees, ankles, and trunk.', 'FMS Quick Screen Manual, 23-25', '1.0', '8616289d8fe8765dfa9ca2ae948c68ff5f32dca33a3a8ea341519ad7c5516704', true),
-((select test_id from public.tests where code = 'squat'), 'pl', 'Ocena ruchomości i stabilności dolnej części ciała oraz możliwości wykonania
+((select test_id from quickscreen_v2.tests where code = 'squat'), 'pl', 'Ocena ruchomości i stabilności dolnej części ciała oraz możliwości wykonania
 głębokiego przysiadu z kontrolą i bez bólu. Uproszczony układ rąk pozwala
 skupić się na biodrach, kolanach, stawach skokowych i tułowiu.', 'Stań ze stopami razem i rękami wyprostowanymi przed klatką piersiową,
 najpierw z dłońmi w pięściach. Zejdź w przysiad tak nisko, jak potrafisz,
@@ -274,7 +274,7 @@ same kryteria głębokości, kontaktu pięt i postawy.', '', '', '- **3:** Dotkn
 To pojedynczy wynik, bez podziału na strony.', 'Ocena ruchomości i stabilności dolnej części ciała oraz możliwości wykonania
 głębokiego przysiadu z kontrolą i bez bólu. Uproszczony układ rąk pozwala
 skupić się na biodrach, kolanach, stawach skokowych i tułowiu.', 'FMS Quick Screen Manual, 23-25', '1.0', '2f7e26cb53cb2e78c161b38522f53008e8cff4fdc7cb5c95f94c0051e92b6675', true),
-((select test_id from public.tests where code = 'spine_extension_clearing'), 'en', 'Checks whether spinal extension can be performed comfortably and without pain.
+((select test_id from quickscreen_v2.tests where code = 'spine_extension_clearing'), 'en', 'Checks whether spinal extension can be performed comfortably and without pain.
 It is a clearing test used to flag a painful response; it is not intended to
 diagnose spinal pathology.', 'The person lies face down with the hands directly under the shoulders and
 palms flat on the floor. Keeping the pelvis, hips, and lower body relaxed,
@@ -286,7 +286,7 @@ and **Negative** when no pain is produced. In the current Quick Screen
 configuration this is a pain flag and does not automatically change Squat.', 'Checks whether spinal extension can be performed comfortably and without pain.
 It is a clearing test used to flag a painful response; it is not intended to
 diagnose spinal pathology.', 'FMS Quick Screen Manual, 26', '1.0', 'b49b23789492e3e74dad1f1668f1c51816b5f295b2f9d4a9a43e24db248abbc2', true),
-((select test_id from public.tests where code = 'spine_extension_clearing'), 'pl', 'Sprawdzenie, czy wyprost kręgosłupa można wykonać komfortowo i bez bólu. To
+((select test_id from quickscreen_v2.tests where code = 'spine_extension_clearing'), 'pl', 'Sprawdzenie, czy wyprost kręgosłupa można wykonać komfortowo i bez bólu. To
 test clearing służący do oznaczenia bolesnej reakcji, a nie do diagnozowania
 problemów kręgosłupa.', 'Osoba leży przodem, z dłońmi ułożonymi bezpośrednio pod barkami i płasko na
 podłożu. Utrzymując miednicę, biodra i dolną część ciała rozluźnione, wypycha

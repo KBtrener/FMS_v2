@@ -10,7 +10,7 @@ preview/
 .env.deploy.local
 .env.*
 !.env.example
-web/config.js
+js/config.js
 .clasprc.json
 .clasprc.*.json
 .clasp.json
@@ -22,3 +22,7 @@ client_secret*.json
 FMS_Quick_Screen_Codex_Package/references/*.pdf
 .DS_Store
 Thumbs.db
+
+supabase/.temp/
+
+archive/v1/FMS_Quick_Screen_Codex_Package/references/*.pdf

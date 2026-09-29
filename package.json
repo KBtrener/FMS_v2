@@ -1,28 +1,14 @@
-{
-  "name": "fms-v2",
-  "version": "0.0.0",
+﻿{
+  "name": "quickscreen-v2",
+  "version": "2.0.0",
   "private": true,
-  "description": "FMS Quick Screen - webowa aplikacja Supabase",
-  "engines": {
-    "node": ">=24 <25"
-  },
+  "type": "commonjs",
+  "engines": { "node": ">=24 <25" },
   "scripts": {
-    "test": "node --test --test-isolation=none tests/*.test.js",
-    "verify:fixtures": "node FMS_Quick_Screen_Codex_Package/tools/verify_fixtures.mjs",
-    "verify:descriptions": "node tools/verify-descriptions.mjs",
-    "build:web": "node tools/build-web.mjs",
-    "seed:supabase": "node tools/seed-supabase.mjs",
-    "import:google": "node tools/import-google-export.mjs",
-    "test:supabase:e2e": "node tools/test-supabase-e2e.mjs",
-    "verify": "npm run verify:descriptions && npm run build:web && npm run verify:fixtures && npm test"
-  },
-  "devDependencies": {
-    "basic-ftp": "^6.2.1",
-    "esbuild": "^0.28.2",
-    "ssh2-sftp-client": "^12.1.1"
+    "test": "node --test tests/*.test.js",
+    "deploy:ovh": "node deploy-ovh.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.115.0",
-    "pdfmake": "^0.3.11"
+    "ssh2-sftp-client": "12.1.1"
   }
 }

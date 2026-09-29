@@ -1,6 +1,6 @@
 # QuickScreen — zasady pracy
 
-- Pracujemy wyłącznie nad nowym QuickScreen; katalogiem głównym modułu jest `QuickScreen-v2`.
+- Pracujemy wyłącznie nad nowym QuickScreen; pliki aplikacji znajdują się w katalogu głównym repozytorium.
 - Jedynym źródłem wytycznych wizualnych jest `design.md`. Nie opieramy projektu na starych makietach ani innych opisach designu.
 - Publikujemy na OVH w `quickscreen v2` i pod dotychczasowym adresem `quick-screen-v2`.
 - Każdą zmianę commitujemy. Przy niejasnościach pytamy.

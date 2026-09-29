@@ -1,6 +1,6 @@
 # QuickScreen V2 — flow rozpoczęcia badania i wizarda
 
-Ten dokument opisuje zachowanie rozpoczęcia badania i kolejność testów. Nie określa wyglądu interfejsu; jedynym źródłem wytycznych wizualnych jest `QuickScreen-v2/design.md`. Makieta pozostaje statyczna: wyszukiwanie korzysta wyłącznie z danych demonstracyjnych i nie zapisuje klienta ani badania do bazy.
+Ten dokument opisuje zachowanie rozpoczęcia badania i kolejność testów. Nie określa wyglądu interfejsu; jedynym źródłem wytycznych wizualnych jest `../design.md`. Makieta pozostaje statyczna: wyszukiwanie korzysta wyłącznie z danych demonstracyjnych i nie zapisuje klienta ani badania do bazy.
 
 ## Pierwszy krok: klient
 

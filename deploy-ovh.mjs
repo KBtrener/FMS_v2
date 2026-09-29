@@ -4,7 +4,7 @@ import { dirname, join, posix, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const projectDir = dirname(fileURLToPath(import.meta.url));
-const rootDir = resolve(projectDir, '..');
+const rootDir = projectDir;
 const env = {};
 for (const line of (await readFile(join(rootDir, '.env.deploy.local'), 'utf8')).split(/\r?\n/)) {
   const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);

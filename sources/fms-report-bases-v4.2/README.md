@@ -107,4 +107,4 @@ wynik testu
 
 Techniczne nazwy testów pozostają w szczegółach i panelu trenera. Główna część raportu używa języka klienta.
 
-Wygląd ekranów należy odtwarzać wyłącznie według `QuickScreen-v2/design.md`. Dokumenty w tej bazie określają reguły domenowe i treść raportów, nie układ wizualny.
+Wygląd ekranów należy odtwarzać wyłącznie według `../../../design.md`. Dokumenty w tej bazie określają reguły domenowe i treść raportów, nie układ wizualny.

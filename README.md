@@ -1,26 +1,48 @@
-# FMS v2 — Quick Screen
+# QuickScreen V2
 
-Webowa aplikacja do screeningu FMS. Frontend korzysta z Supabase (Auth, Postgres, Storage i RPC), a opisy testów są utrzymywane jako dane wersjonowane w bazie.
+QuickScreen V2 jest samodzielnym frontendem repozytorium. Interfejs korzysta z Supabase Auth i wersjonowanego REST API w Supabase Edge Functions. Makieta wyników zachowuje istniejący układ, a zawartość wizardu i wyników pochodzi z bazy.
 
-Zmiany funkcjonalne muszą aktualizować również dokumentację. Obowiązuje
-FMS_Quick_Screen_Codex_Package/docs/08_documentation_change_policy.md.
+## Struktura
 
-Kanoniczny system wizualny znajduje się w `Stitch/Dla stitcha/design.md`. Raporty HTML i PDF korzystają ze wspólnego modelu sekcji w `web/report-core.js`, a każdy pobrany dokument zapisuje niezmienny snapshot oraz prywatny PDF w Supabase.
+- `index.html`, `css/`, `js/`, `assets/` — frontend V2.
+- `js/config.js` — publiczna konfiguracja runtime; podczas publikacji skrypt wstawia URL Supabase i publishable key z `.env.local`.
+- `supabase/migrations/` — izolowany schemat `quickscreen_v2` i migracje danych z `public`.
+- `supabase/functions/quickscreen-api/` — REST API dla V2, dostępne pod `/functions/v1/quickscreen-api/v1`.
 
-## Uruchomienie
+## Konfiguracja i wdrożenie Supabase
+
+Ustaw `SUPABASE_PROJECT_URL` oraz `SUPABASE_PUBLISHABLE_KEY` w `.env.local`. Połącz Supabase CLI z projektem zawierającym bazę V1, a następnie z katalogu głównego zastosuj migracje i opublikuj funkcję:
 
 ```powershell
-npm ci
-npm run verify
-npm run build:web
+npx supabase link --project-ref TWOJ_PROJECT_REF
+npx supabase db push
+npx supabase functions deploy quickscreen-api
 ```
 
-Przed buildem ustaw `SUPABASE_PROJECT_URL` oraz `SUPABASE_PUBLISHABLE_KEY` w `.env.local`. Wynik znajduje się w `dist/web`.
+Migracja `20260927121900_copy_v1_data.sql` kopiuje rekordy z istniejącego schematu `public` do `quickscreen_v2`, zachowując identyfikatory. Operację można bezpiecznie powtórzyć. Przed użyciem aplikacji zastosuj katalog początkowy:
 
-## Źródła opisów testów
+```powershell
+npx supabase db query --linked --file supabase/seed.sql
+```
 
-`09_manual_test_descriptions_bilingual.md` jest kanonicznym źródłem redakcyjnym (EN/PL). Polecenie `node tools/generate-description-migration.mjs` generuje migrację i seed SQL dla tabeli `test_descriptions`. Aplikacja automatycznie pobiera aktywne opisy, wykorzystuje je w wizardzie i umieszcza w raportach oraz PDF.
+Dodaj `quickscreen_v2` do listy exposed schemas w ustawieniach Data API projektu Supabase. Schemat wymaga dostępu roli `authenticated`; API używa JWT użytkownika i polityk RLS. Nie umieszczaj klucza `service_role` w frontendzie.
 
-## Weryfikacja
+## Wdrożenie frontendu
 
-`npm run verify:descriptions` sprawdza kompletność katalogu, `npm run verify:fixtures` testuje przykłady punktacji, a `npm test` uruchamia testy jednostkowe i migracji.
+Skrypt `node deploy-ovh.mjs` publikuje wyłącznie frontend V2 pod katalogiem `quickscreenv2` na OVH. Pobiera konfigurację Supabase z `.env.local` i umieszcza w publicznym bundle wyłącznie URL oraz publishable key. Wymaga też istniejącego `.env.deploy.local` z danymi OVH.
+
+## API
+
+Kontrakt v1 zawiera profil użytkownika, scenariusze i ich konfigurację PL/EN, wyszukiwanie i tworzenie klientów, pulpit, szkice badań, ich odpowiedzi oraz finalizację i wyniki. Wszystkie rekordy użytkownika są filtrowane przez `auth.uid()` i RLS. Konfiguracja scenariusza jest wersjonowana przez `manual_version`.
+
+Pliki załączników i obiekty Storage nie są kopiowane przez migrację rekordów SQL; wymagają osobnego transferu obiektów, jeśli zawierają dane potrzebne w V2.
+
+## Lokalny podgląd
+
+Z katalogu głównego uruchom:
+
+```powershell
+python -m http.server 8000 --directory .
+```
+
+Frontend wymaga skonfigurowanego Supabase Auth, migracji, seedu oraz wdrożonej funkcji API.

@@ -1,9 +1,9 @@
 -- Idempotent protocol catalog seed. Application data is never written here.
-insert into quickscreen_v2.screen_types (screen_type_id, code, name, is_active) values
+insert into public.screen_types (screen_type_id, code, name, is_active) values
 ('screen_quick_screen','quick_screen','FMS Quick Screen',true)
 on conflict (screen_type_id) do update set name=excluded.name,is_active=excluded.is_active;
 
-insert into quickscreen_v2.tests (test_id,code,name,description_short,criteria_summary,source_reference,is_active) values
+insert into public.tests (test_id,code,name,description_short,criteria_summary,source_reference,is_active) values
 ('test_cervical_flexion','cervical_flexion','Cervical Flexion','Ocena zakresu zgięcia szyi i bólu.','Zakres: Pass/Fail; ból: Brak bólu/Ból.','Manual, strona 9',true),
 ('test_cervical_rotation','cervical_rotation_extension','Cervical Rotation and Extension','Ocena rotacji szyi oraz bólu.','Dla każdej strony zapisz zakres i dwa stany bólu.','Manual, strony 10-11',true),
 ('test_neck_extension_clearing','neck_extension_clearing','Neck Extension Clearing','Test clearingowy bólu przy wyproście szyi.','Zapisz osobno dla lewej i prawej strony: Brak bólu albo Ból.','Manual, strony 10-11',true),
@@ -16,7 +16,7 @@ insert into quickscreen_v2.tests (test_id,code,name,description_short,criteria_s
 ('test_spine_extension_clearing','spine_extension_clearing','Spine Extension Clearing','Test bólowy wyprostu kręgosłupa.','Zapisz Brak bólu albo Ból.','Manual, strona 26',true)
 on conflict (test_id) do update set name=excluded.name,description_short=excluded.description_short,criteria_summary=excluded.criteria_summary,source_reference=excluded.source_reference,is_active=true;
 
-insert into quickscreen_v2.screen_tests (screen_test_id,screen_type_id,test_id,sort_order,calculation_type,is_active,parent_screen_test_id) values
+insert into public.screen_tests (screen_test_id,screen_type_id,test_id,sort_order,calculation_type,is_active,parent_screen_test_id) values
 ('screen_test_cervical_flexion','screen_quick_screen','test_cervical_flexion',1,'status_only',true,null),
 ('screen_test_cervical_rotation','screen_quick_screen','test_cervical_rotation',2,'status_only_bilateral',true,null),
 ('screen_test_neck_extension_clearing','screen_quick_screen','test_neck_extension_clearing',3,'status_only_bilateral',true,'screen_test_cervical_rotation'),
@@ -26,22 +26,22 @@ insert into quickscreen_v2.screen_tests (screen_test_id,screen_type_id,test_id,s
 ('screen_test_rotation','screen_quick_screen','test_rotation',7,'best_attempt_minimum_bilateral',true,null),
 ('screen_test_balance','screen_quick_screen','test_balance',8,'best_attempt_minimum_bilateral',true,null),
 ('screen_test_squat','screen_quick_screen','test_squat',9,'best_attempt_single',true,null),
-('screen_test_spine_extension_clearing','screen_quick_screen','test_spine_extension_clearing',10,'status_only',true,null)
+('screen_test_spine_extension_clearing','screen_quick_screen','test_spine_extension_clearing',10,'status_only',true,'screen_test_squat')
 on conflict (screen_test_id) do update set sort_order=excluded.sort_order,calculation_type=excluded.calculation_type,is_active=true,parent_screen_test_id=excluded.parent_screen_test_id;
 
-insert into quickscreen_v2.answer_sets values
+insert into public.answer_sets values
 ('answer_set_score_0_3','score_0_3','Wynik ruchowy 0-3','discrete_integer',true),
 ('answer_set_pass_fail','pass_fail','Zakres ruchu','discrete_text',true),
 ('answer_set_pain_status','pain_status','Ból','discrete_text',true)
 on conflict (answer_set_id) do update set name=excluded.name,value_kind=excluded.value_kind,is_active=true;
 
-insert into quickscreen_v2.answer_options (answer_option_id,answer_set_id,code,label_pl,numeric_value,sort_order,is_active) values
+insert into public.answer_options values
 ('option_score_0','answer_set_score_0_3','score_0','0 - ból',0,0,true),('option_score_1','answer_set_score_0_3','score_1','1',1,1,true),('option_score_2','answer_set_score_0_3','score_2','2',2,2,true),('option_score_3','answer_set_score_0_3','score_3','3',3,3,true),
-('option_pass','answer_set_pass_fail','pass','Dobry',null,1,true),('option_fail','answer_set_pass_fail','fail','Zły',null,2,true),
+('option_pass','answer_set_pass_fail','pass','Pass',null,1,true),('option_fail','answer_set_pass_fail','fail','Fail',null,2,true),
 ('option_negative','answer_set_pain_status','negative','Brak bólu',null,1,true),('option_positive','answer_set_pain_status','positive','Ból',null,2,true)
 on conflict (answer_option_id) do update set label_pl=excluded.label_pl,numeric_value=excluded.numeric_value,is_active=true;
 
-insert into quickscreen_v2.test_fields (test_field_id,screen_test_id,code,label_pl,answer_set_id,side_mode,attempt_mode,is_scoring_input,help_text,sort_order) values
+insert into public.test_fields (test_field_id,screen_test_id,code,label_pl,answer_set_id,side_mode,attempt_mode,is_scoring_input,help_text,sort_order) values
 ('field_cervical_flexion_range','screen_test_cervical_flexion','cervical_flexion_range','Zakres ruchu','answer_set_pass_fail','none','single',true,'',1),
 ('field_cervical_flexion_pain','screen_test_cervical_flexion','cervical_flexion_pain','Ból przy zgięciu','answer_set_pain_status','none','single',true,'',2),
 ('field_cervical_rotation_range','screen_test_cervical_rotation','cervical_rotation_range','Zakres rotacji','answer_set_pass_fail','bilateral','single',true,'',1),
@@ -50,50 +50,21 @@ insert into quickscreen_v2.test_fields (test_field_id,screen_test_id,code,label_
 ('field_toe_touch_score','screen_test_toe_touch','toe_touch_score','Wynik','answer_set_score_0_3','bilateral','best_of_up_to_three',true,'',1),
 ('field_shoulder_mobility_score','screen_test_shoulder_mobility','shoulder_mobility_score','Wynik','answer_set_score_0_3','bilateral','best_of_up_to_three',true,'',1),
 ('field_shoulder_clearing_upper_pain','screen_test_shoulder_clearing','shoulder_clearing_upper_pain','Ból - wzorzec górny','answer_set_pain_status','bilateral','single',true,'',1),
-('field_shoulder_clearing_lower_pain','screen_test_shoulder_clearing','shoulder_clearing_lower_pain','Ból - wzorzec dolny','answer_set_pain_status','bilateral','single',true,'',3),
+('field_shoulder_clearing_lower_pain','screen_test_shoulder_clearing','shoulder_clearing_lower_pain','Ból - wzorzec dolny','answer_set_pain_status','bilateral','single',true,'',2),
 ('field_shoulder_clearing_pain','screen_test_shoulder_clearing','shoulder_clearing_pain','Ból','answer_set_pain_status','bilateral','single',false,'',5),
-('field_shoulder_clearing_upper_range','screen_test_shoulder_clearing','shoulder_clearing_upper_range','Odpowiedni zakres - ręka nad głową','answer_set_pass_fail','bilateral','single',true,'Czy ręka osiąga wymaganą pozycję nad głową i przy łopatce?',2),
-('field_shoulder_clearing_lower_range','screen_test_shoulder_clearing','shoulder_clearing_lower_range','Odpowiedni zakres - ręka za plecami','answer_set_pass_fail','bilateral','single',true,'Czy ręka osiąga wymaganą pozycję za plecami i przy łopatce?',4),
+('field_shoulder_clearing_upper_range','screen_test_shoulder_clearing','shoulder_clearing_upper_range','Odpowiedni zakres - ręka nad głową','answer_set_pass_fail','bilateral','single',false,'Czy ręka osiąga wymaganą pozycję nad głową i przy łopatce?',3),
+('field_shoulder_clearing_lower_range','screen_test_shoulder_clearing','shoulder_clearing_lower_range','Odpowiedni zakres - ręka za plecami','answer_set_pass_fail','bilateral','single',false,'Czy ręka osiąga wymaganą pozycję za plecami i przy łopatce?',4),
 ('field_rotation_score','screen_test_rotation','rotation_score','Wynik','answer_set_score_0_3','bilateral','best_of_up_to_three',true,'',1),
 ('field_balance_score','screen_test_balance','balance_score','Wynik','answer_set_score_0_3','bilateral','best_of_up_to_three',true,'',1),
 ('field_squat_score','screen_test_squat','squat_score','Wynik','answer_set_score_0_3','none','best_of_up_to_three',true,'',1),
 ('field_spine_extension_clearing_pain','screen_test_spine_extension_clearing','spine_extension_clearing_pain','Ból','answer_set_pain_status','none','single',true,'',1)
 on conflict (test_field_id) do update set label_pl=excluded.label_pl,answer_set_id=excluded.answer_set_id,side_mode=excluded.side_mode,is_scoring_input=excluded.is_scoring_input,sort_order=excluded.sort_order;
 
-insert into quickscreen_v2.effect_rules values
+insert into public.effect_rules values
 ('effect_rule_shoulder_upper_clearing_to_shoulder_mobility','screen_quick_screen','field_shoulder_clearing_upper_pain','option_positive','any','screen_test_shoulder_mobility','set_final_score',0,true,'Shoulder Clearing - ból: {side} strona, wzorzec górny'),
 ('effect_rule_shoulder_lower_clearing_to_shoulder_mobility','screen_quick_screen','field_shoulder_clearing_lower_pain','option_positive','any','screen_test_shoulder_mobility','set_final_score',0,true,'Shoulder Clearing - ból: {side} strona, wzorzec dolny'),
-('effect_rule_shoulder_clearing_to_shoulder_mobility','screen_quick_screen','field_shoulder_clearing_pain','option_positive','any','screen_test_shoulder_mobility','set_final_score',0,false,'Shoulder Clearing - Ból po stronie {side}')
+('effect_rule_shoulder_clearing_to_shoulder_mobility','screen_quick_screen','field_shoulder_clearing_pain','option_positive','any','screen_test_shoulder_mobility','set_final_score',0,false,'Shoulder Clearing - Ból po stronie {side}'),
+('effect_rule_spine_extension_clearing_to_squat','screen_quick_screen','field_spine_extension_clearing_pain','option_positive','none','screen_test_squat','set_final_score',0,true,'Spine Extension Clearing - ból zeruje wynik Squat')
 on conflict (effect_rule_id) do update set is_active=excluded.is_active,reason_template=excluded.reason_template;
-
-update quickscreen_v2.screen_types
-set name_pl = case code when 'quick_screen' then 'Bazowy test funkcjonalny' else name end,
-    name_en = name;
-
-update quickscreen_v2.tests
-set name_en = name,
-    name_pl = case code
-      when 'cervical_flexion' then 'Zgięcie karku'
-      when 'cervical_rotation_extension' then 'Rotacje karku'
-      when 'neck_extension_clearing' then 'Wyprost karku'
-      when 'toe_touch' then 'Skłon do palców'
-      when 'shoulder_mobility' then 'Mobilność barku'
-      when 'shoulder_clearing' then 'Shoulder Clearing'
-      when 'rotation' then 'Rotacje'
-      when 'balance' then 'Balans'
-      when 'squat' then 'Przysiad'
-      when 'spine_extension_clearing' then 'Wyprost kręgosłupa'
-      else name end;
-
-update quickscreen_v2.test_fields
-set label_en = initcap(replace(code, '_', ' '));
-
-update quickscreen_v2.answer_options
-set label_en = case code
-  when 'positive' then 'Pain'
-  when 'negative' then 'No pain'
-  when 'pass' then 'Good'
-  when 'fail' then 'Bad'
-  else coalesce(numeric_value::text, initcap(replace(code, '_', ' '))) end;
 
 \ir test_descriptions_seed.sql
