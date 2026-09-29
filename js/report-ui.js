@@ -48,10 +48,10 @@
         return `<article class="report-result-group ${tone}"><div class="report-result-group-head"><b>${esc(group.title)}</b><span aria-hidden="true">${icon}</span></div><ul>${items}</ul></article>`;
       }).join('');
       const callouts = [
-        b.results.priorityMessage && ['priority', '◎', 'Główny priorytet', b.results.priorityMessage],
-        b.results.ending && ['recommendation', '↻', 'Zalecenie', b.results.ending],
-        (b.results.encouragement || b.results.congratulation) && ['comfort', '☻', 'Komfort i bezpieczeństwo', b.results.encouragement || b.results.congratulation],
-      ].filter(Boolean).map(([tone, icon, label, text]) => `<article class="report-result-callout ${tone}"><span class="report-result-callout-icon" aria-hidden="true">${icon}</span><div><b>${esc(label)}</b><p>${esc(text)}</p></div></article>`).join('');
+        b.results.priorityMessage && ['priority', '◎', b.results.priorityMessage],
+        b.results.ending && ['recommendation', '↻', b.results.ending],
+        (b.results.encouragement || b.results.congratulation) && ['comfort', '☻', b.results.encouragement || b.results.congratulation],
+      ].filter(Boolean).map(([tone, icon, text]) => `<article class="report-result-callout ${tone}"><span class="report-result-callout-icon" aria-hidden="true">${icon}</span><p>${esc(text)}</p></article>`).join('');
       const fallback = (b.results.descriptionSections || [{ title: 'Obraz całości', text: b.results.summary, tone: 'overview' }]).map(item => `<article class="report-description-card ${esc(item.tone)}"><b>${esc(item.title)}</b><p>${esc(item.text)}</p></article>`).join('');
       const description = groups ? `<div class="report-result-groups">${groups}</div>${callouts}` : fallback;
       sections.push(`<section class="report-section" ${blockAttrs('results')}><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><div class="report-description-sections">${description}</div><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-test-grid"><div class="report-test-column">${leftColumn}</div><div class="report-test-column">${rightColumn}</div></div></details></section>`);
