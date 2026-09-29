@@ -128,6 +128,10 @@
       const ai = PRIORITY.indexOf(baseCode(codeOf(a))), bi = PRIORITY.indexOf(baseCode(codeOf(b)));
       return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi) || Number(a.order || 0) - Number(b.order || 0);
     });
+    const cervicalIssue = candidates.some(test => baseCode(codeOf(test)) === 'cervical');
+    const cervicalSecondTest = cervicalIssue
+      ? candidates.find(test => baseCode(codeOf(test)) !== 'cervical') || tests.find(test => baseCode(codeOf(test)) === 'toe_touch') || tests.find(test => baseCode(codeOf(test)) !== 'cervical') || null
+      : null;
     const priorityMessage = allPainful.length
       ? `Priorytet: najpierw zajmij się bólem w testach: ${allPainful.map(nameOf).join(', ')}.`
       : candidates.length ? `Priorytet: zacznij od testu ${nameOf(candidates[0])}, zgodnie z hierarchią FMS.`
@@ -143,8 +147,10 @@
     ] : [
       { title: 'Krok 1', text: candidates.length ? `Popraw test ${nameOf(candidates[0])}.` : 'Nie ma obecnie testu oznaczonego do poprawy.' },
       { title: 'Krok 2', text: 'Wykonaj ponowny test, aby sprawdzić, co się zmieniło.' },
-      { title: 'Krok 3', text: candidates.length > 1
-        ? `Popraw kolejne testy wymagające uwagi: ${candidates.slice(1).map(nameOf).join(', ')}. Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.`
+      { title: 'Krok 3', text: cervicalIssue && cervicalSecondTest
+        ? `Drugi test do poprawy: ${nameOf(cervicalSecondTest)}.${candidates.filter(test => test !== candidates[0] && test !== cervicalSecondTest).length ? ` Dodatkowe testy wymagające uwagi: ${candidates.filter(test => test !== candidates[0] && test !== cervicalSecondTest).map(nameOf).join(', ')}.` : ''} Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.`
+        : candidates.length > 1
+          ? `Popraw kolejne testy wymagające uwagi: ${candidates.slice(1).map(nameOf).join(', ')}. Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.`
         : 'Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.' },
     ];
     const absentFindings = [];
