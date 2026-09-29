@@ -48,8 +48,8 @@
       sections.push(`<section class="report-section" ${blockAttrs('results')}><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><div class="report-description-sections">${description}${guidance}${encouragement}</div><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-test-grid"><div class="report-test-column">${leftColumn}</div><div class="report-test-column">${rightColumn}</div></div></details></section>`);
     }
     if (visible.has('plan')) {
-      const steps = b.plan.steps.map((step, index) => `<article class="plan-step"><span class="plan-num">0${index + 1}</span><div class="plan-copy"><b>${esc(step.title)}</b>${step.label ? `<small>${esc(step.label)}</small>` : ''}<p>${esc(step.text)}</p></div></article>`).join('');
-      sections.push(`<section class="report-section" ${blockAttrs('plan')}><p class="report-index">03 / Plan</p><h2>${esc(b.plan.title)}</h2><div class="report-plan">${steps}</div></section>`);
+      const steps = b.plan.steps.map((step, index) => `${index ? '<span class="plan-arrow" aria-hidden="true">→</span>' : ''}<article class="plan-step"><span class="plan-num">0${index + 1}</span><div class="plan-copy"><b>${esc(step.title)}</b>${step.label ? `<small>${esc(step.label)}</small>` : ''}<p>${esc(step.text)}</p></div></article>`).join('');
+      sections.push(`<section class="report-section" ${blockAttrs('plan')}><p class="report-index">03 / Plan</p><h2>${esc(b.plan.title)}</h2><div class="report-plan" data-step-count="${b.plan.steps.length}">${steps}</div></section>`);
     }
     if (visible.has('help')) {
       const materials = (b.help.resources || []).filter(resource => resource.type !== 'trainerize');
