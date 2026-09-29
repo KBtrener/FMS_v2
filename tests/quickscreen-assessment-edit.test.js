@@ -22,7 +22,15 @@ test('edycja zakończonego badania odtwarza i zapisuje odpowiedzi, notatki i pom
   assert.match(api, /request\.method === 'PATCH' && assessmentRoute/);
   assert.match(app, /async function editAssessment\(assessmentId\)/);
   assert.match(app, /function criteriaMarkup\(test\)/);
-  assert.ok(app.includes("if (isEditingAssessment && route().startsWith('results/'))"));
+  assert.match(app, /function assessmentEditModal\(\)/);
+  assert.match(app, /role=\"dialog\" aria-modal=\"true\"/);
+  assert.match(app, /tests\.map\(\(test,index\)=>`<section class=\"assessment-edit-test card\"/);
+  assert.match(app, /editReturnRoute=returnRoute/);
+  assert.match(app, /cancel-assessment-edit/);
+  assert.match(app, /tests\.flatMap\(test=>test\.definition\.fields\)/);
+  assert.match(app, /data-note/);
+  assert.match(app, /measurements\.find\(item => item\.measurement_code === 'shoulder_fist_gap' && item\.side === 'left'\)/);
+  assert.match(app, /measurements\.find\(item => item\.measurement_code === 'shoulder_fist_gap' && item\.side === 'right'\)/);
   assert.ok(app.includes('if (activeAssessment) {'));
   assert.match(app, /firstMissingEditAnswer/);
   assert.match(app, /results-load-error/);
@@ -34,4 +42,12 @@ test('edycja zakończonego badania odtwarza i zapisuje odpowiedzi, notatki i pom
   assert.match(migration, /save_assessment_draft\(p_assessment_id, v_assessment\.note, p_answers, p_notes\)/);
   assert.match(migration, /assessment_measurements/);
   assert.match(migration, /complete_assessment_v2\(p_assessment_id\)/);
+});
+
+test('asymmetric final score is highlighted yellow regardless of score value', () => {
+  const app = read('js/app.js');
+  const css = read('css/app.css');
+  assert.match(app, /const asymmetric=r\.leftScore!==null&&r\.leftScore!==undefined&&r\.rightScore!==null&&r\.rightScore!==undefined/);
+  assert.match(app, /asymmetric\?'asymmetric'/);
+  assert.match(css, /\.numeric-final\.asymmetric\{[^}]*#FFF1BD/);
 });
