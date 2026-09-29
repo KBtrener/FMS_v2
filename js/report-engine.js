@@ -134,7 +134,8 @@
       : null;
     const priorityMessage = allPainful.length
       ? `Priorytet: najpierw zajmij się bólem w testach: ${allPainful.map(nameOf).join(', ')}.`
-      : candidates.length ? `Priorytet: zacznij od testu ${nameOf(candidates[0])}, zgodnie z hierarchią FMS.`
+      : cervicalIssue && cervicalSecondTest ? `Priorytet: zacznij od testu ${nameOf(candidates[0])}. Drugim priorytetem jest test ${nameOf(cervicalSecondTest)}.`
+        : candidates.length ? `Priorytet: zacznij od testu ${nameOf(candidates[0])}, zgodnie z hierarchią FMS.`
         : 'Priorytet: żaden wynik nie wymaga teraz szczególnej uwagi.';
     const hasIssue = allPainful.length > 0 || candidates.length > 0;
     const congratulation = !hasIssue && tests.some(test => categoryOf(test) !== null)
@@ -145,10 +146,12 @@
     const plan = allPain ? [
       { title: 'Krok 1', text: summary },
     ] : [
-      { title: 'Krok 1', text: candidates.length ? `Popraw test ${nameOf(candidates[0])}.` : 'Nie ma obecnie testu oznaczonego do poprawy.' },
+      { title: 'Krok 1', text: cervicalIssue && cervicalSecondTest
+        ? `Popraw test ${nameOf(candidates[0])} oraz drugi test ${nameOf(cervicalSecondTest)}.`
+        : candidates.length ? `Popraw test ${nameOf(candidates[0])}.` : 'Nie ma obecnie testu oznaczonego do poprawy.' },
       { title: 'Krok 2', text: 'Wykonaj ponowny test, aby sprawdzić, co się zmieniło.' },
       { title: 'Krok 3', text: cervicalIssue && cervicalSecondTest
-        ? `Drugi test do poprawy: ${nameOf(cervicalSecondTest)}.${candidates.filter(test => test !== candidates[0] && test !== cervicalSecondTest).length ? ` Dodatkowe testy wymagające uwagi: ${candidates.filter(test => test !== candidates[0] && test !== cervicalSecondTest).map(nameOf).join(', ')}.` : ''} Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.`
+        ? `${candidates.filter(test => test !== candidates[0] && test !== cervicalSecondTest).length ? `Dodatkowe testy wymagające uwagi: ${candidates.filter(test => test !== candidates[0] && test !== cervicalSecondTest).map(nameOf).join(', ')}. ` : ''}Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.`
         : candidates.length > 1
           ? `Popraw kolejne testy wymagające uwagi: ${candidates.slice(1).map(nameOf).join(', ')}. Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.`
         : 'Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.' },
