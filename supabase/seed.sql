@@ -67,7 +67,7 @@ insert into quickscreen_v2.effect_rules values
 on conflict (effect_rule_id) do update set is_active=excluded.is_active,reason_template=excluded.reason_template;
 
 update quickscreen_v2.screen_types
-set name_pl = case code when 'quick_screen' then 'Bazowy test funkcjonalny' else name end,
+set name_pl = case code when 'quick_screen' then 'FMS-Quickscreen' else name end,
     name_en = name;
 
 update quickscreen_v2.tests

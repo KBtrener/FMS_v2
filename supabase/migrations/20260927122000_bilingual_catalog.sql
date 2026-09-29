@@ -13,7 +13,7 @@ alter table quickscreen_v2.answer_options
   add column if not exists label_en text;
 
 update quickscreen_v2.screen_types
-set name_pl = coalesce(name_pl, case code when 'quick_screen' then 'Bazowy test funkcjonalny' else name end),
+set name_pl = coalesce(name_pl, case code when 'quick_screen' then 'FMS-Quickscreen' else name end),
     name_en = coalesce(name_en, name);
 
 update quickscreen_v2.tests
