@@ -35,3 +35,13 @@ test('history routes each report to its assessment and removes inert client cont
   assert.match(api, /b\.assessment_date\.localeCompare\(a\.assessment_date\) \|\| b\.created_at\.localeCompare\(a\.created_at\)/);
   assert.match(app, /trainer\?\.displayName/);
 });
+
+test('client-specific new assessment entries preserve the client in the route', () => {
+  const app = read('../QuickScreen-v2/js/app.js');
+  assert.equal((app.match(/href="#\/new-assessment\/\$\{encodeURIComponent\(c\.id\)\}"/g) || []).length, 2);
+  assert.match(app, /href="#\/new-assessment\/\$\{encodeURIComponent\(client\.id\)\}"/);
+  assert.match(app, /newAssessmentClientId\(\)/);
+  assert.match(app, /selectedClient=contextId\?clients\.find\(c=>c\.id===contextId\)\|\|null:null/);
+  assert.match(app, /Nie znaleziono wskazanego klienta/);
+  assert.match(app, /setRoute\(`new-assessment\/\$\{encodeURIComponent\(selectedClient\.id\)\}`\)/);
+});
