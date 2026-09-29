@@ -251,6 +251,17 @@
     } catch(error) {reportLoadError=error.message;render();}
   }
   function reportSettingsPage(){return shell(window.QuickScreenReportUI.settings(reportSettings),'#/dashboard',{subtitle:'Ustawienia raportu'});}
+  async function loadSavedReport(reportId){
+    const stored=await apiRequest(`/reports/${encodeURIComponent(reportId)}`);
+    const source=stored.snapshot;
+    if(!source?.assessmentId){activeReport=stored;return;}
+    const assessment=await apiRequest(`/assessments/${encodeURIComponent(source.assessmentId)}/results`);
+    const refreshed=window.QuickScreenReport.buildReport({...assessment,tests:assessment.tests||assessment.rows||[]},{sport:source.sport||'',resources:source.blocks?.help?.resources||[],selectedBlocks:window.QuickScreenReport.BLOCKS.map(block=>block.id)});
+    refreshed.blocks.help=source.blocks?.help||refreshed.blocks.help;
+    refreshed.visibleBlocks=source.visibleBlocks||refreshed.visibleBlocks;
+    refreshed.clientVisibleBlocks=source.clientVisibleBlocks||source.visibleBlocks||refreshed.visibleBlocks;
+    activeReport={...stored,snapshot:refreshed};
+  }
   function savedReportPage(){
     const snapshot=activeReport?.snapshot;
     if(!snapshot)return shell('<main class="page"><section class="card"><h1>Nie udało się otworzyć raportu</h1><p>Raport nie istnieje albo nie masz do niego dostępu.</p><a class="btn" href="#/dashboard">Wróć do panelu</a></section></main>','#/dashboard');
@@ -369,7 +380,7 @@
     if (route().startsWith('client-report/')) {
       const reportId = route().split('/')[1];
       if (activeReport?.reportId !== reportId) {
-        try { activeReport = await apiRequest(`/reports/${encodeURIComponent(reportId)}`); }
+        try { await loadSavedReport(reportId); }
         catch (error) { reportLoadError = error.message; activeReport = null; }
       }
     }
@@ -378,5 +389,5 @@
     }
     render();
   });
-  (async()=>{if(authSession?.expires_at&&authSession.expires_at*1000<Date.now()+60000)await refreshSession();if(authSession?.access_token){try{await loadQuickScreenData();await loadReportConfiguration();if(route().startsWith('results/'))await loadResults(route().split('/')[1]);if(routePath().startsWith('report/'))await loadResults(decodeURIComponent(routePath().split('/')[1]));if(route().startsWith('client-report/'))activeReport=await apiRequest(`/reports/${encodeURIComponent(route().split('/')[1])}`);}catch(error){authError=error.message;authStore(null);}if(authSession?.access_token)offerResumeDraft();}render();if(authSession?.access_token&&route()==='report')await generateReport();})();
+  (async()=>{if(authSession?.expires_at&&authSession.expires_at*1000<Date.now()+60000)await refreshSession();if(authSession?.access_token){try{await loadQuickScreenData();await loadReportConfiguration();if(route().startsWith('results/'))await loadResults(route().split('/')[1]);if(routePath().startsWith('report/'))await loadResults(decodeURIComponent(routePath().split('/')[1]));if(route().startsWith('client-report/'))await loadSavedReport(route().split('/')[1]);}catch(error){authError=error.message;authStore(null);}if(authSession?.access_token)offerResumeDraft();}render();if(authSession?.access_token&&route()==='report')await generateReport();})();
 })();

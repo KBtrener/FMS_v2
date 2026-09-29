@@ -11,20 +11,6 @@
     balance: 'Równowaga na jednej nodze', rotation: 'Rotacja tułowia', spine_extension_clearing: 'Wyprost kręgosłupa',
   };
   const PRIORITY = ['cervical', 'toe_touch', 'shoulder_mobility', 'squat', 'balance', 'rotation', 'spine_extension_clearing'];
-  const TEST_ACTIONS = {
-    cervical: {
-      name: 'ruch szyi', limit: 'Ogranicz ruchy szyi i pozycje, które odtwarzają ból. Przy sportach walki i szybkich zmianach kierunku zmniejsz tempo, jeśli gwałtowny ruch głową nasila objawy.',
-      do: 'Poruszaj szyją spokojnie w zakresie, który nie wywołuje bólu. Jeśli ból utrzymuje się, nasila lub ogranicza codzienne czynności, skonsultuj go ze specjalistą. Jeśli chcesz działać samodzielnie, nie forsuj bolesnego kierunku ani końcowego zakresu.',
-      continue: 'Możesz kontynuować pozostałą aktywność, o ile nie odtwarza bólu szyi.',
-    },
-    toe_touch: { name: 'skłon i zgięcie bioder', limit: 'Nie zwiększaj ciężaru w martwym ciągu ani w głębokich skłonach, jeśli tracisz kontrolę ruchu.', do: 'Ćwicz kontrolowany skłon w komfortowym zakresie.', continue: 'Możesz kontynuować inne bezbolesne ruchy oraz lżejsze warianty skłonu, które kontrolujesz.' },
-    shoulder_mobility: { name: 'ruchomość barków', limit: 'Ogranicz wymagające pozycje z rękami nad głową i duże obciążenia w końcowym zakresie, jeśli musisz kompensować tułowiem.', do: 'Pracuj nad swobodnym, kontrolowanym ruchem barków w bezbolesnym zakresie.', continue: 'Możesz trenować bezbolesne ruchy, które nie wymagają ograniczonego zakresu barków.' },
-    squat: { name: 'przysiad', limit: 'Nie zwiększaj ciężaru ani objętości przysiadów, jeśli nie utrzymujesz kontrolowanego wykonania.', do: 'Pracuj nad jakością przysiadu w zakresie, który wykonujesz stabilnie.', continue: 'Możesz kontynuować inne bezbolesne, dobrze kontrolowane wzorce.' },
-    balance: { name: 'równowaga na jednej nodze', limit: 'Ogranicz ciężkie ćwiczenia jednonóż, skoki i szybkie zmiany kierunku, jeśli tracisz równowagę.', do: 'Ćwicz stanie na jednej nodze przy stabilnym podparciu i stopniowo zmniejszaj pomoc.', continue: 'Możesz kontynuować stabilne, bezbolesne ćwiczenia obunóż.' },
-    rotation: { name: 'rotacja tułowia', limit: 'Nie zwiększaj szybkości ani obciążenia gwałtownych skrętów, rzutów i zmian kierunku, jeśli tracisz kontrolę.', do: 'Ćwicz spokojną rotację tułowia bez zwiększania szybkości i złożoności.', continue: 'Możesz kontynuować bezbolesne ćwiczenia bez dużej rotacji oraz wolniejsze skręty pod kontrolą.' },
-    spine_extension_clearing: { name: 'wyprost kręgosłupa', limit: 'Ogranicz powtarzane lub obciążone odchylanie do tyłu, jeśli odtwarza ból.', do: 'Pozostań aktywny w zakresie, który nie wywołuje bólu. Przy utrzymującym się bólu skonsultuj obszar ze specjalistą.', continue: 'Możesz kontynuować codzienne ruchy, które nie prowokują bólu.' },
-    default: { name: 'ten ruch', limit: 'Nie zwiększaj trudności ruchu, jeśli nie utrzymujesz jego kontroli.', do: 'Pracuj nad jakością ruchu w komfortowym zakresie.', continue: 'Możesz kontynuować pozostałe bezbolesne aktywności.' },
-  };
   const PATTERN_CONTEXT = {
     cervical_flexion: 'Swobodne pochylenie głowy pomaga patrzeć w dół podczas pracy przy ziemi, na przykład w ogrodzie, i kontrolować ustawienie ciała przy schylaniu.',
     cervical_rotation_extension: 'Swobodny obrót głowy pomaga kierować wzrok na boki i ku górze: przy szukaniu chwytów podczas wspinania, obserwowaniu trasy podczas biegu oraz rozglądaniu się przy pracy w ogrodzie.',
@@ -82,14 +68,7 @@
     const priority = priorityFor(tests);
     const main = priority.items[0] || null;
     const mainCode = main ? baseCode(codeOf(main)) : null;
-    const action = TEST_ACTIONS[mainCode] || TEST_ACTIONS.default;
     const allPain = priority.type === 'pain';
-    const painRules = [...new Map(priority.items.map(test => {
-      const code = baseCode(codeOf(test));
-      const rule = TEST_ACTIONS[code] || TEST_ACTIONS.default;
-      return [code, `${LABELS[code] || nameOf(test)}: ${rule.limit}`];
-    })).values()];
-    const mildAsymmetry = Boolean(main && main.leftScore != null && main.rightScore != null && Math.abs(main.leftScore - main.rightScore) === 1 && Math.min(main.leftScore, main.rightScore) >= 2);
     const side = main ? sideText(main) : null;
     const important = tests.filter(test => priority.all.includes(test));
     const positive = tests.filter(test => assessable(test) && !priority.all.includes(test) && (scoreOf(test) === 2 || scoreOf(test) === 3 || (!isPain(test) && !isFail(test))));
@@ -134,15 +113,22 @@
         : allPain
         ? `W badaniu pojawił się ból w obszarze: ${priority.items.map(nameOf).join(', ')}. To wymaga uwagi w pierwszej kolejności.`
         : `Najwięcej uwagi wymaga ${nameOf(main)}. Pozostałe obserwacje i ich znaczenie opisano poniżej.`;
-    const plan = main ? [
-      { title: 'Chroń', label: title, text: allPain ? painRules.join(' ') : (mainCode === 'cervical' && isFail(main) ? 'Nie wymuszaj końcowego zakresu szyi. Stopniowo zwiększaj zakres przed ruchem gwałtownym, szybkimi zmianami kierunku i sportami walki, które wymagają szybkiego ustawienia głowy.' : mildAsymmetry ? 'Nie ma potrzeby ograniczać aktywności tylko z powodu asymetrii 3/2.' : (scoreOf(main) === 1 || isFail(main) ? action.limit : 'Nie ma potrzeby automatycznie ograniczać całej aktywności z powodu tej różnicy.')) },
-      { title: 'Popraw', label: title, text: mildAsymmetry ? `Obie strony spełniają podstawowy standard. Skup dodatkową pracę na stronie z niższym wynikiem (${main.leftScore < main.rightScore ? 'lewa' : 'prawa'}).` : allPain ? (mainCode === 'cervical' ? action.do : `${action.do} Przy bólu warto skonsultować się ze specjalistą, zwłaszcza jeśli utrzymuje się lub ogranicza codzienne czynności. Do tego czasu samodzielnie pozostań przy bezbolesnej aktywności i nie forsuj bolesnego zakresu.`) : action.do },
-      { title: 'Rozwijaj', label: 'Co możesz kontynuować', text: action.continue },
+    const plan = allPain ? [
+      { title: 'Krok 1', text: summary },
     ] : [
-      { title: 'Chroń', label: 'Brak dodatkowych ograniczeń', text: 'Nie ma ograniczeń wynikających z dzisiejszego badania.' },
-      { title: 'Popraw', label: 'Utrzymuj jakość ruchu', text: 'Kontynuuj regularny ruch i ćwiczenia dopasowane do swojego poziomu.' },
-      { title: 'Rozwijaj', label: 'Kontynuuj aktywność', text: 'Możesz kontynuować codzienną aktywność lub trening bez ograniczeń wynikających z badania.' },
+      { title: 'Krok 1', text: candidates.length ? `Popraw test ${nameOf(candidates[0])}.` : 'Nie ma obecnie testu oznaczonego do poprawy.' },
+      { title: 'Krok 2', text: 'Wykonaj ponowny test, aby sprawdzić, co się zmieniło.' },
+      { title: 'Krok 3', text: candidates.length > 1
+        ? `Popraw kolejne testy wymagające uwagi: ${candidates.slice(1).map(nameOf).join(', ')}. Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.`
+        : 'Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.' },
     ];
+    const absentFindings = [];
+    if (!allPainful.length) absentFindings.push('bólu');
+    if (!groups.some(group => group.title === 'Asymetria')) absentFindings.push('asymetrii');
+    if (!tests.some(test => scoreOf(test) === 1)) absentFindings.push('słabych wzorców (wynik 1)');
+    const encouragement = absentFindings.length
+      ? `Super, że w Twoim teście nie ma: ${absentFindings.join(', ')}. Dzięki temu budujemy obraz, że coś na pewno jest dobrze.`
+      : null;
     const descriptionSections = [
       { title: 'Obraz całości', text: summary, tone: 'overview' },
       { title: 'Co działa dobrze', text: positiveNames.length ? `Bez bólu i większych trudności wypadły: ${positiveNames.join(', ')}. Ruchy korzystające z tych wzorców powinny być bezpieczne i nie powinny powodować problemów, o ile nie wywołują bólu.` : 'Nie ma wyników, które można wyróżnić jako bezbolesne i bez większych trudności.', tone: 'good' },
@@ -173,11 +159,11 @@
       assessmentName, sport, profile, totalScore: assessment.totalScore ?? null, maximum: assessment.maximum ?? null,
       visibleBlocks: visibleBlocks.map(block => block.id), blocks: {
         intro: { title: 'Hej! Oto Twój raport z badania.', text: 'Badanie sprawdza podstawowe wzorce ruchu, różnice między stronami i ból, aby pomóc ustalić kolejność dalszej pracy.' },
-        results: { title: 'Obraz całości i priorytety', summary, descriptionSections, groups, priorityMessage, congratulation, ending, priority: main ? { title, reason, side, type: priority.type } : null,
+        results: { title: 'Obraz całości i priorytety', summary, descriptionSections, groups, priorityMessage, congratulation, ending, encouragement, priority: main ? { title, reason, side, type: priority.type } : null,
           findings: important.map(test => ({ title: nameOf(test), text: `${isPain(test) ? 'Pojawił się ból' : isFail(test) ? 'Zakres ruchu nie osiągnął kryterium' : `Wynik ${scoreOf(test) ?? 'do oceny'}`}${sideText(test) ? ` · ${sideText(test)}` : ''}.`, status: 'attention' })),
           positive: positive.slice(0, 4).map(test => ({ title: nameOf(test), text: `${sideText(test) || `Wynik ${scoreOf(test) ?? 'bez bólu'}`} — bez bólu.`, status: 'good' })),
           history: history.slice(0, 1).flatMap(entry => (entry.changes || []).filter(change => change.change !== 'unchanged' && change.change !== 'not_comparable').slice(0, 5).map(change => ({ date: entry.date, name: change.name, change: change.change, text: change.change === 'new_pain' ? 'W tym badaniu pojawił się ból.' : change.change === 'pain_resolved' ? 'Tym razem ból się nie pojawił.' : change.change === 'new_asymmetry' ? 'Pojawiła się różnica między stronami.' : change.change === 'resolved_asymmetry' ? 'Wcześniejsza różnica między stronami nie pojawia się w tym badaniu.' : change.change === 'improved' ? `Wynik poprawił się: ${change.previousScore} → ${change.currentScore}.` : `Wynik jest niższy: ${change.previousScore} → ${change.currentScore}.` }))), tests: items },
-        plan: { title: 'Sugerowany plan działania', steps: plan, nextStep: main ? `Po poprawie ${title.toLocaleLowerCase('pl-PL')} sprawdź ten ruch ponownie.` : 'Kontynuuj aktywność i sprawdź postęp podczas kolejnego badania.' },
+        plan: { title: 'Co dalej?', steps: plan },
         help: { title: 'Wybierz ścieżkę dla siebie', intro: main ? `Materiały dobrane do obszaru: ${title}.` : 'Materiały udostępnione przez trenera.', resources, profile },
       },
       history, manualVersion: assessment.manualVersion || null,
