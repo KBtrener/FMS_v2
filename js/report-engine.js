@@ -39,12 +39,24 @@
   };
   const codeOf = test => String(test.code || '').toLowerCase();
   const baseCode = code => code.startsWith('cervical_') ? 'cervical' : code === 'shoulder_clearing' ? 'shoulder_mobility' : code;
-  const nameOf = test => LABELS[codeOf(test)] || LABELS[baseCode(codeOf(test))] || test.name || 'Test ruchowy';
+  const nameOf = test => test.name || LABELS[codeOf(test)] || LABELS[baseCode(codeOf(test))] || 'Test ruchowy';
   const fieldsOf = test => test.fields || [];
   const isPain = test => fieldsOf(test).some(field => (field.valueCode || '').toLowerCase() === 'positive' || (field.valueCode || '').toLowerCase() === 'pain');
   const isFail = test => fieldsOf(test).some(field => (field.valueCode || '').toLowerCase() === 'fail');
   const scoreOf = test => Number.isFinite(test.finalScore) ? test.finalScore : Number.isFinite(test.value) ? test.value : null;
   const assessable = test => scoreOf(test) !== null || fieldsOf(test).some(field => field.valueCode);
+  const categoryOf = test => {
+    const score = scoreOf(test);
+    if (isPain(test) || score === 0) return 'pain';
+    const sided = test.leftScore != null && test.rightScore != null;
+    const statusSides = fieldsOf(test).filter(field => field.side === 'left' || field.side === 'right').map(field => String(field.valueCode || '').toLowerCase());
+    if ((sided && test.leftScore !== test.rightScore) || (statusSides.includes('pass') && statusSides.includes('fail'))) return 'asymmetry';
+    if (score === 1 || isFail(test)) return 'improve';
+    if (score === 2 || (sided && test.leftScore === 2 && test.rightScore === 2)) return 'good';
+    if (score === 3 || (sided && test.leftScore === 3 && test.rightScore === 3)) return 'veryGood';
+    if (score != null) return 'good';
+    return null;
+  };
   const sideText = test => {
     if (test.leftScore != null || test.rightScore != null) return `Lewa ${test.leftScore ?? '—'} · Prawa ${test.rightScore ?? '—'}`;
     const sides = [...new Set(fieldsOf(test).filter(field => isPain({ fields: [field] }) || isFail({ fields: [field] })).map(field => field.side).filter(side => side === 'left' || side === 'right'))];
@@ -87,7 +99,7 @@
     const profile = options.profile || (sport ? 'active' : 'general');
     const name = `${assessment.client?.firstName || ''} ${assessment.client?.lastName || ''}`.trim();
     const date = assessment.date ? new Date(`${assessment.date}T00:00:00`).toLocaleDateString('pl-PL') : '';
-    const assessmentName = assessment.scenarioName || 'Bazowy Test Funkcjonalny';
+    const assessmentName = assessment.scenarioName || assessment.name || 'Bazowy Test Funkcjonalny';
     const title = main ? nameOf(main) : null;
     const reason = allPain
       ? (priority.items.length > 1 ? 'W kilku ruchach pojawił się ból. To najważniejsza informacja z badania.' : `Ból pojawił się podczas: ${title}${side ? ` (${side})` : ''}.`)
@@ -137,12 +149,31 @@
       { title: 'Co wymaga uwagi', text: observations.length ? observations.join(' ') : 'W ocenionych testach nie pojawił się ból ani wyraźne ograniczenie.', tone: observations.length ? allPain ? 'problem' : 'watch' : 'good' },
       { title: 'Priorytet', text: main ? (allPain ? `Ból jest najważniejszą informacją z badania. W pierwszej kolejności zajmij się: ${priority.items.map(nameOf).join(', ')}.` : `Skup teraz uwagę na teście ${nameOf(main)}. Nie musisz poprawiać wszystkiego jednocześnie.`) : 'Badanie nie wskazuje jednego obszaru, od którego trzeba zacząć.', tone: main ? allPain ? 'problem' : 'priority' : 'overview' },
     ];
+    const groupDefinitions = [
+      ['veryGood', 'Bardzo dobrze'], ['good', 'Dobrze'], ['asymmetry', 'Asymetria'], ['improve', 'Do poprawy'], ['pain', 'Ból'],
+    ];
+    const groups = groupDefinitions.map(([key, label]) => ({ title: label, items: tests.filter(test => categoryOf(test) === key).map(test => ({ name: nameOf(test), score: scoreOf(test), leftScore: test.leftScore ?? null, rightScore: test.rightScore ?? null, status: key })) })).filter(group => group.items.length);
+    const allPainful = tests.filter(test => categoryOf(test) === 'pain');
+    const candidates = tests.filter(test => categoryOf(test) === 'improve' || categoryOf(test) === 'asymmetry').sort((a, b) => {
+      const ai = PRIORITY.indexOf(baseCode(codeOf(a))), bi = PRIORITY.indexOf(baseCode(codeOf(b)));
+      return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi) || Number(a.order || 0) - Number(b.order || 0);
+    });
+    const priorityMessage = allPainful.length
+      ? `Priorytet: najpierw zajmij się bólem w testach: ${allPainful.map(nameOf).join(', ')}.`
+      : candidates.length ? `Priorytet: zacznij od testu ${nameOf(candidates[0])}, zgodnie z hierarchią FMS.`
+        : 'Priorytet: żaden wynik nie wymaga teraz szczególnej uwagi.';
+    const hasIssue = allPainful.length > 0 || candidates.length > 0;
+    const congratulation = !hasIssue && tests.some(test => categoryOf(test) !== null)
+      ? 'Gratulacje! Wyniki są bezbolesne i symetryczne, a ocenione ruchy uzyskały 2 lub 3.' : null;
+    const ending = !hasIssue
+      ? 'Pełny FMS nie wskazuje obszaru wymagającego poprawy.'
+      : 'Po osiągnięciu bezbolesnych, symetrycznych wyników 2 lub 3 wykonaj ponowny test.';
     return {
       generatorVersion: '5.0.0', assessmentId: assessment.assessmentId, client: assessment.client || {}, assessmentDate: assessment.date || '',
       assessmentName, sport, profile, totalScore: assessment.totalScore ?? null, maximum: assessment.maximum ?? null,
       visibleBlocks: visibleBlocks.map(block => block.id), blocks: {
         intro: { title: 'Hej! Oto Twój raport z badania.', text: 'Badanie sprawdza podstawowe wzorce ruchu, różnice między stronami i ból, aby pomóc ustalić kolejność dalszej pracy.' },
-        results: { title: 'Obraz całości i priorytety', summary, descriptionSections, priority: main ? { title, reason, side, type: priority.type } : null,
+        results: { title: 'Obraz całości i priorytety', summary, descriptionSections, groups, priorityMessage, congratulation, ending, priority: main ? { title, reason, side, type: priority.type } : null,
           findings: important.map(test => ({ title: nameOf(test), text: `${isPain(test) ? 'Pojawił się ból' : isFail(test) ? 'Zakres ruchu nie osiągnął kryterium' : `Wynik ${scoreOf(test) ?? 'do oceny'}`}${sideText(test) ? ` · ${sideText(test)}` : ''}.`, status: 'attention' })),
           positive: positive.slice(0, 4).map(test => ({ title: nameOf(test), text: `${sideText(test) || `Wynik ${scoreOf(test) ?? 'bez bólu'}`} — bez bólu.`, status: 'good' })),
           history: history.slice(0, 1).flatMap(entry => (entry.changes || []).filter(change => change.change !== 'unchanged' && change.change !== 'not_comparable').slice(0, 5).map(change => ({ date: entry.date, name: change.name, change: change.change, text: change.change === 'new_pain' ? 'W tym badaniu pojawił się ból.' : change.change === 'pain_resolved' ? 'Tym razem ból się nie pojawił.' : change.change === 'new_asymmetry' ? 'Pojawiła się różnica między stronami.' : change.change === 'resolved_asymmetry' ? 'Wcześniejsza różnica między stronami nie pojawia się w tym badaniu.' : change.change === 'improved' ? `Wynik poprawił się: ${change.previousScore} → ${change.currentScore}.` : `Wynik jest niższy: ${change.previousScore} → ${change.currentScore}.` }))), tests: items },
