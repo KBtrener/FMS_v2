@@ -41,11 +41,20 @@
       const columnMarkup = columnRows => columnRows.map(row => `<div class="report-test-row"><span>${esc(row.name)}</span><span>${esc(row.value)}</span></div>`).join('');
       const leftColumn = columnMarkup(rows.slice(0, 6));
       const rightColumn = columnMarkup(rows.slice(6));
-      const groups = (b.results.groups || []).map(group => `<article class="report-description-card ${group.items[0]?.status === 'pain' ? 'problem' : group.items[0]?.status === 'improve' ? 'watch' : group.items[0]?.status === 'asymmetry' ? 'priority' : 'good'}"><b>${esc(group.title)}</b><p>${group.items.map(item => `${esc(item.name)}${item.leftScore != null || item.rightScore != null ? ` (${esc(item.leftScore ?? '—')}/${esc(item.rightScore ?? '—')})` : item.score != null ? ` (${esc(item.score)})` : ''}`).join(', ')}</p></article>`).join('');
-      const guidance = [b.results.congratulation, b.results.priorityMessage, b.results.ending].filter(Boolean).map((text, index) => `<article class="report-description-card ${index === 1 ? 'priority' : 'next'}"><p>${esc(text)}</p></article>`).join('');
-      const description = groups || (b.results.descriptionSections || [{ title: 'Obraz całości', text: b.results.summary, tone: 'overview' }]).map(item => `<article class="report-description-card ${esc(item.tone)}"><b>${esc(item.title)}</b><p>${esc(item.text)}</p></article>`).join('');
-      const encouragement = b.results.encouragement ? `<article class="report-description-card good report-encouragement"><p>${esc(b.results.encouragement)}</p></article>` : '';
-      sections.push(`<section class="report-section" ${blockAttrs('results')}><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><div class="report-description-sections">${description}${guidance}${encouragement}</div><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-test-grid"><div class="report-test-column">${leftColumn}</div><div class="report-test-column">${rightColumn}</div></div></details></section>`);
+      const groupStyle = { veryGood: ['very-good', '✓'], good: ['good', '✓✓'], asymmetry: ['asymmetry', '△'], improve: ['improve', '!'], pain: ['pain', '!'] };
+      const groups = (b.results.groups || []).map(group => {
+        const [tone, icon] = groupStyle[group.items[0]?.status] || ['good', '✓'];
+        const items = group.items.map(item => `<li>${esc(item.name)}${item.leftScore != null || item.rightScore != null ? ` (${esc(item.leftScore ?? '—')}/${esc(item.rightScore ?? '—')})` : item.score != null ? ` (${esc(item.score)})` : ''}</li>`).join('');
+        return `<article class="report-result-group ${tone}"><div class="report-result-group-head"><b>${esc(group.title)}</b><span aria-hidden="true">${icon}</span></div><ul>${items}</ul></article>`;
+      }).join('');
+      const callouts = [
+        b.results.priorityMessage && ['priority', '◎', 'Główny priorytet', b.results.priorityMessage],
+        b.results.ending && ['recommendation', '↻', 'Zalecenie', b.results.ending],
+        (b.results.encouragement || b.results.congratulation) && ['comfort', '☻', 'Komfort i bezpieczeństwo', b.results.encouragement || b.results.congratulation],
+      ].filter(Boolean).map(([tone, icon, label, text]) => `<article class="report-result-callout ${tone}"><span class="report-result-callout-icon" aria-hidden="true">${icon}</span><div><b>${esc(label)}</b><p>${esc(text)}</p></div></article>`).join('');
+      const fallback = (b.results.descriptionSections || [{ title: 'Obraz całości', text: b.results.summary, tone: 'overview' }]).map(item => `<article class="report-description-card ${esc(item.tone)}"><b>${esc(item.title)}</b><p>${esc(item.text)}</p></article>`).join('');
+      const description = groups ? `<div class="report-result-groups">${groups}</div>${callouts}` : fallback;
+      sections.push(`<section class="report-section" ${blockAttrs('results')}><p class="report-index">02 / Twój wynik</p><h2>${esc(b.results.title)}</h2><div class="report-description-sections">${description}</div><details class="report-details"><summary>Szczegółowe wyniki wszystkich testów</summary><div class="report-test-grid"><div class="report-test-column">${leftColumn}</div><div class="report-test-column">${rightColumn}</div></div></details></section>`);
     }
     if (visible.has('plan')) {
       const steps = b.plan.steps.map((step, index) => `${index ? '<span class="plan-arrow" aria-hidden="true">→</span>' : ''}<article class="plan-step"><span class="plan-num">0${index + 1}</span><div class="plan-copy"><b>${esc(step.title)}</b>${step.label ? `<small>${esc(step.label)}</small>` : ''}<p>${esc(step.text)}</p></div></article>`).join('');
