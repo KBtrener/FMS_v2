@@ -152,7 +152,7 @@
     if (!groups.some(group => group.title === 'Asymetria')) absentFindings.push('asymetrii');
     if (!tests.some(test => scoreOf(test) === 1)) absentFindings.push('słabych wzorców (wynik 1)');
     const encouragement = absentFindings.length
-      ? `Super, że w Twoim teście nie ma: ${absentFindings.join(', ')}. Dzięki temu budujemy obraz, że coś na pewno jest dobrze.`
+      ? `Super, że w Twoim teście nie ma: ${absentFindings.join(', ')}.`
       : null;
     return {
       generatorVersion: '5.0.0', assessmentId: assessment.assessmentId, client: assessment.client || {}, assessmentDate: assessment.date || '',
