@@ -113,22 +113,6 @@
         : allPain
         ? `W badaniu pojawił się ból w obszarze: ${priority.items.map(nameOf).join(', ')}. To wymaga uwagi w pierwszej kolejności.`
         : `Najwięcej uwagi wymaga ${nameOf(main)}. Pozostałe obserwacje i ich znaczenie opisano poniżej.`;
-    const plan = allPain ? [
-      { title: 'Krok 1', text: summary },
-    ] : [
-      { title: 'Krok 1', text: candidates.length ? `Popraw test ${nameOf(candidates[0])}.` : 'Nie ma obecnie testu oznaczonego do poprawy.' },
-      { title: 'Krok 2', text: 'Wykonaj ponowny test, aby sprawdzić, co się zmieniło.' },
-      { title: 'Krok 3', text: candidates.length > 1
-        ? `Popraw kolejne testy wymagające uwagi: ${candidates.slice(1).map(nameOf).join(', ')}. Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.`
-        : 'Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.' },
-    ];
-    const absentFindings = [];
-    if (!allPainful.length) absentFindings.push('bólu');
-    if (!groups.some(group => group.title === 'Asymetria')) absentFindings.push('asymetrii');
-    if (!tests.some(test => scoreOf(test) === 1)) absentFindings.push('słabych wzorców (wynik 1)');
-    const encouragement = absentFindings.length
-      ? `Super, że w Twoim teście nie ma: ${absentFindings.join(', ')}. Dzięki temu budujemy obraz, że coś na pewno jest dobrze.`
-      : null;
     const descriptionSections = [
       { title: 'Obraz całości', text: summary, tone: 'overview' },
       { title: 'Co działa dobrze', text: positiveNames.length ? `Bez bólu i większych trudności wypadły: ${positiveNames.join(', ')}. Ruchy korzystające z tych wzorców powinny być bezpieczne i nie powinny powodować problemów, o ile nie wywołują bólu.` : 'Nie ma wyników, które można wyróżnić jako bezbolesne i bez większych trudności.', tone: 'good' },
@@ -154,6 +138,22 @@
     const ending = !hasIssue
       ? 'Pełny FMS nie wskazuje obszaru wymagającego poprawy.'
       : 'Po osiągnięciu bezbolesnych, symetrycznych wyników 2 lub 3 wykonaj ponowny test.';
+    const plan = allPain ? [
+      { title: 'Krok 1', text: summary },
+    ] : [
+      { title: 'Krok 1', text: candidates.length ? `Popraw test ${nameOf(candidates[0])}.` : 'Nie ma obecnie testu oznaczonego do poprawy.' },
+      { title: 'Krok 2', text: 'Wykonaj ponowny test, aby sprawdzić, co się zmieniło.' },
+      { title: 'Krok 3', text: candidates.length > 1
+        ? `Popraw kolejne testy wymagające uwagi: ${candidates.slice(1).map(nameOf).join(', ')}. Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.`
+        : 'Jeśli po ponownym teście wszystko będzie dobrze, wróć do sportu, wykonaj testy motoryczne lub przejdź do trudniejszego FMS.' },
+    ];
+    const absentFindings = [];
+    if (!allPainful.length) absentFindings.push('bólu');
+    if (!groups.some(group => group.title === 'Asymetria')) absentFindings.push('asymetrii');
+    if (!tests.some(test => scoreOf(test) === 1)) absentFindings.push('słabych wzorców (wynik 1)');
+    const encouragement = absentFindings.length
+      ? `Super, że w Twoim teście nie ma: ${absentFindings.join(', ')}. Dzięki temu budujemy obraz, że coś na pewno jest dobrze.`
+      : null;
     return {
       generatorVersion: '5.0.0', assessmentId: assessment.assessmentId, client: assessment.client || {}, assessmentDate: assessment.date || '',
       assessmentName, sport, profile, totalScore: assessment.totalScore ?? null, maximum: assessment.maximum ?? null,
