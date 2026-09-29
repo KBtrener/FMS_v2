@@ -132,8 +132,20 @@
     const cervicalSecondTest = cervicalIssue
       ? candidates.find(test => baseCode(codeOf(test)) !== 'cervical') || tests.find(test => baseCode(codeOf(test)) === 'toe_touch') || tests.find(test => baseCode(codeOf(test)) !== 'cervical') || null
       : null;
-    const priorityMessage = allPainful.length
-      ? `Priorytet: najpierw zajmij się bólem w testach: ${allPainful.map(nameOf).join(', ')}.`
+    const painSecondaryTest = allPainful.length
+      ? candidates.find(test => !allPainful.includes(test)) || tests.filter(test => assessable(test) && categoryOf(test) !== 'pain' && !codeOf(test).includes('clearing') && !allPainful.some(painTest => baseCode(codeOf(painTest)) === baseCode(codeOf(test)))).sort((a, b) => {
+        const ai = PRIORITY.indexOf(baseCode(codeOf(a))), bi = PRIORITY.indexOf(baseCode(codeOf(b)));
+        return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi) || Number(a.order || 0) - Number(b.order || 0);
+      })[0] || null
+      : null;
+    const secondWorkTest = allPainful.length ? painSecondaryTest : cervicalSecondTest;
+    const pairedPriorityText = (allPainful.length || cervicalIssue) && secondWorkTest
+      ? `Zajmij się najpierw testem „${allPainful.length ? allPainful.map(nameOf).join('”, „') : nameOf(candidates[0])}”, a równocześnie pracuj nad testem „${nameOf(secondWorkTest)}”. Dzięki temu szybciej osiągniesz swoje cele.`
+      : null;
+    const priorityMessage = pairedPriorityText
+      ? pairedPriorityText
+      : allPainful.length
+        ? `Priorytet: najpierw zajmij się bólem w testach: ${allPainful.map(nameOf).join(', ')}.`
       : cervicalIssue && cervicalSecondTest ? `Priorytet: zacznij od testu ${nameOf(candidates[0])}. Drugim priorytetem jest test ${nameOf(cervicalSecondTest)}.`
         : candidates.length ? `Priorytet: zacznij od testu ${nameOf(candidates[0])}, zgodnie z hierarchią FMS.`
         : 'Priorytet: żaden wynik nie wymaga teraz szczególnej uwagi.';
@@ -144,10 +156,10 @@
       ? 'Pełny FMS nie wskazuje obszaru wymagającego poprawy.'
       : 'Po osiągnięciu bezbolesnych, symetrycznych wyników 2 lub 3 wykonaj ponowny test.';
     const plan = allPain ? [
-      { title: 'Krok 1', text: summary },
+      { title: 'Krok 1', text: pairedPriorityText || summary },
     ] : [
       { title: 'Krok 1', text: cervicalIssue && cervicalSecondTest
-        ? `Popraw test ${nameOf(candidates[0])} oraz drugi test ${nameOf(cervicalSecondTest)}.`
+        ? pairedPriorityText
         : candidates.length ? `Popraw test ${nameOf(candidates[0])}.` : 'Nie ma obecnie testu oznaczonego do poprawy.' },
       { title: 'Krok 2', text: 'Wykonaj ponowny test, aby sprawdzić, co się zmieniło.' },
       { title: 'Krok 3', text: cervicalIssue && cervicalSecondTest
