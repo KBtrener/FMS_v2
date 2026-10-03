@@ -117,8 +117,9 @@ Deno.serve(async request => {
       const { data: assessment, error: assessmentError } = await db.from('assessments').select('assessment_id,client_id,screen_type_id,manual_version,status').eq('assessment_id', input.assessmentId).eq('owner_id', ownerId).single();
       if (assessmentError) throw assessmentError;
       if (assessment.status !== 'completed') return response({ error: 'assessment_not_complete' }, 409);
-      const { data: screenType, error: screenTypeError } = await db.from('screen_types').select('name_pl').eq('screen_type_id', assessment.screen_type_id).single();
+      const { data: screenType, error: screenTypeError } = await db.from('screen_types').select('code,name_pl').eq('screen_type_id', assessment.screen_type_id).single();
       if (screenTypeError) throw screenTypeError;
+      if (screenType.code !== 'quick_screen') return response({ error: 'unsupported_report_protocol' }, 422);
       if (input.resourceIds !== undefined && !Array.isArray(input.resourceIds)) return response({ error: 'invalid_report_resources' }, 400);
       const resources = [...new Set(input.resourceIds || [])];
       if (resources.length) {
@@ -293,7 +294,7 @@ Deno.serve(async request => {
     if (request.method === 'GET' && resultsRoute) {
       const { data: assessment, error: assessmentError } = await db.from('assessments').select('assessment_id,assessment_date,manual_version,client_id,screen_type_id,total_score,max_score,clients!inner(client_id,first_name,last_name,email)').eq('assessment_id', resultsRoute[1]).eq('owner_id', ownerId).eq('status', 'completed').single();
       if (assessmentError) throw assessmentError;
-      const { data: screenType, error: screenTypeError } = await db.from('screen_types').select('name_pl').eq('screen_type_id', assessment.screen_type_id).single();
+      const { data: screenType, error: screenTypeError } = await db.from('screen_types').select('code,name_pl').eq('screen_type_id', assessment.screen_type_id).single();
       if (screenTypeError) throw screenTypeError;
       const { data: answers, error: answersError } = await db.from('assessment_answers').select('answer_id,test_field_id,side,attempt_number,answer_option_id,numeric_value').eq('assessment_id', assessment.assessment_id);
       if (answersError) throw answersError;
@@ -383,7 +384,7 @@ Deno.serve(async request => {
       for (const value of Object.values(finalScores)) totalScore += value;
       const history: Record<string, unknown>[] = [];
       if (assessment.manual_version) {
-        const { data: previous, error: previousError } = await db.from('assessments').select('assessment_id,assessment_date,manual_version').eq('client_id', assessment.client_id).eq('status', 'completed').eq('manual_version', assessment.manual_version).lt('assessment_date', assessment.assessment_date).order('assessment_date', { ascending: false }).limit(3);
+        const { data: previous, error: previousError } = await db.from('assessments').select('assessment_id,assessment_date,manual_version').eq('client_id', assessment.client_id).eq('screen_type_id', assessment.screen_type_id).eq('status', 'completed').eq('manual_version', assessment.manual_version).lt('assessment_date', assessment.assessment_date).order('assessment_date', { ascending: false }).limit(3);
         if (previousError) throw previousError;
         const currentByCode = new Map<string, any>(reportTests.map(test => [String(test.code), test] as [string, any]));
         const currentTestByField = new Map<string, any>();
@@ -435,7 +436,7 @@ Deno.serve(async request => {
       const trendHistory = (sameCategoryHistory || []).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, score: item.assessment_id === assessment.assessment_id ? assessment.total_score ?? totalScore : item.total_score, maximum: item.assessment_id === assessment.assessment_id ? assessment.max_score ?? Object.keys(finalScores).length * 3 : item.max_score }));
       const testNameById = new Map((steps || []).map(item => [item.tests.test_id, item.tests.name_pl || item.tests.name]));
       const notes = (testNotes || []).map(item => ({ testId: item.test_id, testName: testNameById.get(item.test_id) || 'Test', note: item.note }));
-      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history, trendHistory, shoulderMeasurements, notes });
+      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, protocolCode: screenType.code, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history, trendHistory, shoulderMeasurements, notes });
     }
 
     if (request.method === 'GET' && assessmentRoute) {

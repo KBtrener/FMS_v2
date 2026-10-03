@@ -44,10 +44,10 @@ test('edycja zakończonego badania odtwarza i zapisuje odpowiedzi, notatki i pom
   assert.match(migration, /complete_assessment_v2\(p_assessment_id\)/);
 });
 
-test('asymmetric final score is highlighted yellow regardless of score value', () => {
+test('asymmetric final score uses yellow text on transparent background', () => {
   const app = read('js/app.js');
   const css = read('css/app.css');
   assert.match(app, /const asymmetric=r\.leftScore!==null&&r\.leftScore!==undefined&&r\.rightScore!==null&&r\.rightScore!==undefined/);
   assert.match(app, /asymmetric\?'asymmetric'/);
-  assert.match(css, /\.numeric-final\.asymmetric\{[^}]*#FFF1BD/);
+  assert.match(css, /\.numeric-final\.asymmetric\{[^}]*color:var\(--amber\);background:transparent/);
 });
