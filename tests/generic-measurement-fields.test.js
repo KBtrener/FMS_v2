@@ -16,8 +16,8 @@ test('ogólne pomiary obsługują wartości dziesiętne, jednostki, strony i opc
   assert.match(migration, /field_type = 'measurement'/);
   assert.match(app, /data-measurement-field/);
   assert.match(app, /fieldMeasurements\[`\$\{e\.target\.dataset\.measurementField\}:\$\{e\.target\.dataset\.side\}`\]=e\.target\.value/);
-  assert.match(app, /fieldMeasurements, notes, shoulderMeasurements/);
-  assert.match(app, /measurementAnswers\.push\(\{ fieldId: field\.id, side, attemptNumber: 1, value: Number\(value\), unit: field\.measurementUnit \}\)/);
+  assert.match(app, /fieldMeasurements, fieldMeasurementUnits, notes, shoulderMeasurements/);
+  assert.match(app, /measurementAnswers\.push\(\{ fieldId: field\.id, side, attemptNumber: 1, value: Number\(value\), unit: fieldMeasurementUnits\[field\.measurementUnitGroup\] \|\| field\.measurementUnit \}\)/);
   assert.match(app, /record\.assessment_field_measurements/);
   assert.match(api, /measurementUnit: field\.measurement_unit/);
   assert.match(api, /assessment_field_measurements/);

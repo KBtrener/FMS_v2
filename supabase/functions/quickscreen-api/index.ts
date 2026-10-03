@@ -1,4 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import '../../../js/fms-protocol.js';
+
+const FmsProtocol = (globalThis as any).FmsProtocol;
 
 const url = Deno.env.get('SUPABASE_URL')!;
 const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -11,6 +14,34 @@ const headers = {
 };
 
 const response = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
+
+async function validateFmsMcsPayload(db: any, screenTypeId: string, input: any) {
+  const { data: fields, error } = await db.from('test_fields').select('test_field_id,code,measurement_unit,measurement_unit_group,screen_tests!inner(screen_type_id)').eq('screen_tests.screen_type_id', screenTypeId);
+  if (error) throw error;
+  const fieldById = new Map((fields || []).map((field: any) => [field.test_field_id, field]));
+  const mcsUnits = new Set((input.fieldMeasurements || [])
+    .filter((item: any) => fieldById.get(item.fieldId)?.measurement_unit_group === 'fms-foot')
+    .map((item: any) => item.unit));
+  if (mcsUnits.size > 1) throw new Error('Pomiary MCS muszą używać tej samej jednostki.');
+  const measurements = new Map((input.fieldMeasurements || []).map((item: any) => [fieldById.get(item.fieldId)?.code, item]));
+  const answers = new Map((input.answers || []).map((item: any) => [fieldById.get(item.fieldId)?.code, item]));
+  const value = (code: string) => {
+    const item: any = measurements.get(code);
+    return item?.value == null || item.value === '' ? null : Number(item.value);
+  };
+  const skipped = (code: string) => (answers.get(code) as any)?.answerId === 'option_fms_yes';
+  const message = FmsProtocol.validateCompletion({
+    lowerSkipped: skipped('fms_lower_body_mcs_skipped'),
+    lowerLength: value('fms_lower_body_mcs_foot_length'),
+    lowerLeft: value('fms_lower_body_mcs_distance_left'),
+    lowerRight: value('fms_lower_body_mcs_distance_right'),
+    upperSkipped: skipped('fms_upper_body_mcs_skipped'),
+    upperLength: value('fms_upper_body_mcs_foot_length'),
+    upperLeft: value('fms_upper_body_mcs_distance_left'),
+    upperRight: value('fms_upper_body_mcs_distance_right'),
+  });
+  if (message) throw new Error(message);
+}
 
 function assessmentIndicator(answers: any[] = []) {
   let hasPain = false;
@@ -183,6 +214,11 @@ Deno.serve(async request => {
           sideMode: field.side_mode,
           attemptMode: field.attempt_mode,
           scoring: field.is_scoring_input,
+          wizardInput: field.is_wizard_input || false,
+          controlType: field.control_type || 'choices',
+          measurementUnitOptions: field.measurement_unit_options || [],
+          measurementUnitGroup: field.measurement_unit_group || null,
+          disabledByFieldCode: (step.test_fields || []).find((candidate: any) => candidate.test_field_id === field.disabled_by_test_field_id)?.code || null,
           required: field.field_type === 'measurement' ? field.is_required : field.is_scoring_input,
           measurementUnit: field.measurement_unit || null,
           measurementMin: field.measurement_min,
@@ -194,7 +230,7 @@ Deno.serve(async request => {
         }));
         return { id: step.screen_test_id, order: step.sort_order, calculation: step.calculation_type, parentId: step.parent_screen_test_id, test: { id: test.test_id, code: test.code, name: locale === 'en' ? test.name_en : test.name_pl, originalEnglishName: test.name_en, criteriaSummary: test.criteria_summary, description: descriptionByTest.get(test.test_id) || null }, fields };
       });
-      return response({ id: scenario.screen_type_id, code: scenario.code, name: locale === 'en' ? scenario.name_en : scenario.name_pl, manualVersion: descriptions?.[0]?.manual_version || null, steps: result });
+      return response({ id: scenario.screen_type_id, code: scenario.code, name: locale === 'en' ? scenario.name_en : scenario.name_pl, manualVersion: descriptions?.[0]?.manual_version || (scenario.code === 'fms' ? 'FMS-CUSTOM-2026-01' : null), steps: result });
     }
 
     if (request.method === 'GET' && route === '/clients') {
@@ -469,7 +505,68 @@ Deno.serve(async request => {
       const trendHistory = (sameCategoryHistory || []).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, score: item.assessment_id === assessment.assessment_id ? assessment.total_score ?? totalScore : item.total_score, maximum: item.assessment_id === assessment.assessment_id ? assessment.max_score ?? Object.keys(finalScores).length * 3 : item.max_score }));
       const testNameById = new Map((steps || []).map(item => [item.tests.test_id, item.tests.name_pl || item.tests.name]));
       const notes = (testNotes || []).map(item => ({ testId: item.test_id, testName: testNameById.get(item.test_id) || 'Test', note: item.note }));
-      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, protocolCode: screenType.code, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history, trendHistory, shoulderMeasurements, notes });
+      let fms: any = null;
+      if (screenType.code === 'fms') {
+        const answerCode = (fieldCode: string, side: string) => {
+          const field = (steps || []).flatMap((step: any) => step.test_fields || []).find((item: any) => item.code === fieldCode);
+          const answer = (answers || []).find((item: any) => item.test_field_id === field?.test_field_id && item.side === side);
+          return field?.answer_sets?.answer_options?.find((item: any) => item.answer_option_id === answer?.answer_option_id)?.code || null;
+        };
+        const answerValue = (fieldCode: string, side: string) => {
+          const field = (steps || []).flatMap((step: any) => step.test_fields || []).find((item: any) => item.code === fieldCode);
+          const answer = (answers || []).find((item: any) => item.test_field_id === field?.test_field_id && item.side === side);
+          return answer?.numeric_value ?? null;
+        };
+        const measure = (fieldCode: string) => {
+          const field = (steps || []).flatMap((step: any) => step.test_fields || []).find((item: any) => item.code === fieldCode);
+          const saved = (fieldMeasurements || []).find((item: any) => item.test_field_id === field?.test_field_id);
+          return saved ? { value: Number(saved.numeric_value), unit: saved.unit } : { value: null, unit: field?.measurement_unit || null };
+        };
+        const scoreState: Record<string, any> = {};
+        for (const protocolTest of FmsProtocol.MAIN_TESTS) {
+          const code = `${protocolTest.code}_score`;
+          scoreState[protocolTest.key] = protocolTest.bilateral
+            ? { left: answerValue(code, 'left'), right: answerValue(code, 'right') }
+            : { score: answerValue(code, 'none') };
+          if (protocolTest.key === 'shoulderMobility') Object.assign(scoreState[protocolTest.key], { painLeft: answerCode('fms_shoulder_mobility_pain', 'left') === 'positive', painRight: answerCode('fms_shoulder_mobility_pain', 'right') === 'positive' });
+          if (protocolTest.key === 'trunkStabilityPushUp') scoreState[protocolTest.key].pain = answerCode('fms_trunk_stability_push_up_pain', 'none') === 'positive';
+          if (protocolTest.key === 'rotaryStability') Object.assign(scoreState[protocolTest.key], { painLeft: answerCode('fms_rotary_stability_pain', 'left') === 'positive', painRight: answerCode('fms_rotary_stability_pain', 'right') === 'positive' });
+        }
+        const summary = FmsProtocol.summarize(scoreState);
+        const mainTests = summary.tests.map((item: any) => {
+          const raw = scoreState[item.key];
+          const clearing = item.key === 'shoulderMobility' ? 'Shoulder Clearing' : item.key === 'trunkStabilityPushUp' ? 'Extension Clearing' : item.key === 'rotaryStability' ? 'Flexion Clearing' : null;
+          const fieldCode = `${item.code}_score`;
+          const step = (steps || []).find((candidate: any) => candidate.tests.code === item.code);
+          const issues = (step?.test_fields || []).filter((field: any) => field.code.includes('_issue_'))
+            .flatMap((field: any) => (answers || []).filter((answer: any) => answer.test_field_id === field.test_field_id && answer.answer_option_id === 'option_fms_yes')
+              .map((answer: any) => ({ label: field.label_pl, side: answer.side })));
+          return { ...item, leftScore: raw.left ?? null, rightScore: raw.right ?? null, score: raw.score ?? null, pain: item.pain ? item.key === 'trunkStabilityPushUp' ? raw.pain : raw.painLeft || raw.painRight : false, clearing, issues };
+        });
+        const tibiaLength = measure('fms_hurdle_step_tibia_length');
+        const handLength = measure('fms_shoulder_mobility_hand_length');
+        const lowerLength = measure('fms_lower_body_mcs_foot_length');
+        const upperLength = measure('fms_upper_body_mcs_foot_length');
+        const lowerLeft = measure('fms_lower_body_mcs_distance_left');
+        const lowerRight = measure('fms_lower_body_mcs_distance_right');
+        const upperLeft = measure('fms_upper_body_mcs_distance_left');
+        const upperRight = measure('fms_upper_body_mcs_distance_right');
+        const lowerSkipped = answerCode('fms_lower_body_mcs_skipped', 'none') === 'positive';
+        const upperSkipped = answerCode('fms_upper_body_mcs_skipped', 'none') === 'positive';
+        const footLength = lowerLength.value ?? upperLength.value;
+        const footUnit = lowerLength.value != null ? lowerLength.unit : upperLength.unit;
+        const ankle = { left: answerCode('fms_ankle_mobility_stoplight', 'left'), right: answerCode('fms_ankle_mobility_stoplight', 'right'), painLeft: answerCode('fms_ankle_mobility_pain', 'left') === 'positive', painRight: answerCode('fms_ankle_mobility_pain', 'right') === 'positive' };
+        const problems = mainTests.flatMap(item => item.issues.length ? [{ test: item.title, items: item.issues }] : []);
+        fms = {
+          totalScore: summary.totalScore, maximum: 21, mainTests, asymmetries: summary.asymmetries,
+          elevatedRisk: summary.totalScore !== null && summary.totalScore <= 14 || summary.asymmetries.length > 0,
+          problems, ankle,
+          measurements: { tibiaLength, handLength, footLength: { value: footLength, unit: footUnit } },
+          lowerBodyMcs: { skipped: lowerSkipped, footLength: lowerLength, left: lowerLeft, right: lowerRight, result: lowerSkipped ? null : FmsProtocol.mcs(lowerLength.value, lowerLeft.value, lowerRight.value, lowerLength.unit) },
+          upperBodyMcs: { skipped: upperSkipped, footLength: upperLength.value == null ? lowerLength : upperLength, left: upperLeft, right: upperRight, result: upperSkipped ? null : FmsProtocol.mcs(upperLength.value ?? lowerLength.value, upperLeft.value, upperRight.value, upperLength.value == null ? lowerLength.unit : upperLength.unit) },
+        };
+      }
+      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, protocolCode: screenType.code, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history, trendHistory, shoulderMeasurements, notes, ...(fms ? { fms } : {}) });
     }
 
     if (request.method === 'GET' && assessmentRoute) {
@@ -485,6 +582,7 @@ Deno.serve(async request => {
       const { data: assessment, error: assessmentError } = await db.from('assessments').select('screen_type_id,screen_types!inner(code)').eq('assessment_id', assessmentRoute[1]).eq('owner_id', ownerId).single();
       if (assessmentError) throw assessmentError;
       const isQuickScreen = assessment.screen_types?.code === 'quick_screen';
+      if (assessment.screen_types?.code === 'fms') await validateFmsMcsPayload(db, assessment.screen_type_id, input);
       const { data, error } = isQuickScreen
         ? await db.rpc('edit_assessment_v2', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
         : await db.rpc('edit_assessment_v3', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
@@ -498,6 +596,7 @@ Deno.serve(async request => {
       const notes = Object.entries(input.notes || {}).map(([testId, note]) => ({ testId, note: String(note || '') }));
       const { data: protocol, error: protocolError } = await db.from('screen_types').select('code').eq('screen_type_id', input.scenarioId).single();
       if (protocolError) throw protocolError;
+      if (protocol.code === 'fms') await validateFmsMcsPayload(db, input.scenarioId, input);
       const { data, error } = protocol.code === 'quick_screen'
         ? await db.rpc('submit_assessment_v2', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
         : await db.rpc('submit_assessment_v3', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
