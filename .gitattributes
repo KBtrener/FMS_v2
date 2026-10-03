@@ -7,3 +7,5 @@
 *.css text eol=lf
 *.pdf binary
 *.zip binary
+ # Keep captured production JavaScript verbatim/readable; upstream contains intentional trailing whitespace.
+sources/live-protocol-reference/fms-sfma/*.js -whitespace
