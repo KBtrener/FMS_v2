@@ -258,6 +258,24 @@ Deno.serve(async request => {
     }
 
     const clientRoute = route.match(/^\/clients\/([^/]+)$/);
+    if (request.method === 'PATCH' && clientRoute) {
+      const input = await request.json();
+      const firstName = String(input.firstName || '').trim();
+      const lastName = String(input.lastName || '').trim();
+      const email = String(input.email || '').trim().toLocaleLowerCase('en');
+      const discipline = String(input.discipline || '').trim();
+      if (!firstName || !lastName || firstName.length > 100 || lastName.length > 100 || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || discipline.length > 120) return response({ error: 'invalid_client' }, 422);
+      const { data, error } = await db.from('clients').update({ first_name: firstName, last_name: lastName, email }).eq('client_id', clientRoute[1]).eq('owner_id', ownerId).select('client_id,first_name,last_name,email').maybeSingle();
+      if (error) throw error;
+      if (!data) return response({ error: 'client_not_found' }, 404);
+      const { error: clearPrimaryError } = await db.from('client_disciplines').update({ is_primary: false }).eq('client_id', data.client_id);
+      if (clearPrimaryError) throw clearPrimaryError;
+      if (discipline) {
+        const { error: disciplineError } = await db.from('client_disciplines').upsert({ client_id: data.client_id, discipline, is_primary: true }, { onConflict: 'client_id,discipline' });
+        if (disciplineError) throw disciplineError;
+      }
+      return response({ clientId: data.client_id, firstName: data.first_name, lastName: data.last_name, email: data.email, discipline });
+    }
     if (request.method === 'GET' && clientRoute) {
       const { data, error } = await db.from('clients').select('client_id,first_name,last_name,email,is_archived,created_at').eq('client_id', clientRoute[1]).eq('owner_id', ownerId).single();
       if (error) throw error;
