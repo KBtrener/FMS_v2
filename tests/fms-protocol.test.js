@@ -31,3 +31,11 @@ test('MCS stosuje progi z referencyjnej funkcji PASS/FAIL i respektuje pominięc
   assert.equal(Fms.validateCompletion({ lowerSkipped: true, upperSkipped: true }), null);
   assert.match(Fms.validateCompletion({ lowerSkipped: false, lowerLength: 10, lowerLeft: null, lowerRight: 25 }), /Lower Body MCS/);
 });
+
+test('Shoulder Mobility wylicza score z odległości do długości dłoni i akceptuje przecinek dziesiętny', () => {
+  assert.equal(Fms.shoulderMobilityScore('20', '20'), 3);
+  assert.equal(Fms.shoulderMobilityScore('21,5', '20'), 2);
+  assert.equal(Fms.shoulderMobilityScore('30.1', '20'), 1);
+  assert.equal(Fms.shoulderMobilityScore('-1', '20'), null);
+  assert.equal(Fms.shoulderMobilityScore('10', '0'), null);
+});

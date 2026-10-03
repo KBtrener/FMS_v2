@@ -43,6 +43,21 @@
     return left > 2 * length && right > 2 * length && Math.abs(left - right) <= tolerance ? 'PASS' : 'FAIL';
   }
 
+  function parseMeasurement(value) {
+    if (value === '' || value == null) return null;
+    const parsed = Number(String(value).trim().replace(',', '.'));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function shoulderMobilityScore(distance, handLength) {
+    const gap = parseMeasurement(distance);
+    const hand = parseMeasurement(handLength);
+    if (gap == null || hand == null || gap < 0 || hand <= 0) return null;
+    if (gap <= hand) return 3;
+    if (gap <= 1.5 * hand) return 2;
+    return 1;
+  }
+
   function validateCompletion({ lowerSkipped, lowerLength, lowerLeft, lowerRight, upperSkipped, upperLength, upperLeft, upperRight }) {
     if (!lowerSkipped && !(lowerLength > 0 && lowerLeft != null && lowerRight != null)) return 'Uzupełnij Lower Body MCS albo oznacz test jako niewykonany.';
     const effectiveUpperLength = upperLength ?? lowerLength;
@@ -50,7 +65,7 @@
     return null;
   }
 
-  const api = Object.freeze({ MAIN_TESTS, ADDITIONAL_TESTS, finalScore, summarize, mcs, validateCompletion });
+  const api = Object.freeze({ MAIN_TESTS, ADDITIONAL_TESTS, finalScore, summarize, mcs, validateCompletion, parseMeasurement, shoulderMobilityScore });
   globalThis.FmsProtocol = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })();

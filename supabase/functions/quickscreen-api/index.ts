@@ -15,7 +15,7 @@ const headers = {
 
 const response = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
 
-async function validateFmsMcsPayload(db: any, screenTypeId: string, input: any) {
+async function validateFmsMcsPayload(db: any, screenTypeId: string, input: any, allowLegacyShoulder = false) {
   const { data: fields, error } = await db.from('test_fields').select('test_field_id,code,measurement_unit,measurement_unit_group,screen_tests!inner(screen_type_id)').eq('screen_tests.screen_type_id', screenTypeId);
   if (error) throw error;
   const fieldById = new Map((fields || []).map((field: any) => [field.test_field_id, field]));
@@ -29,6 +29,15 @@ async function validateFmsMcsPayload(db: any, screenTypeId: string, input: any) 
     const item: any = measurements.get(code);
     return item?.value == null || item.value === '' ? null : Number(item.value);
   };
+  const shoulderField = [...fieldById.entries()].find(([, field]: any) => field.code === 'fms_shoulder_mobility_distance')?.[0];
+  const shoulderMeasurements = (input.fieldMeasurements || []).filter((item: any) => item.fieldId === shoulderField);
+  if (!allowLegacyShoulder || shoulderMeasurements.length) {
+    const handLength = value('fms_shoulder_mobility_hand_length');
+    if (!(handLength > 0)) throw new Error('Shoulder Mobility – brak długości dłoni.');
+    for (const side of ['left', 'right']) if (!shoulderMeasurements.some((item: any) => item.side === side && Number(item.value) >= 0)) {
+      throw new Error(`Shoulder Mobility – brak pomiaru ${side === 'left' ? 'lewej' : 'prawej'} strony.`);
+    }
+  }
   const skipped = (code: string) => (answers.get(code) as any)?.answerId === 'option_fms_yes';
   const message = FmsProtocol.validateCompletion({
     lowerSkipped: skipped('fms_lower_body_mcs_skipped'),
@@ -218,6 +227,13 @@ Deno.serve(async request => {
           controlType: field.control_type || 'choices',
           measurementUnitOptions: field.measurement_unit_options || [],
           measurementUnitGroup: field.measurement_unit_group || null,
+          measurementRole: field.measurement_role || 'value',
+          measurementSharedKey: field.measurement_shared_key || null,
+          measurementSharedSourceFieldId: field.measurement_shared_source_field_id || null,
+          measurementSide: field.measurement_side || null,
+          derivedScoreRule: field.derived_score_rule || null,
+          derivedMeasurementFieldId: field.derived_measurement_field_id || null,
+          derivedReferenceFieldId: field.derived_reference_field_id || null,
           disabledByFieldCode: (step.test_fields || []).find((candidate: any) => candidate.test_field_id === field.disabled_by_test_field_id)?.code || null,
           required: field.field_type === 'measurement' ? field.is_required : field.is_scoring_input,
           measurementUnit: field.measurement_unit || null,
@@ -234,7 +250,7 @@ Deno.serve(async request => {
     }
 
     if (request.method === 'GET' && route === '/clients') {
-      const { data, error } = await db.from('clients').select('client_id,first_name,last_name,email,is_archived,created_at,client_disciplines(discipline,is_primary),assessments(assessment_id,assessment_date,created_at,status,total_score,max_score)').eq('owner_id', ownerId).order('last_name').order('first_name');
+      const { data, error } = await db.from('clients').select('client_id,first_name,last_name,email,is_archived,created_at,client_disciplines(discipline,is_primary),assessments(assessment_id,assessment_date,created_at,status,total_score,max_score,screen_types(code))').eq('owner_id', ownerId).order('last_name').order('first_name');
       if (error) throw error;
       const assessmentIds = (data || []).flatMap(client => (client.assessments || []).filter(item => item.status === 'completed').map(item => item.assessment_id));
       const indicators = new Map<string, string>();
@@ -249,7 +265,7 @@ Deno.serve(async request => {
       return response((data || []).filter(client => !client.is_archived && (!term || `${client.first_name} ${client.last_name} ${client.email}`.toLocaleLowerCase('pl').includes(term))).map(client => {
         const byRecentAssessment = (a: any, b: any) => b.assessment_date.localeCompare(a.assessment_date) || b.created_at.localeCompare(a.created_at);
         const latest = [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment)[0];
-        return { clientId: client.client_id, firstName: client.first_name, lastName: client.last_name, email: client.email, isArchived: client.is_archived, createdAt: client.created_at, discipline: [...(client.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', latestAssessment: latest ? { id: latest.assessment_id, date: latest.assessment_date, status: latest.status, indicator: indicators.get(latest.assessment_id) || 'ok', score: latest.total_score, maximum: latest.max_score } : null, history: [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, status: item.status, indicator: indicators.get(item.assessment_id) || 'ok', score: item.total_score, maximum: item.max_score })) };
+        return { clientId: client.client_id, firstName: client.first_name, lastName: client.last_name, email: client.email, isArchived: client.is_archived, createdAt: client.created_at, discipline: [...(client.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', latestAssessment: latest ? { id: latest.assessment_id, date: latest.assessment_date, status: latest.status, indicator: indicators.get(latest.assessment_id) || 'ok', score: latest.total_score, maximum: latest.max_score } : null, history: [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, status: item.status, indicator: indicators.get(item.assessment_id) || 'ok', score: item.total_score, maximum: item.max_score, protocolCode: item.screen_types?.code || 'quick_screen' })) };
       }));
     }
 
@@ -541,7 +557,9 @@ Deno.serve(async request => {
           const issues = (step?.test_fields || []).filter((field: any) => field.code.includes('_issue_'))
             .flatMap((field: any) => (answers || []).filter((answer: any) => answer.test_field_id === field.test_field_id && answer.answer_option_id === 'option_fms_yes')
               .map((answer: any) => ({ label: field.label_pl, side: answer.side })));
-          return { ...item, leftScore: raw.left ?? null, rightScore: raw.right ?? null, score: raw.score ?? null, pain: item.pain ? item.key === 'trunkStabilityPushUp' ? raw.pain : raw.painLeft || raw.painRight : false, clearing, issues };
+          const fmsMeasurements = (step?.test_fields || []).filter((field: any) => field.field_type === 'measurement').flatMap((field: any) =>
+            (fieldMeasurements || []).filter((saved: any) => saved.test_field_id === field.test_field_id).map((saved: any) => ({ label: field.label_pl, value: Number(saved.numeric_value), unit: saved.unit, side: saved.side, role: field.measurement_role || 'value' })));
+          return { ...item, leftScore: raw.left ?? null, rightScore: raw.right ?? null, score: raw.score ?? null, pain: item.pain ? item.key === 'trunkStabilityPushUp' ? raw.pain : raw.painLeft || raw.painRight : false, clearing, issues, measurements: fmsMeasurements };
         });
         const tibiaLength = measure('fms_hurdle_step_tibia_length');
         const handLength = measure('fms_shoulder_mobility_hand_length');
@@ -582,7 +600,7 @@ Deno.serve(async request => {
       const { data: assessment, error: assessmentError } = await db.from('assessments').select('screen_type_id,screen_types!inner(code)').eq('assessment_id', assessmentRoute[1]).eq('owner_id', ownerId).single();
       if (assessmentError) throw assessmentError;
       const isQuickScreen = assessment.screen_types?.code === 'quick_screen';
-      if (assessment.screen_types?.code === 'fms') await validateFmsMcsPayload(db, assessment.screen_type_id, input);
+      if (assessment.screen_types?.code === 'fms') await validateFmsMcsPayload(db, assessment.screen_type_id, input, true);
       const { data, error } = isQuickScreen
         ? await db.rpc('edit_assessment_v2', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
         : await db.rpc('edit_assessment_v3', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
