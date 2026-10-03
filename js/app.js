@@ -38,7 +38,7 @@
   function uiMode(step) {
     const fields = step.fields || [];
     if (step.test.code === 'shoulder_clearing') return 'shoulder';
-    const numeric = fields.some(field => field.answerSet.code === 'score_0_3');
+    const numeric = fields.some(field => field.answerSet?.code === 'score_0_3');
     if (numeric) return fields.some(field => field.sideMode === 'bilateral') ? 'score' : 'single-score';
     const hasPain = fields.some(field => /pain|bol/i.test(field.code));
     const hasRange = fields.some(field => /range|zakres/i.test(field.code));
@@ -93,7 +93,7 @@
       try { savedHandLength = (await apiRequest(`/clients/${encodeURIComponent(selectedClient.id)}/shoulder-hand-length?screenTypeId=${encodeURIComponent(definition.id)}`)).handLengthCm; } catch {}
     }
     activeAssessment = { assessmentId: crypto.randomUUID(), clientId: selectedClient.id, screenTypeId: protocol.screenTypeId, date: dateValue, manualVersion: definition.manualVersion };
-    scores = {}; notes = {}; shoulderAutoScores = {}; shoulderMeasurements = { handLengthCm: savedHandLength ?? '', gaps: { left: '', right: '' } }; wizardIndex = 0;
+    scores = {}; fieldMeasurements = {}; notes = {}; shoulderAutoScores = {}; shoulderMeasurements = { handLengthCm: savedHandLength ?? '', gaps: { left: '', right: '' } }; wizardIndex = 0;
     saveLocalDraft();
     setRoute('assessment/1');
   }
@@ -108,7 +108,7 @@
   function removeLocalDraft() { localStorage.removeItem(draftKey()); }
   function saveLocalDraft() {
     if (!activeAssessment || !authSession?.access_token) return;
-    localStorage.setItem(draftKey(), JSON.stringify({ savedAt: Date.now(), assessment: activeAssessment, client: selectedClient, scores, notes, shoulderMeasurements, wizardIndex }));
+    localStorage.setItem(draftKey(), JSON.stringify({ savedAt: Date.now(), assessment: activeAssessment, client: selectedClient, scores, fieldMeasurements, notes, shoulderMeasurements, wizardIndex }));
   }
   async function restoreLocalDraft(draft) {
     const protocolId = draft.assessment.screenTypeId || screenTypes.find(item => item.code === 'quick_screen')?.screenTypeId;
@@ -116,7 +116,7 @@
     draft.assessment.screenTypeId = protocolId;
     selectedScreenTypeId = protocolId;
     await loadScenarioDefinition(protocolId);
-    activeAssessment = draft.assessment; selectedClient = draft.client; scores = draft.scores || {}; notes = draft.notes || {}; shoulderMeasurements = { handLengthCm: draft.shoulderMeasurements?.handLengthCm ?? '', gaps: { left: draft.shoulderMeasurements?.gaps?.left ?? '', right: draft.shoulderMeasurements?.gaps?.right ?? '' } }; shoulderAutoScores = {}; wizardIndex = Number(draft.wizardIndex) || 0;
+    activeAssessment = draft.assessment; selectedClient = draft.client; scores = draft.scores || {}; fieldMeasurements = draft.fieldMeasurements || {}; notes = draft.notes || {}; shoulderMeasurements = { handLengthCm: draft.shoulderMeasurements?.handLengthCm ?? '', gaps: { left: draft.shoulderMeasurements?.gaps?.left ?? '', right: draft.shoulderMeasurements?.gaps?.right ?? '' } }; shoulderAutoScores = {}; wizardIndex = Number(draft.wizardIndex) || 0;
     setRoute(`assessment/${wizardIndex + 1}`);
   }
   async function offerResumeDraft() {
@@ -137,6 +137,15 @@
       }
     }
     const testNotes = Object.fromEntries(Object.entries(notes).map(([index, note]) => [tests[Number(index)-1]?.definition.test.id, note]).filter(([id]) => id));
+    const measurementAnswers = [];
+    for (const test of tests) for (const field of test.definition.fields.filter(item => item.fieldType === 'measurement')) {
+      for (const side of field.sideMode === 'bilateral' ? ['left', 'right'] : ['none']) {
+        const value = fieldMeasurements[`${field.code}:${side}`];
+        if (value !== '' && value !== null && value !== undefined && Number.isFinite(Number(value))) {
+          measurementAnswers.push({ fieldId: field.id, side, attemptNumber: 1, value: Number(value), unit: field.measurementUnit });
+        }
+      }
+    }
     const measurements = [];
     const handLength = Number(shoulderMeasurements.handLengthCm);
     if (shoulderMeasurements.handLengthCm !== '' && Number.isFinite(handLength) && handLength > 0) measurements.push({ measurementCode: 'shoulder_hand_length', side: 'none', valueCm: handLength });
@@ -145,9 +154,9 @@
       const gap = Number(rawGap);
       if (rawGap !== '' && Number.isFinite(gap) && gap >= 0) measurements.push({ measurementCode: 'shoulder_fist_gap', side, valueCm: gap });
     }
-    return { assessmentId: activeAssessment.assessmentId, clientId: activeAssessment.clientId, scenarioId: activeAssessment.screenTypeId || currentScenario.id, date: activeAssessment.date, manualVersion: activeAssessment.manualVersion || currentScenario.manualVersion, answers, notes: testNotes, measurements };
+    return { assessmentId: activeAssessment.assessmentId, clientId: activeAssessment.clientId, scenarioId: activeAssessment.screenTypeId || currentScenario.id, date: activeAssessment.date, manualVersion: activeAssessment.manualVersion || currentScenario.manualVersion, answers, notes: testNotes, measurements, fieldMeasurements: measurementAnswers };
   }
-  function firstMissingEditAnswer(){for(const test of tests)for(const field of test.definition.fields.filter(item=>item.scoring))for(const side of field.sideMode==='bilateral'?['left','right']:['none'])if(scores[`${field.code}:${side}`]==null)return field.label;return null;}
+  function firstMissingEditAnswer(){for(const test of tests)for(const field of test.definition.fields.filter(item=>item.required||item.scoring))for(const side of field.sideMode==='bilateral'?['left','right']:['none']){const value=field.fieldType==='measurement'?fieldMeasurements[`${field.code}:${side}`]:scores[`${field.code}:${side}`];if(value==null||value==='')return field.label;}return null;}
   let editReturnRoute = null;
   async function saveAssessmentEdit() {
     if (!isEditingAssessment || !activeAssessment) return;
@@ -187,10 +196,15 @@
     selectedClient = { id: record.clients.client_id, name: `${record.clients.first_name} ${record.clients.last_name}`, email: record.clients.email };
     activeAssessment = { assessmentId: record.assessment_id, clientId: record.client_id, screenTypeId: record.screen_type_id, date: record.assessment_date, manualVersion: record.manual_version };
     scores = {};
+    fieldMeasurements = {};
     for (const answer of record.assessment_answers || []) {
       const field = tests.flatMap(test => test.definition.fields).find(item => item.id === answer.test_field_id);
       const option = field?.answers.find(item => item.id === answer.answer_option_id);
       if (field && option) scores[`${field.code}:${answer.side}`] = field.answerSet.code === 'score_0_3' ? option.value : option.code;
+    }
+    for (const measurement of record.assessment_field_measurements || []) {
+      const field = tests.flatMap(test => test.definition.fields).find(item => item.id === measurement.test_field_id);
+      if (field) fieldMeasurements[`${field.code}:${measurement.side}`] = String(measurement.numeric_value);
     }
     notes = Object.fromEntries(tests.flatMap((test, index) => (record.assessment_test_notes || []).filter(note => note.test_id === test.definition.test.id).map(note => [String(index + 1), note.note])));
     const measurements = record.assessment_measurements || [];
@@ -226,6 +240,7 @@
   let selectedClient = null;
   let searchText = '';
   let scores = {};
+  let fieldMeasurements = {};
   let notes = {};
   let shoulderMeasurements = { handLengthCm: '', gaps: { left: '', right: '' } };
   let shoulderAutoScores = {};
@@ -336,10 +351,16 @@
     }
   }
   function testFields(test,index) {
-    const fields=test.definition.fields.filter(field=>field.scoring);
+    const fields=test.definition.fields.filter(field=>field.scoring&&field.fieldType!=='measurement');
+    const measurementFields=test.definition.fields.filter(field=>field.fieldType==='measurement');
     if(test.key==='shoulder_mobility') syncShoulderAutoScores(false);
     const renderField=(field,side)=>{const key=`${field.code}:${side}`;const numeric=field.answerSet.code==='score_0_3';const derived=numeric&&test.key==='shoulder_mobility'&&window.QuickScreenShoulderMeasurements.score(shoulderMeasurements.handLengthCm,shoulderMeasurements.gaps[side])!==null;return `<div class="field-control"><span class="field-label">${esc(field.label)}</span><div class="${numeric?'score-options':'binary-options'}">${field.answers.map(answer=>{const selected=String(scores[key])===String(numeric?answer.value:answer.code);const tone=/positive|pain|yes|fail/i.test(answer.code)?'pain':'pass';return `<button type="button" class="${numeric?'score-option':'binary-option'} ${selected?`selected ${numeric?'':tone}`:''}" data-key="${esc(key)}" data-value="${esc(answer.code)}" ${numeric?`data-score="${answer.value}"`:''} ${derived?'disabled title="Wynik wyliczony z pomiarów"':''} aria-pressed="${selected}">${numeric?`<span class="n">${esc(answer.value)}</span>`:''}<span>${esc(answer.label)}</span></button>`}).join('')}</div></div>`;};
-    const groups=fields.some(field=>field.sideMode==='bilateral')?['left','right']:['none'];
+    const groups=fields.some(field=>field.sideMode==='bilateral')||measurementFields.some(field=>field.sideMode==='bilateral')?['left','right']:['none'];
+    if (measurementFields.length) {
+      const renderMeasurement=(field,side)=>{const key=`${field.code}:${side}`;const value=fieldMeasurements[key]??'';const id=`measurement-${field.id}-${side}`;const bounds=`${field.measurementMin!=null?` min="${esc(field.measurementMin)}"`:''}${field.measurementMax!=null?` max="${esc(field.measurementMax)}"`:''}${field.measurementStep!=null?` step="${esc(field.measurementStep)}"`:' step="any"'}`;return `<label class="field-control" for="${esc(id)}"><span class="field-label">${esc(field.label)}${field.required?' *':''}</span><span class="measurement-input-wrap"><input id="${esc(id)}" type="number" inputmode="decimal"${bounds} data-measurement-field="${esc(field.code)}" data-side="${side}" value="${esc(value)}"><span class="measurement-unit">${esc(field.measurementUnit)}</span></span>${field.helpText?`<small>${esc(field.helpText)}</small>`:''}</label>`;};
+      const sides=measurementFields.concat(fields).some(field=>field.sideMode==='bilateral')?['left','right']:['none'];
+      return `<div class="sides ${sides.length===1?'single-field':''}">${sides.map((side,index)=>`<article class="side-card"><h3>${side==='left'?'Lewa strona':side==='right'?'Prawa strona':'Wynik testu'}</h3>${fields.map(field=>field.sideMode==='bilateral'?renderField(field,side):!sides.includes('left')||index===0?renderField(field,'none'):'').join('')}${measurementFields.map(field=>field.sideMode==='bilateral'?renderMeasurement(field,side):!sides.includes('left')||index===0?renderMeasurement(field,'none'):'').join('')}</article>`).join('')}</div>`;
+    }
     const handLengthInput=test.key==='shoulder_mobility'?`<div class="shoulder-measurement-fields"><label for="shoulder-hand-length">Długość dłoni (cm)<input id="shoulder-hand-length" type="number" min="0.1" max="100" step="0.1" inputmode="decimal" data-shoulder-measurement="handLengthCm" value="${esc(shoulderMeasurements.handLengthCm)}"><small>Od bruzdy nadgarstka do końca środkowego palca.</small></label></div>`:'';
     return `${handLengthInput}<div class="sides ${groups.length===1?'single-field':''}">${groups.map(side=>`<article class="side-card"><h3>${side==='left'?'Lewa strona':side==='right'?'Prawa strona':'Wynik testu'}</h3>${fields.map(field=>field.sideMode==='bilateral'?renderField(field,side):renderField(field,'none')).join('')}${test.key==='shoulder_mobility'&&side!=='none'?`<label class="shoulder-distance-field">Odległość między pięściami — ${side==='left'?'lewa':'prawa'} strona (cm)<input type="number" min="0" max="100" step="0.1" inputmode="decimal" data-shoulder-measurement="gap" data-side="${side}" value="${esc(shoulderMeasurements.gaps[side])}"></label>`:''}</article>`).join('')}</div>`;
   }  function criteriaMarkup(test){const items=test.criteria||[];if(items.length)return `<div class="criteria-list">${items.map(([label,detail])=>`<div class="criteria-point"><b>${esc(label)}</b><span>${esc(detail)}</span></div>`).join('')}</div>`;const summary=test.definition.test.criteriaSummary||'';return summary?`<p>${esc(summary)}</p>`:'<p>Kryteria nie s\u0105 dost\u0119pne dla tego testu.</p>'; }
@@ -458,7 +479,7 @@
       if (currentButton) { currentButton.disabled = false; currentButton.textContent = 'Zaloguj się'; }
     }
   });
-  app.addEventListener('input',e=>{if(['client-first','client-last','client-email'].includes(e.target.id)){selectedClient=null;const field=e.target.id;const query=e.target.value.trim();const normalize=value=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase();const boxes=['first','last','email'].map(name=>$('#suggestions-'+name));boxes.forEach(box=>{if(box)box.classList.remove('show');});const box=$('#suggestions-'+field.replace('client-',''));if(box&&query.length>=3){const matches=clients.filter(c=>[c.name,c.email].some(value=>normalize(value).includes(normalize(query))));box.innerHTML=matches.length?matches.map(c=>`<div class="suggestion" data-client="${c.id}"><span><b>${c.name}</b><small>${c.email} (${c.sport})</small></span><small>Wybierz profil</small></div>`).join(''):'<div class="suggestion-empty">Brak pasujących profili</div>';box.classList.add('show');}return;}if(e.target.id==='client-search'){searchText=e.target.value;const pos=e.target.selectionStart;app.innerHTML=clientsPage();const input=$('#client-search');input.focus();input.setSelectionRange(pos,pos);}if(e.target.matches('[data-note]')){notes[e.target.dataset.note]=e.target.value;saveLocalDraft();return;}if(e.target.matches('[data-shoulder-measurement]')){if(e.target.dataset.shoulderMeasurement==='handLengthCm')shoulderMeasurements.handLengthCm=e.target.value;else shoulderMeasurements.gaps[e.target.dataset.side]=e.target.value;syncShoulderAutoScores();saveLocalDraft();}});
+  app.addEventListener('input',e=>{if(['client-first','client-last','client-email'].includes(e.target.id)){selectedClient=null;const field=e.target.id;const query=e.target.value.trim();const normalize=value=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase();const boxes=['first','last','email'].map(name=>$('#suggestions-'+name));boxes.forEach(box=>{if(box)box.classList.remove('show');});const box=$('#suggestions-'+field.replace('client-',''));if(box&&query.length>=3){const matches=clients.filter(c=>[c.name,c.email].some(value=>normalize(value).includes(normalize(query))));box.innerHTML=matches.length?matches.map(c=>`<div class="suggestion" data-client="${c.id}"><span><b>${c.name}</b><small>${c.email} (${c.sport})</small></span><small>Wybierz profil</small></div>`).join(''):'<div class="suggestion-empty">Brak pasujących profili</div>';box.classList.add('show');}return;}if(e.target.id==='client-search'){searchText=e.target.value;const pos=e.target.selectionStart;app.innerHTML=clientsPage();const input=$('#client-search');input.focus();input.setSelectionRange(pos,pos);}if(e.target.matches('[data-note]')){notes[e.target.dataset.note]=e.target.value;saveLocalDraft();return;}if(e.target.matches('[data-measurement-field]')){fieldMeasurements[`${e.target.dataset.measurementField}:${e.target.dataset.side}`]=e.target.value;saveLocalDraft();return;}if(e.target.matches('[data-shoulder-measurement]')){if(e.target.dataset.shoulderMeasurement==='handLengthCm')shoulderMeasurements.handLengthCm=e.target.value;else shoulderMeasurements.gaps[e.target.dataset.side]=e.target.value;syncShoulderAutoScores();saveLocalDraft();}});
   app.addEventListener('click',e=>{if(isEditingAssessment&&e.target.matches('[data-edit-backdrop]')){isEditingAssessment=false;activeAssessment=null;editReturnRoute=null;removeLocalDraft();render();return;}const clientRow=e.target.closest('[data-client-row]');if(clientRow&&!e.target.closest('a,button,input,select,textarea')){location.hash=clientRow.dataset.clientRow;return;}const option=e.target.closest('[data-value]');if(option){const key=option.dataset.key;const field=tests.flatMap(test=>test.definition.fields).find(item=>key.startsWith(`${item.code}:`));scores[key]=field?.answerSet.code==='score_0_3'?Number(option.dataset.score):option.dataset.value;saveLocalDraft();option.parentElement.querySelectorAll('.score-option,.binary-option').forEach(item=>{const selected=item===option;item.classList.toggle('selected',selected);item.setAttribute('aria-pressed',String(selected));item.classList.remove('pass','pain');if(selected&&item.classList.contains('binary-option'))item.classList.add(/positive|pain|yes|fail/i.test(item.dataset.value)?'pain':'pass');});return;}const suggestion=e.target.closest('[data-client]');if(suggestion){selectedClient=clients.find(c=>c.id===suggestion.dataset.client)||null;document.querySelectorAll('.suggestions').forEach(x=>x.classList.remove('show'));const first=$('#client-first');if(first)first.value=selectedClient.name.split(' ')[0];const last=$('#client-last');if(last)last.value=selectedClient.name.split(' ').slice(1).join(' ');const email=$('#client-email');if(email)email.value=selectedClient.email;const sport=$('#client-sport');if(sport)sport.value=selectedClient.sport;setRoute(`new-assessment/${encodeURIComponent(selectedClient.id)}`);return;}const action=e.target.closest('[data-action]');if(action){if(action.dataset.action==='edit-assessment'){const returnRoute=route();editReturnRoute=returnRoute;action.disabled=true;action.textContent='Wczytywanie...';editAssessment(action.dataset.assessment).catch(error=>{isEditingAssessment=false;activeAssessment=null;editReturnRoute=null;removeLocalDraft();setRoute(returnRoute);render();window.alert(`Nie uda\u0142o si\u0119 otworzy\u0107 edycji: ${error.message}`);});return;}if(action.dataset.action==='save-assessment-edit'){saveAssessmentEdit();return;}if(action.dataset.action==='cancel-assessment-edit'){isEditingAssessment=false;activeAssessment=null;editReturnRoute=null;removeLocalDraft();render();return;}if(action.dataset.action==='criteria'){const index=action.dataset.testIndex;const panel=index===undefined?$('#criteria-panel'):document.getElementById(`criteria-panel-${index}`);panel?.classList.toggle('open');return;}if(action.dataset.action==='choose-protocol'){chooseAssessmentProtocol().catch(error=>window.alert(error.message));return;}if(action.dataset.action==='start-assessment'){startAssessment().catch(error=>window.alert(error.message));return;}if(action.dataset.action==='add-client'){setRoute('new-assessment');return;}}});
   app.addEventListener('keydown',e=>{if(isEditingAssessment&&e.key==='Escape'){isEditingAssessment=false;activeAssessment=null;editReturnRoute=null;removeLocalDraft();render();return;}const clientRow=e.target.closest('[data-client-row]');if(clientRow&&!e.target.closest('a,button,input,select,textarea')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();location.hash=clientRow.dataset.clientRow;}});
   app.addEventListener('submit', async event => {

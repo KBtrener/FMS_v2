@@ -15,6 +15,8 @@ insert into quickscreen_v2.screen_tests (screen_test_id,screen_type_id,test_id,s
 values ('screen_test_dev_single_score','screen_dev_generic','test_dev_single_score',1,'best_attempt_single',true);
 insert into quickscreen_v2.test_fields (test_field_id,screen_test_id,code,label_pl,answer_set_id,side_mode,attempt_mode,is_scoring_input,sort_order)
 values ('field_dev_single_score','screen_test_dev_single_score','dev_single_score','Development score','answer_set_score_0_3','none','single',true,1);
+insert into quickscreen_v2.test_fields (test_field_id,screen_test_id,code,label_pl,answer_set_id,side_mode,attempt_mode,is_scoring_input,sort_order,field_type,measurement_unit,measurement_min,measurement_max,measurement_step,is_required)
+values ('field_dev_angle','screen_test_dev_single_score','dev_angle','Kąt deweloperski',null,'bilateral','single',false,2,'measurement','deg',0,180,0.1,true);
 
 select set_config('request.jwt.claim.sub','dddddddd-dddd-4ddd-8ddd-dddddddddddd',true);
 set local role authenticated;
@@ -30,12 +32,13 @@ declare
   v_total integer;
   v_max integer;
 begin
-  v_result := quickscreen_v2.submit_assessment_v2(
+  v_result := quickscreen_v2.submit_assessment_v3(
     'dddddddd-2222-4222-8222-dddddddddddd',
     'dddddddd-1111-4111-8111-dddddddddddd',
     'screen_dev_generic', current_date, null,
     '[{"fieldId":"field_dev_single_score","side":"none","attemptNumber":1,"answerId":"option_score_2"}]'::jsonb,
-    '[{"testId":"test_dev_single_score","note":"fixture save"}]'::jsonb
+    '[{"testId":"test_dev_single_score","note":"fixture save"}]'::jsonb,
+    '[{"fieldId":"field_dev_angle","side":"left","attemptNumber":1,"value":42.75,"unit":"deg"},{"fieldId":"field_dev_angle","side":"right","attemptNumber":1,"value":43.25,"unit":"deg"}]'::jsonb
   );
   if (v_result->>'totalScore')::integer <> 2 then raise exception 'generic protocol returned wrong total: %', v_result; end if;
 
@@ -52,6 +55,9 @@ begin
   if v_status <> 'completed' or v_total <> 2 or v_max <> 3 then raise exception 'generic completion failed: %, %, %',v_status,v_total,v_max; end if;
   if v_screen_type <> 'screen_dev_generic' or v_test_code <> 'dev_single_score' or v_answer_code <> 'score_2' then
     raise exception 'generic result could not be reopened from catalog data: %, %, %',v_screen_type,v_test_code,v_answer_code;
+  end if;
+  if (select count(*) from quickscreen_v2.assessment_field_measurements where assessment_id='dddddddd-2222-4222-8222-dddddddddddd' and test_field_id='field_dev_angle' and unit='deg' and numeric_value in (42.75,43.25)) <> 2 then
+    raise exception 'decimal measurements were not saved and readable';
   end if;
   if not exists (select 1 from quickscreen_v2.assessment_test_notes where assessment_id='dddddddd-2222-4222-8222-dddddddddddd' and test_id='test_dev_single_score' and note='fixture save') then
     raise exception 'generic protocol note was not saved';

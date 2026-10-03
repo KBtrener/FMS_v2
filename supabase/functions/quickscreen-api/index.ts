@@ -179,10 +179,17 @@ Deno.serve(async request => {
           id: field.test_field_id,
           code: field.code,
           label: locale === 'en' ? field.label_en : field.label_pl,
+          fieldType: field.field_type || 'choice',
           sideMode: field.side_mode,
           attemptMode: field.attempt_mode,
           scoring: field.is_scoring_input,
-          answerSet: { id: field.answer_sets.answer_set_id, code: field.answer_sets.code, valueKind: field.answer_sets.value_kind },
+          required: field.field_type === 'measurement' ? field.is_required : field.is_scoring_input,
+          measurementUnit: field.measurement_unit || null,
+          measurementMin: field.measurement_min,
+          measurementMax: field.measurement_max,
+          measurementStep: field.measurement_step,
+          helpText: field.help_text || '',
+          answerSet: field.answer_sets ? { id: field.answer_sets.answer_set_id, code: field.answer_sets.code, valueKind: field.answer_sets.value_kind } : null,
           answers: (field.answer_sets?.answer_options || []).filter(answer => answer.is_active).sort((a, b) => a.sort_order - b.sort_order).map(answer => ({ id: answer.answer_option_id, code: answer.code, label: locale === 'en' ? answer.label_en : answer.label_pl, value: answer.numeric_value })),
         }));
         return { id: step.screen_test_id, order: step.sort_order, calculation: step.calculation_type, parentId: step.parent_screen_test_id, test: { id: test.test_id, code: test.code, name: locale === 'en' ? test.name_en : test.name_pl, originalEnglishName: test.name_en, criteriaSummary: test.criteria_summary, description: descriptionByTest.get(test.test_id) || null }, fields };
@@ -300,6 +307,8 @@ Deno.serve(async request => {
       if (answersError) throw answersError;
       const { data: measurements, error: measurementsError } = await db.from('assessment_measurements').select('measurement_code,side,value_cm').eq('assessment_id', assessment.assessment_id);
       if (measurementsError) throw measurementsError;
+      const { data: fieldMeasurements, error: fieldMeasurementsError } = await db.from('assessment_field_measurements').select('test_field_id,side,attempt_number,numeric_value,unit').eq('assessment_id', assessment.assessment_id);
+      if (fieldMeasurementsError) throw fieldMeasurementsError;
       const measurementValue = (code: string, side: string) => (measurements || []).find(item => item.measurement_code === code && item.side === side)?.value_cm ?? null;
       const shoulderMeasurements = { handLengthCm: measurementValue('shoulder_hand_length', 'none'), leftDistanceCm: measurementValue('shoulder_fist_gap', 'left'), rightDistanceCm: measurementValue('shoulder_fist_gap', 'right') };
       const { data: effects, error: effectsError } = await db.from('applied_effects').select('target_screen_test_id,after_score,reason_pl').eq('assessment_id', assessment.assessment_id);
@@ -323,11 +332,23 @@ Deno.serve(async request => {
           return { label, value, tone };
         }));
       for (const step of steps || []) {
-        const fields = (step.test_fields || []).filter(field => field.is_scoring_input);
+        const fields = (step.test_fields || []).filter(field => field.is_scoring_input && (field.field_type || 'choice') === 'choice');
+        const measurementFields = (step.test_fields || []).filter(field => field.field_type === 'measurement');
+        const measured = (fieldMeasurements || []).filter(answer => measurementFields.some(field => field.test_field_id === answer.test_field_id));
+        const measurementDetails = (side: string) => measured.filter(answer => answer.side === side).map(answer => {
+          const field = measurementFields.find(item => item.test_field_id === answer.test_field_id);
+          const numericValue = Number(answer.numeric_value);
+          const formatted = Number.isFinite(numericValue) ? numericValue.toLocaleString('pl-PL', { maximumFractionDigits: 4 }) : String(answer.numeric_value);
+          return { label: field?.label_pl || field?.code || 'Pomiar', value: `${formatted} ${answer.unit}`, tone: '' };
+        });
+        const measurementReportFields = measured.map(answer => {
+          const field = measurementFields.find(item => item.test_field_id === answer.test_field_id);
+          return { code: field?.code || '', label: field?.label_pl || '', fieldType: 'measurement', side: answer.side, attemptNumber: answer.attempt_number, value: answer.numeric_value, unit: answer.unit };
+        });
         const reportFields = fields.flatMap(field => (answers || []).filter(answer => answer.test_field_id === field.test_field_id).map(answer => {
           const option = field.answer_sets?.answer_options?.find(item => item.answer_option_id === answer.answer_option_id);
           return { code: field.code, label: field.label_pl, answerSetCode: field.answer_sets?.code || '', side: answer.side, valueCode: option?.code || '', valueLabel: option?.label_pl || '', numericValue: answer.numeric_value };
-        }));
+        })).concat(measurementReportFields);
         const numericFields = fields.filter(field => field.answer_sets?.code === 'score_0_3');
         if (numericFields.length) {
           const field = numericFields[0];
@@ -345,7 +366,13 @@ Deno.serve(async request => {
           const hasAsymmetry = field.side_mode === 'bilateral' && sideValues.left !== null && sideValues.right !== null && sideValues.left !== sideValues.right;
           const scoreStatus = finalScore === null ? 'unknown' : finalScore === 0 ? 'problem' : finalScore === 1 || hasAsymmetry ? 'warn' : 'ok';
           const withDistance = (score: number | null, distance: number | null) => step.tests.code !== 'shoulder_mobility' || distance == null ? score : score == null ? `(${Number(distance).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} cm)` : `${score} (${Number(distance).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} cm)`;
-          rows.push({ code: step.tests.code, order: step.sort_order, name: step.tests.name_pl, kind: 'score', l: withDistance(sideValues.left, shoulderMeasurements.leftDistanceCm), r: withDistance(sideValues.right, shoulderMeasurements.rightDistanceCm), value: sideValues.none, leftScore: sideValues.left, rightScore: sideValues.right, leftDistanceCm: shoulderMeasurements.leftDistanceCm, rightDistanceCm: shoulderMeasurements.rightDistanceCm, merged: sideValues.none != null, finalScore, status: scoreStatus, groupKey: step.tests.code === 'shoulder_mobility' ? 'shoulder' : null, sharedScore: step.tests.code === 'shoulder_mobility' ? 'shoulder' : null });
+          const lMeasurementDetails = measurementDetails('left');
+          const rMeasurementDetails = measurementDetails('right');
+          const valueMeasurementDetails = measurementDetails('none');
+          if (sideValues.left !== null) lMeasurementDetails.unshift({ label: 'Wynik', value: String(sideValues.left), tone: '' });
+          if (sideValues.right !== null) rMeasurementDetails.unshift({ label: 'Wynik', value: String(sideValues.right), tone: '' });
+          if (sideValues.none !== null) valueMeasurementDetails.unshift({ label: 'Wynik', value: String(sideValues.none), tone: '' });
+          rows.push({ code: step.tests.code, order: step.sort_order, name: step.tests.name_pl, kind: 'score', l: withDistance(sideValues.left, shoulderMeasurements.leftDistanceCm), r: withDistance(sideValues.right, shoulderMeasurements.rightDistanceCm), value: sideValues.none, leftScore: sideValues.left, rightScore: sideValues.right, leftDistanceCm: shoulderMeasurements.leftDistanceCm, rightDistanceCm: shoulderMeasurements.rightDistanceCm, merged: sideValues.none != null, finalScore, status: scoreStatus, groupKey: step.tests.code === 'shoulder_mobility' ? 'shoulder' : null, sharedScore: step.tests.code === 'shoulder_mobility' ? 'shoulder' : null, ...(measured.length ? { lDetails: lMeasurementDetails, rDetails: rMeasurementDetails, valueDetails: valueMeasurementDetails } : {}) });
           reportTests.push({ code: step.tests.code, order: step.sort_order, name: step.tests.name_pl, description: step.tests.description_short || '', leftScore: sideValues.left, rightScore: sideValues.right, leftDistanceCm: step.tests.code === 'shoulder_mobility' ? shoulderMeasurements.leftDistanceCm : null, rightDistanceCm: step.tests.code === 'shoulder_mobility' ? shoulderMeasurements.rightDistanceCm : null, finalScore, fields: reportFields });
           continue;
         }
@@ -365,6 +392,12 @@ Deno.serve(async request => {
           continue;
         }
         const sides: Record<string, string[]> = { left: [], right: [], none: [] };
+        const lMeasurementDetails = measurementDetails('left');
+        const rMeasurementDetails = measurementDetails('right');
+        const valueMeasurementDetails = measurementDetails('none');
+        for (const detail of lMeasurementDetails) sides.left.push(`${detail.label}: ${detail.value}`);
+        for (const detail of rMeasurementDetails) sides.right.push(`${detail.label}: ${detail.value}`);
+        for (const detail of valueMeasurementDetails) sides.none.push(`${detail.label}: ${detail.value}`);
         const details = fields.flatMap(field => {
           const fieldAnswers = (answers || []).filter(answer => answer.test_field_id === field.test_field_id);
           return fieldAnswers.map(answer => {
@@ -377,7 +410,7 @@ Deno.serve(async request => {
         const codes = fields.flatMap(field => (answers || []).filter(answer => answer.test_field_id === field.test_field_id).map(answer => field.answer_sets?.answer_options?.find(option => option.answer_option_id === answer.answer_option_id)?.code || ''));
         const state = codes.some(code => /positive|pain|yes/i.test(code)) ? 'problem' : codes.some(code => /fail/i.test(code)) ? 'warn' : 'ok';
         const bilateral = sides.left.length > 0 || sides.right.length > 0;
-        rows.push({ code: step.tests.code, order: step.sort_order, name: step.tests.name_pl, kind: 'summary', merged: !bilateral, l: sides.left.join(' · '), r: sides.right.join(' · '), value: sides.none.join(' · '), detail: details.join(' · '), lDetails: detailsFor(fields, 'left'), rDetails: detailsFor(fields, 'right'), valueDetails: detailsFor(fields, 'none'), status: state });
+        rows.push({ code: step.tests.code, order: step.sort_order, name: step.tests.name_pl, kind: 'summary', merged: !bilateral, l: sides.left.join(' · '), r: sides.right.join(' · '), value: sides.none.join(' · '), detail: details.join(' · '), lDetails: detailsFor(fields, 'left').concat(lMeasurementDetails), rDetails: detailsFor(fields, 'right').concat(rMeasurementDetails), valueDetails: detailsFor(fields, 'none').concat(valueMeasurementDetails), status: measured.length && !fields.length ? 'unknown' : state });
         reportTests.push({ code: step.tests.code, order: step.sort_order, name: step.tests.name_pl, description: step.tests.description_short || '', finalScore: null, fields: reportFields });
       }
       let totalScore = 0;
@@ -440,7 +473,7 @@ Deno.serve(async request => {
     }
 
     if (request.method === 'GET' && assessmentRoute) {
-      const { data, error } = await db.from('assessments').select('*,clients!inner(client_id,first_name,last_name,email),assessment_answers(*),applied_effects(*),assessment_test_notes(*),assessment_measurements(*)').eq('assessment_id', assessmentRoute[1]).eq('owner_id', ownerId).single();
+      const { data, error } = await db.from('assessments').select('*,clients!inner(client_id,first_name,last_name,email),assessment_answers(*),applied_effects(*),assessment_test_notes(*),assessment_measurements(*),assessment_field_measurements(*)').eq('assessment_id', assessmentRoute[1]).eq('owner_id', ownerId).single();
       if (error) throw error;
       return response(data);
     }
@@ -449,7 +482,12 @@ Deno.serve(async request => {
       const input = await request.json();
       const answers = (input.answers || []).map((answer: Record<string, unknown>) => ({ fieldId: answer.fieldId, side: answer.side || 'none', attemptNumber: answer.attemptNumber || 1, answerId: answer.answerId }));
       const notes = Object.entries(input.notes || {}).map(([testId, note]) => ({ testId, note: String(note || '') }));
-      const { data, error } = await db.rpc('edit_assessment_v2', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] });
+      const { data: assessment, error: assessmentError } = await db.from('assessments').select('screen_type_id,screen_types!inner(code)').eq('assessment_id', assessmentRoute[1]).eq('owner_id', ownerId).single();
+      if (assessmentError) throw assessmentError;
+      const isQuickScreen = assessment.screen_types?.code === 'quick_screen';
+      const { data, error } = isQuickScreen
+        ? await db.rpc('edit_assessment_v2', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
+        : await db.rpc('edit_assessment_v3', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
       if (error) throw error;
       return response(data);
     }
@@ -458,7 +496,11 @@ Deno.serve(async request => {
       const input = await request.json();
       const answers = (input.answers || []).map((answer: Record<string, unknown>) => ({ fieldId: answer.fieldId, side: answer.side || 'none', attemptNumber: answer.attemptNumber || 1, answerId: answer.answerId }));
       const notes = Object.entries(input.notes || {}).map(([testId, note]) => ({ testId, note: String(note || '') }));
-      const { data, error } = await db.rpc('submit_assessment_v2', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] });
+      const { data: protocol, error: protocolError } = await db.from('screen_types').select('code').eq('screen_type_id', input.scenarioId).single();
+      if (protocolError) throw protocolError;
+      const { data, error } = protocol.code === 'quick_screen'
+        ? await db.rpc('submit_assessment_v2', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
+        : await db.rpc('submit_assessment_v3', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
       if (error) throw error;
       return response(data);
     }

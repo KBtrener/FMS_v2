@@ -21,7 +21,8 @@ test('wizard, save, edit, and result loading use the selected protocol definitio
   assert.match(api, /protocolCode: screenType\.code/);
   assert.match(api, /unsupported_report_protocol/);
   assert.match(protocolTest, /screen_dev_generic/);
-  assert.match(protocolTest, /submit_assessment_v2/);
+  assert.match(protocolTest, /submit_assessment_v3/);
+  assert.match(protocolTest, /value":42\.75/);
   assert.match(protocolTest, /rollback;/);
   assert.doesNotMatch(productionSeed, /screen_dev_generic|dev_generic/);
 });
