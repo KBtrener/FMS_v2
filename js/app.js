@@ -130,7 +130,7 @@
   let editReturnRoute = null;
   async function saveAssessmentEdit() {
     if (!isEditingAssessment || !activeAssessment) return;
-    if (!activeAssessment.date) { window.alert('Uzupe³nij datê badania przed zapisaniem zmian.'); return; }
+    if (!activeAssessment.date) { window.alert("Assessment date is required before saving."); return; }
     const missingAnswer = firstMissingEditAnswer();
     if (missingAnswer) { window.alert(`Brakuje wyniku dla pola: ${missingAnswer}. Uzupe\u0142nij go przed zapisem, aby nie utraci\u0107 danych badania.`); return; }
     try {
