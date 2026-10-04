@@ -639,11 +639,12 @@ Deno.serve(async request => {
       const isQuickScreen = assessment.screen_types?.code === 'quick_screen';
       if (assessment.screen_types?.code === 'fms') await validateFmsMcsPayload(db, assessment.screen_type_id, input, true);
       if (assessment.screen_types?.code === 'sfma') validateSfma(input);
-      const { data, error } = isQuickScreen
-        ? await db.rpc('edit_assessment_v2', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
-        : await db.rpc('edit_assessment_v3', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
+      const { data, error } = assessment.screen_types?.code === 'sfma'
+        ? await db.rpc('edit_assessment_sfma', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_protocol_data: input.protocolData })
+        : isQuickScreen
+          ? await db.rpc('edit_assessment_v2', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
+          : await db.rpc('edit_assessment_v3', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
       if (error) throw error;
-      if (assessment.screen_types?.code === 'sfma') { const { error: dataError } = await db.from('assessments').update({ protocol_data: input.protocolData, total_score: null, max_score: null }).eq('assessment_id', assessmentRoute[1]).eq('owner_id', ownerId); if (dataError) throw dataError; }
       return response(data);
     }
 
@@ -657,9 +658,10 @@ Deno.serve(async request => {
       if (protocol.code === 'sfma') validateSfma(input);
       const { data, error } = protocol.code === 'quick_screen'
         ? await db.rpc('submit_assessment_v2', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
-        : await db.rpc('submit_assessment_v3', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
+        : protocol.code === 'sfma'
+          ? await db.rpc('submit_assessment_sfma', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_protocol_data: input.protocolData })
+          : await db.rpc('submit_assessment_v3', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
       if (error) throw error;
-      if (protocol.code === 'sfma') { const { error: dataError } = await db.from('assessments').update({ protocol_data: input.protocolData, total_score: null, max_score: null }).eq('assessment_id', input.assessmentId).eq('owner_id', ownerId); if (dataError) throw dataError; }
       return response(data);
     }
 
