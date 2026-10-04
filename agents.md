@@ -2,8 +2,8 @@
 
 - Pracujemy wyłącznie nad nowym QuickScreen w katalogu głównym repozytorium `D:\apki\aplikacja FMS`; pliki aplikacji znajdują się w tym katalogu.
 - Jedynym źródłem wytycznych wizualnych jest `design.md`. Nie opieramy projektu na starych makietach ani innych opisach designu.
-- Publikujemy na OVH w `quickscreen v2` i pod dotychczasowym adresem `quick-screen-v2`.
-- Każdą zmianę commitujemy. Przy niejasnościach pytamy.
+- Podgląd aplikacji jest dostępny wyłącznie na OVH. Każdą zmianę aplikacji commitujemy i wdrażamy wyłącznie do katalogu OVH `quickscreenv2`; nie publikujemy jej do `quick-screen-v2` ani innych katalogów.
+- Przy niejasnościach pytamy.
 - QuickScreen pozostaje osobnym modułem; integracja z aplikacją główną ma przebiegać przez API.
 
 ## Nawigacja
