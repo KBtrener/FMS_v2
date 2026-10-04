@@ -54,38 +54,23 @@ async function validateFmsMcsPayload(db: any, screenTypeId: string, input: any, 
   if (message) throw new Error(message);
 }
 
-function validateSfma(input: any) {
-  const top = input.protocolData?.topTier || {};
-  for (const test of SfmaProtocol.topTier) {
-    const sides = test.sides === 'bilateral' ? ['left', 'right'] : ['score'];
-    for (const side of sides) if (!SfmaProtocol.classifications[top[test.id]?.[side]]) throw new Error(`SFMA: uzupełnij klasyfikację ${test.name}${side === 'left' ? ' — lewa strona' : side === 'right' ? ' — prawa strona' : ''}.`);
+function validateSfmaV2(input: any, measurementRules: Record<string, any> = {}) {
+  const top=input.protocolData?.topTier||{};const stored=input.protocolData?.breakouts||{};const measurements=input.protocolData?.measurements||{};
+  for(const test of SfmaProtocol.topTier){const expected=test.sides==='bilateral'?['left','right']:['score'];for(const side of expected)if(!SfmaProtocol.classifications[top[test.id]?.[side]])throw new Error(`SFMA: uzupełnij klasyfikację ${test.name}.`);}
+  for(const id of Object.keys(stored))if(!SfmaProtocol.topTier.some((test:any)=>test.id===id))throw new Error('SFMA: nieznany wzorzec breakouta.');
+  for(const test of SfmaProtocol.topTier){const entry=stored[test.id]||{};const spec=SfmaProtocol.breakouts.find((item:any)=>item.topTierId===test.id);if(entry&&Object.keys(entry).length&&!SfmaProtocol.breakoutActive(test,top))throw new Error(`SFMA: breakout ${test.name} nie jest aktywny.`);if(!spec)continue;
+    if(Object.keys(measurements[test.id]||{}).length&&!SfmaProtocol.breakoutActive(test,top))throw new Error(`SFMA: pomiar ${test.name} nie jest aktywny.`);
+    for(const [key,value] of Object.entries(entry))if(!/^[-\w]+:\d+(?::(left|right))?$/.test(key)||!SfmaProtocol.classifications[value as string]||!spec.sections.some((section:any)=>{const match=key.match(/^([^:]+):(\d+)/);return match&&section.id===match[1]&&section.steps[Number(match[2])];}))throw new Error('SFMA: nieprawidłowa klasyfikacja breakouta.');
+    for(const stepId of Object.keys(measurements[test.id]||{}))if(!spec.sections.some((section:any)=>section.steps.some((_:any,index:number)=>`${section.id}:${index}`===stepId)))throw new Error('SFMA: nieznany etap pomiarowy.');
+    for(const section of spec.sections){const states=SfmaProtocol.stepVisibility(section,entry);for(let i=0;i<section.steps.length;i++){const state=states[i];const validSides=state.bilateral?['left','right']:['single'];for(const side of state.bilateral?['left','right','single']:['left','right']){const answerKey=`${state.key}${side==='single'?'':`:${side}`}`;if(entry[answerKey]&&(!validSides.includes(side)||!state.visibility[side]))throw new Error('SFMA: odpowiedź breakouta należy do nieaktywnej gałęzi lub strony.');}
+      const stepMeasurements=measurements[test.id]?.[state.key]||{};for(const [side,values] of Object.entries(stepMeasurements)){if(!validSides.includes(side)||!state.visibility[side]||!values||typeof values!=='object')throw new Error('SFMA: pomiar dotyczy nieaktywnej gałęzi.');for(const [fieldId,raw] of Object.entries(values as Record<string,unknown>)){if(!state.measurements.some((field:any)=>field.id===fieldId))throw new Error('SFMA: nieznane pole pomiarowe.');if(String(raw).trim()==='')throw new Error('SFMA: wartość pomiaru nie może być pusta.');const value=Number(String(raw).trim().replace(',','.'));if(!Number.isFinite(value)||value<0||value>360)throw new Error('SFMA: pomiar musi mieścić się w zakresie 0–360°.');const ruleId=`${test.id}|${section.id}|${i}|${fieldId}|${side==='single'?'':side}`;const derived=SfmaProtocol.deriveMeasurementResult(measurementRules[ruleId],value);const answerKey=`${state.key}${side==='single'?'':`:${side}`}`;if(derived&&entry[answerKey]!==derived)throw new Error('SFMA: klasyfikacja nie odpowiada wynikowi obliczonemu z pomiaru.');}}
+    }}
   }
-  for (const test of SfmaProtocol.topTier) {
-    const entry = input.protocolData?.breakouts?.[test.id];
-    if (!entry) continue;
-    const active = test.sides === 'bilateral' ? ['left','right'].some(side => top[test.id]?.[side] && top[test.id][side] !== 'FN') : top[test.id]?.score && top[test.id].score !== 'FN';
-    if (!active) throw new Error(`SFMA: breakout ${test.name} nie jest aktywny dla klasyfikacji Top Tier FN.`);
-    const spec = SfmaProtocol.breakouts.find((item: any) => item.topTierId === test.id);
-    for (const key of Object.keys(entry)) {
-      const match = key.match(/^([^:]+):(\d+)(?::(left|right))?$/);
-      if (!match || !spec?.sections.some((section: any) => section.id === match[1] && section.steps[Number(match[2])]) || !SfmaProtocol.classifications[entry[key]]) throw new Error('SFMA: nieprawidłowa klasyfikacja breakouta.');
-    }
-    for (const section of spec.sections) {
-      let previousActive: string | null = null;
-      for (let index = 0; index < section.steps.length; index++) {
-        const key = `${section.id}:${index}`;
-        const title = section.steps[index].title;
-        const isActive = /^active\b/i.test(title);
-        const parent = /^passive\b/i.test(title) ? previousActive : index > 0 ? previousActive || `${section.id}:${index - 1}` : null;
-        const submitted = [entry[key], entry[`${key}:left`], entry[`${key}:right`]].filter(Boolean);
-        const parentValues = parent ? [entry[parent], entry[`${parent}:left`], entry[`${parent}:right`]].filter(Boolean) : [];
-        if (submitted.length && parent && !parentValues.some((value: string) => value !== 'FN')) throw new Error('SFMA: odpowiedź breakouta należy do nieaktywnej gałęzi.');
-        if (isActive && submitted.length) previousActive = key;
-      }
-    }
-  }
-  for (const note of Object.values(input.protocolData?.notes || {})) if (typeof note !== 'string' || note.length > 2000) throw new Error('SFMA: notatka może mieć maksymalnie 2000 znaków.');
+  for(const id of Object.keys(measurements))if(!SfmaProtocol.topTier.some((test:any)=>test.id===id))throw new Error('SFMA: nieznany wzorzec pomiarowy.');
+  for(const note of Object.values(input.protocolData?.notes||{}))if(typeof note!=='string'||note.length>2000)throw new Error('SFMA: notatka może mieć maksymalnie 2000 znaków.');
 }
+
+async function sfmaMeasurementRules(db:any){const {data,error}=await db.from('sfma_measurement_rules').select('measurement_key,unit,operator,threshold,result_code,otherwise_result_code').eq('is_active',true);if(error)throw error;return Object.fromEntries((data||[]).map((rule:any)=>[rule.measurement_key,{unit:rule.unit,operator:rule.operator,threshold:Number(rule.threshold),result:rule.result_code,otherwiseResult:rule.otherwise_result_code}]));}
 
 function assessmentIndicator(answers: any[] = []) {
   let hasPain = false;
@@ -242,7 +227,7 @@ Deno.serve(async request => {
       const locale = new URL(request.url).searchParams.get('locale') === 'en' ? 'en' : 'pl';
       const { data: scenario, error: scenarioError } = await db.from('screen_types').select('*').eq('screen_type_id', definition[1]).eq('is_active', true).single();
       if (scenarioError) throw scenarioError;
-      if (scenario.code === 'sfma') return response({ id: scenario.screen_type_id, code: 'sfma', name: 'SFMA', manualVersion: SfmaProtocol.version, steps: SfmaProtocol.topTier.map((test: any, index: number) => ({ id: `sfma-step-${test.id}`, order: index + 1, calculation: 'categorical', parentId: null, test: { id: `sfma-test-${test.id}`, code: `sfma_${test.id}`, name: test.name, originalEnglishName: test.name, description: { scoring_criteria: test.description, manual_version: SfmaProtocol.version } }, fields: [{ id: `sfma-field-${test.id}`, code: `sfma_${test.id}`, label: test.name, fieldType: 'choice', sideMode: test.sides === 'bilateral' ? 'bilateral' : 'none', attemptMode: 'single', scoring: true, wizardInput: true, controlType: 'choices', required: true, helpText: test.standards.join(' · ') || '', answerSet: { id: 'sfma-classification', code: 'sfma_classification', valueKind: 'discrete_text' }, answers: ['FN','FP','DN','DP'].map(code => ({ id: `sfma-${code}`, code, label: code, value: null })) }] })) });
+      if (scenario.code === 'sfma') { const rules=await sfmaMeasurementRules(db);return response({ id: scenario.screen_type_id, code: 'sfma', name: 'SFMA', manualVersion: SfmaProtocol.version, measurementRules: rules, steps: SfmaProtocol.topTier.map((test: any, index: number) => ({ id: `sfma-step-${test.id}`, order: index + 1, calculation: 'categorical', parentId: null, test: { id: `sfma-test-${test.id}`, code: `sfma_${test.id}`, name: test.name, originalEnglishName: test.name, description: { scoring_criteria: test.description, manual_version: SfmaProtocol.version } }, fields: [{ id: `sfma-field-${test.id}`, code: `sfma_${test.id}`, label: test.name, fieldType: 'choice', sideMode: test.sides === 'bilateral' ? 'bilateral' : 'none', attemptMode: 'single', scoring: true, wizardInput: true, controlType: 'choices', required: true, helpText: test.standards.join(' · ') || '', answerSet: { id: 'sfma-classification', code: 'sfma_classification', valueKind: 'discrete_text' }, answers: ['FN','FP','DN','DP'].map(code => ({ id: `sfma-${code}`, code, label: code, value: null })) }] })) }); }
       const { data: steps, error: stepsError } = await db.from('screen_tests').select('*,tests(*),test_fields(*,answer_sets(*,answer_options(*)))').eq('screen_type_id', definition[1]).eq('is_active', true).order('sort_order');
       if (stepsError) throw stepsError;
       const testIds = (steps || []).map(step => step.tests?.test_id).filter(Boolean);
@@ -391,7 +376,7 @@ Deno.serve(async request => {
       if (assessmentError) throw assessmentError;
       const { data: screenType, error: screenTypeError } = await db.from('screen_types').select('code,name_pl').eq('screen_type_id', assessment.screen_type_id).single();
       if (screenTypeError) throw screenTypeError;
-      if (screenType.code === 'sfma') return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, protocolCode: 'sfma', resultKind: 'categorical', scenarioName: 'SFMA', client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: null, maximum: null, sfma: assessment.protocol_data || {}, rows: SfmaProtocol.topTier.map((test: any, index: number) => { const value = assessment.protocol_data?.topTier?.[test.id] || {}; return { code: test.id, order: index + 1, name: test.name, sides: test.sides, leftClassification: value.left || null, rightClassification: value.right || null, classification: value.score || null, breakout: assessment.protocol_data?.breakouts?.[test.id] || null }; }), history: [], trendHistory: [] });
+      if (screenType.code === 'sfma') { const {data:history,error:historyError}=await db.from('assessments').select('assessment_id,assessment_date,protocol_data').eq('client_id',assessment.client_id).eq('screen_type_id',assessment.screen_type_id).eq('owner_id',ownerId).eq('status','completed').neq('assessment_id',assessment.assessment_id).order('assessment_date',{ascending:false}).limit(20);if(historyError)throw historyError;return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, protocolCode: 'sfma', resultKind: 'categorical', scenarioName: 'SFMA', client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: null, maximum: null, sfma: assessment.protocol_data || {}, measurementHistory: (history||[]).map((item:any)=>({assessmentId:item.assessment_id,date:item.assessment_date,measurements:item.protocol_data?.measurements||{}})), rows: SfmaProtocol.topTier.map((test: any, index: number) => { const value = assessment.protocol_data?.topTier?.[test.id] || {}; return { code: test.id, order: index + 1, name: test.name, sides: test.sides, leftClassification: value.left || null, rightClassification: value.right || null, classification: value.score || null, breakout: assessment.protocol_data?.breakouts?.[test.id] || null }; }), history: [], trendHistory: [] }); }
       const { data: answers, error: answersError } = await db.from('assessment_answers').select('answer_id,test_field_id,side,attempt_number,answer_option_id,numeric_value').eq('assessment_id', assessment.assessment_id);
       if (answersError) throw answersError;
       const { data: measurements, error: measurementsError } = await db.from('assessment_measurements').select('measurement_code,side,value_cm').eq('assessment_id', assessment.assessment_id);
@@ -638,7 +623,7 @@ Deno.serve(async request => {
       if (assessmentError) throw assessmentError;
       const isQuickScreen = assessment.screen_types?.code === 'quick_screen';
       if (assessment.screen_types?.code === 'fms') await validateFmsMcsPayload(db, assessment.screen_type_id, input, true);
-      if (assessment.screen_types?.code === 'sfma') validateSfma(input);
+      if (assessment.screen_types?.code === 'sfma') validateSfmaV2(input, await sfmaMeasurementRules(db));
       const { data, error } = assessment.screen_types?.code === 'sfma'
         ? await db.rpc('edit_assessment_sfma', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_protocol_data: input.protocolData })
         : isQuickScreen
@@ -655,7 +640,7 @@ Deno.serve(async request => {
       const { data: protocol, error: protocolError } = await db.from('screen_types').select('code').eq('screen_type_id', input.scenarioId).single();
       if (protocolError) throw protocolError;
       if (protocol.code === 'fms') await validateFmsMcsPayload(db, input.scenarioId, input);
-      if (protocol.code === 'sfma') validateSfma(input);
+      if (protocol.code === 'sfma') validateSfmaV2(input, await sfmaMeasurementRules(db));
       const { data, error } = protocol.code === 'quick_screen'
         ? await db.rpc('submit_assessment_v2', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
         : protocol.code === 'sfma'

@@ -24,3 +24,8 @@
 - Gdy test nie jest podzielony na strony, scal komórki L i P i wyśrodkuj wspólny wynik.
 - Zachowaj ikony statusu przy nazwach testów.
 - Zachowaj czytelne proporcje tabeli: bez nadmiernego rozciągania i wychodzenia kolumn poza obramowanie.
+
+## Wyniki i pomiary SFMA
+
+- Korzystaj ze wspólnego układu wyników QuickScreen, tabeli desktopowej, widoku mobilnego i kafelka akcji. Zachowuj kody oraz pełne nazwy FN/FP/DN/DP, oddzielne strony L/P i nie wyliczaj wyniku zastępczego.
+- Pokaż standard przy teście i zapisuj surowe pomiary do późniejszego porównania. Wynik z pomiaru wyliczaj wyłącznie według jawnej, aktywnej reguły w bazie; bez niej klasyfikację wybiera trener.
