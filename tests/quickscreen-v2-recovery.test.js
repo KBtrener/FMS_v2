@@ -39,8 +39,8 @@ test('history routes each report to its assessment and removes inert client cont
 
 test('client-specific new assessment entries preserve the client in the route', () => {
   const app = read('../js/app.js');
-  assert.equal((app.match(/href="#\/new-assessment\/\$\{encodeURIComponent\(c\.id\)\}"/g) || []).length, 2);
-  assert.match(app, /href="#\/new-assessment\/\$\{encodeURIComponent\(client\.id\)\}"/);
+  assert.equal((app.match(/href="#\/new-assessment\/\$\{encodeURIComponent\(c\.id\)\}"/g) || []).length, 3);
+  assert.match(app, /href="#\/client-edit\/\$\{encodeURIComponent\(c\.id\)\}"/);
   assert.match(app, /newAssessmentClientId\(\)/);
   assert.match(app, /selectedClient=contextId\?clients\.find\(c=>c\.id===contextId\)\|\|null:null/);
   assert.match(app, /Nie znaleziono wskazanego klienta/);
