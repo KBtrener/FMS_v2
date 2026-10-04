@@ -21,6 +21,7 @@ test('główne akcje widoków są zebrane w kafelkach, a powrót zachowuje konte
   assert.ok(app.includes("actionTile(`${clientMode?'':backAction(route()"));
   assert.match(app, /data-action="route-back"/);
   assert.match(app, /routeTrail\.push\(trackedRoute\)/);
+  assert.match(app, /routeTrail\[routeTrail\.length-1\]\.startsWith\('report\/'\)/);
   assert.match(app, /skipRouteTrailUpdate=true;setRoute\(`fms-report/);
   assert.match(qsReport, /options\.backMarkup/);
   assert.match(fmsReport, /action-tile card/);

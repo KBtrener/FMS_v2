@@ -313,7 +313,7 @@
     return 'dashboard';
   };
   const backRoute = current => {
-    while (routeTrail.length && routeTrail[routeTrail.length-1] === current) routeTrail.pop();
+    while (routeTrail.length && (routeTrail[routeTrail.length-1] === current || routeTrail[routeTrail.length-1].startsWith('report/'))) routeTrail.pop();
     return routeTrail.pop() || routeFallback(current);
   };
   const backAction = (current, label='Wróć') => `<button type="button" class="btn nav-button nav-button-secondary" data-action="route-back" data-fallback="${esc(routeFallback(current))}">← ${label}</button>`;
