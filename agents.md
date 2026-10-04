@@ -10,11 +10,10 @@
 
 - Przyciski „Wróć” prowadzą do poprzedniego rzeczywistego widoku QuickScreen; kroki techniczne, takie jak generowanie raportu i przekierowania, pomijaj. Dla adresu otwartego bez historii użyj ustalonego fallbacku.
 
-## Dodawanie testów i wyników
+## Dodawanie protokołów i testów
 
-- Dla każdego nowego testu odwzoruj logikę z dostarczonego, wiarygodnego źródła: odpowiedzi, kolejność, strony, próby, ból/clearing, rozgałęzienia i sposób ustalania wyniku. Nie dopowiadaj ani nie przenoś reguł z innego protokołu bez potwierdzenia w źródle.
-- Wyniki pokazuj według skali i klasyfikacji danego testu. Widok ma czytelnie łączyć wynik ogólny z wynikami testów, zachowywać wymagane strony i grupowanie oraz ikony statusu. Reguły QS/FMS poniżej stosuj tylko do wyników o zgodnej skali i strukturze.
-- Nowy test zintegruj z API i wspólnym przepływem aplikacji bez uzależniania współdzielonego renderera od identyfikatorów QuickScreen. Sprawdź wyniki na desktopie i telefonie oraz powrót zgodnie z zasadą nawigacji.
+- Istniejąca nawigacja QuickScreen i ekran wyników QuickScreen są wzorcem dla wszystkich protokołów. Nowy protokół (także FMS) ma zachować ten sam układ, komponenty, hierarchię, nawigację, zachowanie „Wróć” i obsługę telefonu. Nie twórz równoległego wyglądu ani osobnego modelu nawigacji dla protokołu.
+- Dopasuj dane i punktację nowego protokołu do wspólnego widoku wyników, zachowując jego własne reguły, nazwy, klasyfikacje i strony. Odtwórz logikę wyłącznie ze źródła; nie przenoś zasad QS/FMS tam, gdzie protokół ich nie określa. Reguły poniżej dotyczą wyników QS/FMS.
 
 ## Zasady raportu wyników QuickScreen/FMS
 
