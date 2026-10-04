@@ -1,7 +1,9 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import '../../../js/fms-protocol.js';
+import '../../../js/sfma-protocol.js';
 
 const FmsProtocol = (globalThis as any).FmsProtocol;
+const SfmaProtocol = (globalThis as any).SfmaProtocol;
 
 const url = Deno.env.get('SUPABASE_URL')!;
 const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -50,6 +52,39 @@ async function validateFmsMcsPayload(db: any, screenTypeId: string, input: any, 
     upperRight: value('fms_upper_body_mcs_distance_right'),
   });
   if (message) throw new Error(message);
+}
+
+function validateSfma(input: any) {
+  const top = input.protocolData?.topTier || {};
+  for (const test of SfmaProtocol.topTier) {
+    const sides = test.sides === 'bilateral' ? ['left', 'right'] : ['score'];
+    for (const side of sides) if (!SfmaProtocol.classifications[top[test.id]?.[side]]) throw new Error(`SFMA: uzupełnij klasyfikację ${test.name}${side === 'left' ? ' — lewa strona' : side === 'right' ? ' — prawa strona' : ''}.`);
+  }
+  for (const test of SfmaProtocol.topTier) {
+    const entry = input.protocolData?.breakouts?.[test.id];
+    if (!entry) continue;
+    const active = test.sides === 'bilateral' ? ['left','right'].some(side => top[test.id]?.[side] && top[test.id][side] !== 'FN') : top[test.id]?.score && top[test.id].score !== 'FN';
+    if (!active) throw new Error(`SFMA: breakout ${test.name} nie jest aktywny dla klasyfikacji Top Tier FN.`);
+    const spec = SfmaProtocol.breakouts.find((item: any) => item.topTierId === test.id);
+    for (const key of Object.keys(entry)) {
+      const match = key.match(/^([^:]+):(\d+)(?::(left|right))?$/);
+      if (!match || !spec?.sections.some((section: any) => section.id === match[1] && section.steps[Number(match[2])]) || !SfmaProtocol.classifications[entry[key]]) throw new Error('SFMA: nieprawidłowa klasyfikacja breakouta.');
+    }
+    for (const section of spec.sections) {
+      let previousActive: string | null = null;
+      for (let index = 0; index < section.steps.length; index++) {
+        const key = `${section.id}:${index}`;
+        const title = section.steps[index].title;
+        const isActive = /^active\b/i.test(title);
+        const parent = /^passive\b/i.test(title) ? previousActive : index > 0 ? previousActive || `${section.id}:${index - 1}` : null;
+        const submitted = [entry[key], entry[`${key}:left`], entry[`${key}:right`]].filter(Boolean);
+        const parentValues = parent ? [entry[parent], entry[`${parent}:left`], entry[`${parent}:right`]].filter(Boolean) : [];
+        if (submitted.length && parent && !parentValues.some((value: string) => value !== 'FN')) throw new Error('SFMA: odpowiedź breakouta należy do nieaktywnej gałęzi.');
+        if (isActive && submitted.length) previousActive = key;
+      }
+    }
+  }
+  for (const note of Object.values(input.protocolData?.notes || {})) if (typeof note !== 'string' || note.length > 2000) throw new Error('SFMA: notatka może mieć maksymalnie 2000 znaków.');
 }
 
 function assessmentIndicator(answers: any[] = []) {
@@ -207,6 +242,7 @@ Deno.serve(async request => {
       const locale = new URL(request.url).searchParams.get('locale') === 'en' ? 'en' : 'pl';
       const { data: scenario, error: scenarioError } = await db.from('screen_types').select('*').eq('screen_type_id', definition[1]).eq('is_active', true).single();
       if (scenarioError) throw scenarioError;
+      if (scenario.code === 'sfma') return response({ id: scenario.screen_type_id, code: 'sfma', name: 'SFMA', manualVersion: SfmaProtocol.version, steps: SfmaProtocol.topTier.map((test: any, index: number) => ({ id: `sfma-step-${test.id}`, order: index + 1, calculation: 'categorical', parentId: null, test: { id: `sfma-test-${test.id}`, code: `sfma_${test.id}`, name: test.name, originalEnglishName: test.name, description: { scoring_criteria: test.description, manual_version: SfmaProtocol.version } }, fields: [{ id: `sfma-field-${test.id}`, code: `sfma_${test.id}`, label: test.name, fieldType: 'choice', sideMode: test.sides === 'bilateral' ? 'bilateral' : 'none', attemptMode: 'single', scoring: true, wizardInput: true, controlType: 'choices', required: true, helpText: test.standards.join(' · ') || '', answerSet: { id: 'sfma-classification', code: 'sfma_classification', valueKind: 'discrete_text' }, answers: ['FN','FP','DN','DP'].map(code => ({ id: `sfma-${code}`, code, label: code, value: null })) }] })) });
       const { data: steps, error: stepsError } = await db.from('screen_tests').select('*,tests(*),test_fields(*,answer_sets(*,answer_options(*)))').eq('screen_type_id', definition[1]).eq('is_active', true).order('sort_order');
       if (stepsError) throw stepsError;
       const testIds = (steps || []).map(step => step.tests?.test_id).filter(Boolean);
@@ -270,11 +306,11 @@ Deno.serve(async request => {
     }
 
     if (request.method === 'GET' && route === '/dashboard') {
-      const { data, error } = await db.from('assessments').select('assessment_id,assessment_date,created_at,status,total_score,max_score,clients!inner(client_id,first_name,last_name,client_disciplines(discipline,is_primary)),assessment_answers(side,test_field_id,attempt_number,numeric_value,test_fields(side_mode,answer_sets(code)),answer_options(code))').eq('owner_id', ownerId).eq('status', 'completed').order('assessment_date', { ascending: false }).order('created_at', { ascending: false }).limit(8);
+      const { data, error } = await db.from('assessments').select('assessment_id,assessment_date,created_at,status,total_score,max_score,screen_types(code),clients!inner(client_id,first_name,last_name,client_disciplines(discipline,is_primary)),assessment_answers(side,test_field_id,attempt_number,numeric_value,test_fields(side_mode,answer_sets(code)),answer_options(code))').eq('owner_id', ownerId).eq('status', 'completed').order('assessment_date', { ascending: false }).order('created_at', { ascending: false }).limit(8);
       if (error) throw error;
       return response((data || []).map(item => {
         const indicator = assessmentIndicator(item.assessment_answers || []);
-        return { assessmentId: item.assessment_id, clientId: item.clients.client_id, name: `${item.clients.first_name} ${item.clients.last_name}`, sport: [...(item.clients.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', date: item.assessment_date, status: item.status, indicator, score: item.total_score, maximum: item.max_score };
+        return { assessmentId: item.assessment_id, clientId: item.clients.client_id, name: `${item.clients.first_name} ${item.clients.last_name}`, sport: [...(item.clients.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', date: item.assessment_date, status: item.status, indicator, score: item.total_score, maximum: item.max_score, protocolCode: item.screen_types?.code || 'quick_screen' };
       }));
     }
 
@@ -351,10 +387,11 @@ Deno.serve(async request => {
     const assessmentRoute = route.match(/^\/assessments\/([^/]+)$/);
     const resultsRoute = route.match(/^\/assessments\/([^/]+)\/results$/);
     if (request.method === 'GET' && resultsRoute) {
-      const { data: assessment, error: assessmentError } = await db.from('assessments').select('assessment_id,assessment_date,manual_version,client_id,screen_type_id,total_score,max_score,clients!inner(client_id,first_name,last_name,email)').eq('assessment_id', resultsRoute[1]).eq('owner_id', ownerId).eq('status', 'completed').single();
+      const { data: assessment, error: assessmentError } = await db.from('assessments').select('assessment_id,assessment_date,manual_version,client_id,screen_type_id,total_score,max_score,protocol_data,clients!inner(client_id,first_name,last_name,email)').eq('assessment_id', resultsRoute[1]).eq('owner_id', ownerId).eq('status', 'completed').single();
       if (assessmentError) throw assessmentError;
       const { data: screenType, error: screenTypeError } = await db.from('screen_types').select('code,name_pl').eq('screen_type_id', assessment.screen_type_id).single();
       if (screenTypeError) throw screenTypeError;
+      if (screenType.code === 'sfma') return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, protocolCode: 'sfma', resultKind: 'categorical', scenarioName: 'SFMA', client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: null, maximum: null, sfma: assessment.protocol_data || {}, rows: SfmaProtocol.topTier.map((test: any, index: number) => { const value = assessment.protocol_data?.topTier?.[test.id] || {}; return { code: test.id, order: index + 1, name: test.name, sides: test.sides, leftClassification: value.left || null, rightClassification: value.right || null, classification: value.score || null, breakout: assessment.protocol_data?.breakouts?.[test.id] || null }; }), history: [], trendHistory: [] });
       const { data: answers, error: answersError } = await db.from('assessment_answers').select('answer_id,test_field_id,side,attempt_number,answer_option_id,numeric_value').eq('assessment_id', assessment.assessment_id);
       if (answersError) throw answersError;
       const { data: measurements, error: measurementsError } = await db.from('assessment_measurements').select('measurement_code,side,value_cm').eq('assessment_id', assessment.assessment_id);
@@ -601,10 +638,12 @@ Deno.serve(async request => {
       if (assessmentError) throw assessmentError;
       const isQuickScreen = assessment.screen_types?.code === 'quick_screen';
       if (assessment.screen_types?.code === 'fms') await validateFmsMcsPayload(db, assessment.screen_type_id, input, true);
+      if (assessment.screen_types?.code === 'sfma') validateSfma(input);
       const { data, error } = isQuickScreen
         ? await db.rpc('edit_assessment_v2', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
         : await db.rpc('edit_assessment_v3', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
       if (error) throw error;
+      if (assessment.screen_types?.code === 'sfma') { const { error: dataError } = await db.from('assessments').update({ protocol_data: input.protocolData, total_score: null, max_score: null }).eq('assessment_id', assessmentRoute[1]).eq('owner_id', ownerId); if (dataError) throw dataError; }
       return response(data);
     }
 
@@ -615,10 +654,12 @@ Deno.serve(async request => {
       const { data: protocol, error: protocolError } = await db.from('screen_types').select('code').eq('screen_type_id', input.scenarioId).single();
       if (protocolError) throw protocolError;
       if (protocol.code === 'fms') await validateFmsMcsPayload(db, input.scenarioId, input);
+      if (protocol.code === 'sfma') validateSfma(input);
       const { data, error } = protocol.code === 'quick_screen'
         ? await db.rpc('submit_assessment_v2', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
         : await db.rpc('submit_assessment_v3', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
       if (error) throw error;
+      if (protocol.code === 'sfma') { const { error: dataError } = await db.from('assessments').update({ protocol_data: input.protocolData, total_score: null, max_score: null }).eq('assessment_id', input.assessmentId).eq('owner_id', ownerId); if (dataError) throw dataError; }
       return response(data);
     }
 

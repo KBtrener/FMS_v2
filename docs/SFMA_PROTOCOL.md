@@ -1,0 +1,7 @@
+# SFMA protocol
+
+The SFMA catalog is transcribed from `sources/live-protocol-reference/fms-sfma/production-bundle.js` (SHA-256 `3d2e5ebc4b2bcceae04f534fcf249107bac28ff7d3548982f7a8963a929e56fc`). The Top Tier order, English pattern names, descriptions, side modes, classification names, breakout titles, sections, steps, standards, and source notes come from that production bundle. `js/sfma-protocol.js` is the versioned application catalog.
+
+Top Tier uses FN, FP, DN, and DP. Single patterns have one classification; the source marks cervical rotation, both upper-extremity patterns, multi-segmental rotation, and single-leg stance as bilateral. Every Top Tier side is required before completion. A breakout is available only after Top Tier completion and when at least one side of its pattern has a classification other than FN. Breakout observations are optional and use the same four classifications; blank values mean the subtest was not performed.
+
+The production bundle provides breakout sequences, standards, and explanatory notes. Those notes are shown as source guidance and do not trigger additional classifications or diagnoses. The implementation does not calculate a score or infer an overall finding. A change that makes a breakout inactive removes its stored answers. Protocol data, version, and optional Top Tier notes are stored in `assessments.protocol_data`; numeric score columns remain null.
