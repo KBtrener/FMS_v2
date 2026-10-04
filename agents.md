@@ -10,7 +10,13 @@
 
 - Przyciski „Wróć” prowadzą do poprzedniego rzeczywistego widoku QuickScreen; kroki techniczne, takie jak generowanie raportu i przekierowania, pomijaj. Dla adresu otwartego bez historii użyj ustalonego fallbacku.
 
-## Zasady raportu wyników
+## Dodawanie testów i wyników
+
+- Dla każdego nowego testu odwzoruj logikę z dostarczonego, wiarygodnego źródła: odpowiedzi, kolejność, strony, próby, ból/clearing, rozgałęzienia i sposób ustalania wyniku. Nie dopowiadaj ani nie przenoś reguł z innego protokołu bez potwierdzenia w źródle.
+- Wyniki pokazuj według skali i klasyfikacji danego testu. Widok ma czytelnie łączyć wynik ogólny z wynikami testów, zachowywać wymagane strony i grupowanie oraz ikony statusu. Reguły QS/FMS poniżej stosuj tylko do wyników o zgodnej skali i strukturze.
+- Nowy test zintegruj z API i wspólnym przepływem aplikacji bez uzależniania współdzielonego renderera od identyfikatorów QuickScreen. Sprawdź wyniki na desktopie i telefonie oraz powrót zgodnie z zasadą nawigacji.
+
+## Zasady raportu wyników QuickScreen/FMS
 
 - W punktowanych testach w kolumnie „Wynik końcowy” pokazuj wynik liczbowy od 0 do 3.
 - Koloruj wyniki liczbowe według statusu: 0 — czerwony, 1 — pomarańczowy, 2–3 — zielony.
