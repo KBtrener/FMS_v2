@@ -6,6 +6,10 @@
 - Każdą zmianę commitujemy. Przy niejasnościach pytamy.
 - QuickScreen pozostaje osobnym modułem; integracja z aplikacją główną ma przebiegać przez API.
 
+## Nawigacja
+
+- Przyciski „Wróć” prowadzą do poprzedniego rzeczywistego widoku QuickScreen; kroki techniczne, takie jak generowanie raportu i przekierowania, pomijaj. Dla adresu otwartego bez historii użyj ustalonego fallbacku.
+
 ## Zasady raportu wyników
 
 - W punktowanych testach w kolumnie „Wynik końcowy” pokazuj wynik liczbowy od 0 do 3.
