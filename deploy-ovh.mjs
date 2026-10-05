@@ -56,10 +56,6 @@ try {
   for (const remoteDirectory of remoteDirectories) {
     const remoteRoot = posix.join(env.OVH_DEPLOY_PATH, remoteDirectory);
     if (!(await client.exists(remoteRoot))) await client.mkdir(remoteRoot, true);
-    for (const name of ['css', 'js', 'assets']) {
-      const stalePath = posix.join(remoteRoot, name);
-      if (await client.exists(stalePath)) await client.rmdir(stalePath, true);
-    }
     for (const entry of await readdir(projectDir, { withFileTypes: true })) {
       if (!allowedRoots.has(entry.name)) continue;
       const local = join(projectDir, entry.name);
