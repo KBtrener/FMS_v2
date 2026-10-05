@@ -360,7 +360,7 @@ Deno.serve(async request => {
       return response((data || []).filter(client => !client.is_archived && (!term || `${client.first_name} ${client.last_name} ${client.email}`.toLocaleLowerCase('pl').includes(term))).map(client => {
         const byRecentAssessment = (a: any, b: any) => b.assessment_date.localeCompare(a.assessment_date) || b.created_at.localeCompare(a.created_at);
         const latest = [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment)[0];
-        return { clientId: client.client_id, firstName: client.first_name, lastName: client.last_name, email: client.email, isArchived: client.is_archived, createdAt: client.created_at, discipline: [...(client.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', anthropometry: (client.client_anthropometry || []).sort((a:any,b:any)=>b.measured_at.localeCompare(a.measured_at)||b.created_at.localeCompare(a.created_at)).map((item:any)=>({measurementId:item.anthropometry_id,measurementCode:item.measurement_code,value:Number(item.value),unit:item.unit,measuredAt:item.measured_at,wearCondition:item.wear_condition||'unspecified',sourceAssessmentId:item.source_assessment_id})), latestAssessment: latest ? { id: latest.assessment_id, date: latest.assessment_date, status: latest.status, indicator: indicators.get(latest.assessment_id) || 'ok', score: latest.total_score, maximum: latest.max_score } : null, history: [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, status: item.status, indicator: indicators.get(item.assessment_id) || 'ok', score: item.total_score, maximum: item.max_score, protocolCode: item.screen_types?.code || 'quick_screen' })) };
+        return { clientId: client.client_id, firstName: client.first_name, lastName: client.last_name, email: client.email, isArchived: client.is_archived, createdAt: client.created_at, discipline: [...(client.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', anthropometry: (client.client_anthropometry || []).sort((a:any,b:any)=>b.measured_at.localeCompare(a.measured_at)||b.created_at.localeCompare(a.created_at)).map((item:any)=>({measurementId:item.anthropometry_id,measurementCode:item.measurement_code,value:Number(item.value),unit:item.unit,measuredAt:item.measured_at,wearCondition:item.measurement_code==='hand_length'?'unspecified':item.wear_condition==='with_shoes'?'with_shoes':'without_shoes',sourceAssessmentId:item.source_assessment_id})), latestAssessment: latest ? { id: latest.assessment_id, date: latest.assessment_date, status: latest.status, indicator: indicators.get(latest.assessment_id) || 'ok', score: latest.total_score, maximum: latest.max_score } : null, history: [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, status: item.status, indicator: indicators.get(item.assessment_id) || 'ok', score: item.total_score, maximum: item.max_score, protocolCode: item.screen_types?.code || 'quick_screen' })) };
       }));
     }
 
@@ -397,10 +397,32 @@ Deno.serve(async request => {
 
     const shoulderHandLengthRoute = route.match(/^\/clients\/([^/]+)\/shoulder-hand-length$/);
     const anthropometryRoute = route.match(/^\/clients\/([^/]+)\/anthropometry$/);
-    if (anthropometryRoute && (request.method === 'GET' || request.method === 'POST')) {
-      const clientId = anthropometryRoute[1];
+    const anthropometryItemRoute = route.match(/^\/clients\/([^/]+)\/anthropometry\/([^/]+)$/);
+    if ((anthropometryRoute && (request.method === 'GET' || request.method === 'POST')) || (anthropometryItemRoute && ['PATCH','DELETE'].includes(request.method))) {
+      const clientId = (anthropometryRoute || anthropometryItemRoute)![1];
       const { data: client, error: clientError } = await db.from('clients').select('client_id').eq('client_id', clientId).eq('owner_id', ownerId).single();
       if (clientError || !client) return response({ error: 'client_not_found' }, 404);
+      if (anthropometryItemRoute && request.method === 'DELETE') {
+        const { data, error } = await db.from('client_anthropometry').delete().eq('anthropometry_id', anthropometryItemRoute[2]).eq('client_id', clientId).eq('owner_id', ownerId).select('anthropometry_id').maybeSingle();
+        if (error) throw error;
+        if (!data) return response({ error: 'measurement_not_found' }, 404);
+        return response({ measurementId: data.anthropometry_id, deleted: true });
+      }
+      if (anthropometryItemRoute && request.method === 'PATCH') {
+        const input = await request.json();
+        const measurementCode = String(input.measurementCode || '');
+        const value = Number(input.value);
+        const unit = String(input.unit || '');
+        const measuredAt = String(input.measuredAt || '');
+        const wearCondition = String(input.wearCondition || 'unspecified');
+        if (!['hand_length','tibia_length','foot_length'].includes(measurementCode) || !Number.isFinite(value) || value <= 0 || value > 100 || !['cm','in'].includes(unit) || !/^\d{4}-\d{2}-\d{2}$/.test(measuredAt)) return response({ error: 'invalid_anthropometry' }, 422);
+        if ((measurementCode === 'tibia_length' || measurementCode === 'foot_length') && !['with_shoes','without_shoes'].includes(wearCondition)) return response({ error: 'invalid_wear_condition' }, 422);
+        if (measurementCode === 'hand_length' && wearCondition !== 'unspecified') return response({ error: 'invalid_wear_condition' }, 422);
+        const { data, error } = await db.from('client_anthropometry').update({ measurement_code: measurementCode, value, unit, measured_at: measuredAt, wear_condition: wearCondition }).eq('anthropometry_id', anthropometryItemRoute[2]).eq('client_id', clientId).eq('owner_id', ownerId).select('anthropometry_id,measurement_code,value,unit,measured_at,wear_condition,source_assessment_id,created_at').maybeSingle();
+        if (error) throw error;
+        if (!data) return response({ error: 'measurement_not_found' }, 404);
+        return response({ measurementId: data.anthropometry_id, measurementCode: data.measurement_code, value: Number(data.value), unit: data.unit, measuredAt: data.measured_at, wearCondition: data.wear_condition, sourceAssessmentId: data.source_assessment_id });
+      }
       if (request.method === 'POST') {
         const input = await request.json();
         const measurementCode = String(input.measurementCode || '');
@@ -420,12 +442,12 @@ Deno.serve(async request => {
       const latest: Record<string, any> = {};
       const latestByCondition: Record<string, Record<string, any>> = {};
       for (const item of data || []) {
-        const condition = item.wear_condition || 'unspecified';
+        const condition = item.measurement_code === 'hand_length' ? 'unspecified' : item.wear_condition === 'with_shoes' ? 'with_shoes' : 'without_shoes';
         latestByCondition[item.measurement_code] ||= {};
         if (!latestByCondition[item.measurement_code][condition]) latestByCondition[item.measurement_code][condition] = { value: Number(item.value), unit: item.unit, measuredAt: item.measured_at, wearCondition: condition };
         if (!latest[item.measurement_code]) latest[item.measurement_code] = { value: Number(item.value), unit: item.unit, measuredAt: item.measured_at, wearCondition: condition };
       }
-      return response({ history: (data || []).map((item: any) => ({ measurementId: item.anthropometry_id, measurementCode: item.measurement_code, value: Number(item.value), unit: item.unit, measuredAt: item.measured_at, wearCondition: item.wear_condition || 'unspecified', sourceAssessmentId: item.source_assessment_id })), latest, latestByCondition });
+      return response({ history: (data || []).map((item: any) => ({ measurementId: item.anthropometry_id, measurementCode: item.measurement_code, value: Number(item.value), unit: item.unit, measuredAt: item.measured_at, wearCondition: item.measurement_code === 'hand_length' ? 'unspecified' : item.wear_condition === 'with_shoes' ? 'with_shoes' : 'without_shoes', sourceAssessmentId: item.source_assessment_id })), latest, latestByCondition });
     }
     if (request.method === 'GET' && shoulderHandLengthRoute) {
       const clientId = shoulderHandLengthRoute[1];
@@ -541,7 +563,8 @@ Deno.serve(async request => {
           const field = measurementFields.find(item => item.test_field_id === answer.test_field_id);
           const numericValue = Number(answer.numeric_value);
           const formatted = Number.isFinite(numericValue) ? numericValue.toLocaleString('pl-PL', { maximumFractionDigits: 4 }) : String(answer.numeric_value);
-          const wearCondition = answer.measurement_condition === 'with_shoes' ? ' · W bucie' : answer.measurement_condition === 'without_shoes' ? ' · Bez buta' : '';
+          const tracksFootwear = /tibia_length|foot_length/.test(field?.code || '');
+          const wearCondition = tracksFootwear ? answer.measurement_condition === 'with_shoes' ? ' · W bucie' : ' · Bez buta' : '';
           return { label: field?.label_pl || field?.code || 'Pomiar', value: `${formatted} ${answer.unit}${wearCondition}`, tone: '' };
         });
         const measurementReportFields = measured.map(answer => {
