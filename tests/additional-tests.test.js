@@ -24,6 +24,8 @@ test('additional assessment tests have atomic writes, catalog checks, history, a
   assert.match(app, /additionalTests, wizardIndex/);
   assert.match(app, /finish-assessment/);
   assert.match(app, /sfma_\$\{test\.id\}/);
+  assert.match(app, /sfma_breakout_/);
+  assert.match(api, /SfmaProtocol\.breakouts/);
   assert.match(engine, /allTests\.filter\(test => !test\.additional\)/);
   assert.match(engine, /additionalTests: assessment\.additionalTests/);
   assert.match(report, /Testy dodatkowe/);

@@ -75,6 +75,7 @@ async function sfmaMeasurementRules(db:any){const {data,error}=await db.from('sf
 async function validateAdditionalTests(db: any, items: any[]) {
   if (!Array.isArray(items) || items.length > 100) throw new Error('Nieprawidłowa lista testów dodatkowych.');
   const protocols = new Set(['quick_screen', 'fms', 'sfma']);
+  const measurementRules = items.some(item => item?.protocolCode === 'sfma') ? await sfmaMeasurementRules(db) : {};
   const ordinary = items.filter(item => item?.protocolCode !== 'sfma');
   let definitions: any[] = [];
   if (ordinary.length) {
@@ -87,8 +88,19 @@ async function validateAdditionalTests(db: any, items: any[]) {
   }
   for (const item of items) {
     if (!protocols.has(item?.protocolCode) || typeof item.testCode !== 'string' || typeof item.sourceVersion !== 'string' || !item.sourceVersion || !['left','right','none'].includes(item.side) || typeof item.note !== 'string' || item.note.length > 2000 || !item.result || typeof item.result !== 'object' || !item.result.fields || typeof item.result.fields !== 'object') throw new Error('Nieprawidłowy zapis testu dodatkowego.');
+    let sfmaContext: any = null;
+    if (item.protocolCode === 'sfma') {
+      const topTier = SfmaProtocol.topTier.find((test: any) => item.testCode === `sfma_${test.id}`);
+      if (topTier) sfmaContext = { pattern: topTier.id, topTier: true, bilateral: topTier.sides === 'bilateral', section: null, index: null, measurements: [] };
+      if (!sfmaContext) for (const pattern of SfmaProtocol.breakouts) for (const section of pattern.sections) section.steps.forEach((step: any, index: number) => {
+        if (item.testCode === `sfma_breakout_${pattern.topTierId}_${section.id}_${index}`) sfmaContext = { pattern: pattern.topTierId, topTier: false, bilateral: SfmaProtocol.isBilateralStep(step, section), section: section.id, index, measurements: SfmaProtocol.measurementFields(step) };
+      });
+    }
     const fields = item.protocolCode === 'sfma'
-      ? (SfmaProtocol.topTier.some((test: any) => item.testCode === `sfma_${test.id}`) ? [{ code: item.testCode, field_type: 'choice', side_mode: SfmaProtocol.topTier.find((test: any) => item.testCode === `sfma_${test.id}`).sides === 'bilateral' ? 'bilateral' : 'none', is_required: true, is_scoring_input: true, answer_sets: { answer_options: ['FN','FP','DN','DP'].map(code => ({ code, is_active: true })) } }] : null)
+      ? (sfmaContext ? [
+          { code: sfmaContext.topTier ? item.testCode : 'classification', field_type: 'choice', side_mode: sfmaContext.bilateral ? 'bilateral' : 'none', is_required: true, is_scoring_input: true, answer_sets: { answer_options: ['FN','FP','DN','DP'].map(code => ({ code, is_active: true })) } },
+          ...sfmaContext.measurements.map((field: any) => ({ code: field.id, field_type: 'measurement', side_mode: sfmaContext.bilateral ? 'bilateral' : 'none', measurement_unit: 'deg', measurement_min: 0, measurement_max: 360, is_scoring_input: false, is_required: false }))
+        ] : null)
       : definitions.find((definition: any) => definition.protocolCode === item.protocolCode && definition.code === item.testCode)?.fields;
     if (!fields) throw new Error('Kod testu dodatkowego nie występuje w katalogu.');
     const submitted = item.result.fields;
@@ -106,6 +118,17 @@ async function validateAdditionalTests(db: any, items: any[]) {
         const option = (field.answer_sets?.answer_options || []).find((answer: any) => answer.code === value?.valueCode && answer.is_active);
         if (!option || (item.protocolCode === 'sfma' && !SfmaProtocol.classifications[value.valueCode])) throw new Error('Nieprawidłowa odpowiedź testu dodatkowego.');
         if (field.answer_sets?.code === 'score_0_3' && Number(value.numericValue) !== Number(option.numeric_value)) throw new Error('Wynik liczbowy nie odpowiada wybranej odpowiedzi.');
+      }
+      if (item.protocolCode === 'sfma' && !sfmaContext.topTier) {
+        const classification = submitted.classification?.valueCode;
+        for (const field of sfmaContext.measurements) {
+          const raw = submitted[field.id]?.value;
+          if (raw == null) continue;
+          const sideKey = sfmaContext.bilateral ? item.side : '';
+          const rule = measurementRules[`${sfmaContext.pattern}|${sfmaContext.section}|${sfmaContext.index}|${field.id}|${sideKey}`];
+          const derived = SfmaProtocol.deriveMeasurementResult(rule, Number(raw));
+          if (derived && classification !== derived) throw new Error('Klasyfikacja testu SFMA nie odpowiada jawnej regule pomiaru.');
+        }
       }
     }
   }
