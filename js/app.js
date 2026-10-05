@@ -497,7 +497,12 @@
     const chosen=catalog.find(item=>item.testCode===selectedAdditionalCode);
     const groups=new Map();
     for(const item of catalog){
-      const group=item.protocolCode==='sfma'?`SFMA · ${item.sfmaContext?'Testy szczegółowe':'Top Tier'}`:item.protocolCode.toUpperCase();
+      let group=item.protocolCode.toUpperCase();
+      if(item.protocolCode==='sfma'){
+        const context=item.sfmaContext;
+        if(!context)group='SFMA · Top Tier';
+        else{const pattern=window.SfmaProtocol.breakouts.find(entry=>entry.topTierId===context.pattern);const section=pattern?.sections.find(entry=>entry.id===context.section);group=`SFMA · ${pattern?.title||context.pattern} · ${section?.title||context.section}`;}
+      }
       if(!groups.has(group))groups.set(group,[]);
       groups.get(group).push(item);
     }
