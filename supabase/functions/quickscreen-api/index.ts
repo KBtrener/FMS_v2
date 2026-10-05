@@ -17,6 +17,18 @@ const headers = {
 
 const response = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
 
+async function persistAssessmentMeasurementConditions(db: any, assessmentId: string, measurements: any[] = []) {
+  for (const item of measurements) {
+    if (!item.measurementCondition) continue;
+    if (!['with_shoes','without_shoes','unspecified'].includes(item.measurementCondition)) throw new Error('invalid_measurement_condition');
+    const { data: field, error: fieldError } = await db.from('test_fields').select('code').eq('test_field_id', item.fieldId).single();
+    if (fieldError) throw fieldError;
+    if (!['fms_hurdle_step_tibia_length','fms_lower_body_mcs_foot_length','fms_upper_body_mcs_foot_length'].includes(field.code)) throw new Error('invalid_measurement_condition_field');
+    const { error } = await db.from('assessment_field_measurements').update({ measurement_condition: item.measurementCondition }).eq('assessment_id', assessmentId).eq('test_field_id', item.fieldId).eq('side', item.side || 'none').eq('attempt_number', item.attemptNumber || 1);
+    if (error) throw error;
+  }
+}
+
 async function validateFmsMcsPayload(db: any, screenTypeId: string, input: any, allowLegacyShoulder = false) {
   const { data: fields, error } = await db.from('test_fields').select('test_field_id,code,measurement_unit,measurement_unit_group,screen_tests!inner(screen_type_id)').eq('screen_tests.screen_type_id', screenTypeId);
   if (error) throw error;
@@ -333,7 +345,7 @@ Deno.serve(async request => {
     }
 
     if (request.method === 'GET' && route === '/clients') {
-      const { data, error } = await db.from('clients').select('client_id,first_name,last_name,email,is_archived,created_at,client_disciplines(discipline,is_primary),assessments(assessment_id,assessment_date,created_at,status,total_score,max_score,screen_types(code)),client_anthropometry(anthropometry_id,measurement_code,value,unit,measured_at,source_assessment_id,created_at)').eq('owner_id', ownerId).order('last_name').order('first_name');
+      const { data, error } = await db.from('clients').select('client_id,first_name,last_name,email,is_archived,created_at,client_disciplines(discipline,is_primary),assessments(assessment_id,assessment_date,created_at,status,total_score,max_score,screen_types(code)),client_anthropometry(anthropometry_id,measurement_code,value,unit,measured_at,wear_condition,source_assessment_id,created_at)').eq('owner_id', ownerId).order('last_name').order('first_name');
       if (error) throw error;
       const assessmentIds = (data || []).flatMap(client => (client.assessments || []).filter(item => item.status === 'completed').map(item => item.assessment_id));
       const indicators = new Map<string, string>();
@@ -348,7 +360,7 @@ Deno.serve(async request => {
       return response((data || []).filter(client => !client.is_archived && (!term || `${client.first_name} ${client.last_name} ${client.email}`.toLocaleLowerCase('pl').includes(term))).map(client => {
         const byRecentAssessment = (a: any, b: any) => b.assessment_date.localeCompare(a.assessment_date) || b.created_at.localeCompare(a.created_at);
         const latest = [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment)[0];
-        return { clientId: client.client_id, firstName: client.first_name, lastName: client.last_name, email: client.email, isArchived: client.is_archived, createdAt: client.created_at, discipline: [...(client.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', anthropometry: (client.client_anthropometry || []).sort((a:any,b:any)=>b.measured_at.localeCompare(a.measured_at)||b.created_at.localeCompare(a.created_at)).map((item:any)=>({measurementId:item.anthropometry_id,measurementCode:item.measurement_code,value:Number(item.value),unit:item.unit,measuredAt:item.measured_at,sourceAssessmentId:item.source_assessment_id})), latestAssessment: latest ? { id: latest.assessment_id, date: latest.assessment_date, status: latest.status, indicator: indicators.get(latest.assessment_id) || 'ok', score: latest.total_score, maximum: latest.max_score } : null, history: [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, status: item.status, indicator: indicators.get(item.assessment_id) || 'ok', score: item.total_score, maximum: item.max_score, protocolCode: item.screen_types?.code || 'quick_screen' })) };
+        return { clientId: client.client_id, firstName: client.first_name, lastName: client.last_name, email: client.email, isArchived: client.is_archived, createdAt: client.created_at, discipline: [...(client.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', anthropometry: (client.client_anthropometry || []).sort((a:any,b:any)=>b.measured_at.localeCompare(a.measured_at)||b.created_at.localeCompare(a.created_at)).map((item:any)=>({measurementId:item.anthropometry_id,measurementCode:item.measurement_code,value:Number(item.value),unit:item.unit,measuredAt:item.measured_at,wearCondition:item.wear_condition||'unspecified',sourceAssessmentId:item.source_assessment_id})), latestAssessment: latest ? { id: latest.assessment_id, date: latest.assessment_date, status: latest.status, indicator: indicators.get(latest.assessment_id) || 'ok', score: latest.total_score, maximum: latest.max_score } : null, history: [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, status: item.status, indicator: indicators.get(item.assessment_id) || 'ok', score: item.total_score, maximum: item.max_score, protocolCode: item.screen_types?.code || 'quick_screen' })) };
       }));
     }
 
@@ -396,15 +408,24 @@ Deno.serve(async request => {
         const unit = String(input.unit || '');
         const measuredAt = String(input.measuredAt || '');
         if (!['hand_length','tibia_length','foot_length'].includes(measurementCode) || !Number.isFinite(value) || value <= 0 || value > 100 || !['cm','in'].includes(unit) || !/^\d{4}-\d{2}-\d{2}$/.test(measuredAt)) return response({ error: 'invalid_anthropometry' }, 422);
-        const { data, error } = await db.from('client_anthropometry').insert({ client_id: client.client_id, owner_id: ownerId, measurement_code: measurementCode, value, unit, measured_at: measuredAt }).select('anthropometry_id,measurement_code,value,unit,measured_at,source_assessment_id,created_at').single();
+      const wearCondition = String(input.wearCondition || 'unspecified');
+      if ((measurementCode === 'tibia_length' || measurementCode === 'foot_length') && !['with_shoes','without_shoes'].includes(wearCondition)) return response({ error: 'invalid_wear_condition' }, 422);
+      if (measurementCode === 'hand_length' && wearCondition !== 'unspecified') return response({ error: 'invalid_wear_condition' }, 422);
+      const { data, error } = await db.from('client_anthropometry').insert({ client_id: client.client_id, owner_id: ownerId, measurement_code: measurementCode, value, unit, measured_at: measuredAt, wear_condition: wearCondition }).select('anthropometry_id,measurement_code,value,unit,measured_at,wear_condition,source_assessment_id,created_at').single();
         if (error) throw error;
-        return response({ measurementId: data.anthropometry_id, measurementCode: data.measurement_code, value: Number(data.value), unit: data.unit, measuredAt: data.measured_at, sourceAssessmentId: data.source_assessment_id }, 201);
+        return response({ measurementId: data.anthropometry_id, measurementCode: data.measurement_code, value: Number(data.value), unit: data.unit, measuredAt: data.measured_at, wearCondition: data.wear_condition, sourceAssessmentId: data.source_assessment_id }, 201);
       }
-      const { data, error } = await db.from('client_anthropometry').select('anthropometry_id,measurement_code,value,unit,measured_at,source_assessment_id,created_at').eq('client_id', client.client_id).order('measured_at', { ascending: false }).order('created_at', { ascending: false });
+      const { data, error } = await db.from('client_anthropometry').select('anthropometry_id,measurement_code,value,unit,measured_at,wear_condition,source_assessment_id,created_at').eq('client_id', client.client_id).order('measured_at', { ascending: false }).order('created_at', { ascending: false });
       if (error) throw error;
       const latest: Record<string, any> = {};
-      for (const item of data || []) if (!latest[item.measurement_code]) latest[item.measurement_code] = { value: Number(item.value), unit: item.unit, measuredAt: item.measured_at };
-      return response({ history: (data || []).map((item: any) => ({ measurementId: item.anthropometry_id, measurementCode: item.measurement_code, value: Number(item.value), unit: item.unit, measuredAt: item.measured_at, sourceAssessmentId: item.source_assessment_id })), latest });
+      const latestByCondition: Record<string, Record<string, any>> = {};
+      for (const item of data || []) {
+        const condition = item.wear_condition || 'unspecified';
+        latestByCondition[item.measurement_code] ||= {};
+        if (!latestByCondition[item.measurement_code][condition]) latestByCondition[item.measurement_code][condition] = { value: Number(item.value), unit: item.unit, measuredAt: item.measured_at, wearCondition: condition };
+        if (!latest[item.measurement_code]) latest[item.measurement_code] = { value: Number(item.value), unit: item.unit, measuredAt: item.measured_at, wearCondition: condition };
+      }
+      return response({ history: (data || []).map((item: any) => ({ measurementId: item.anthropometry_id, measurementCode: item.measurement_code, value: Number(item.value), unit: item.unit, measuredAt: item.measured_at, wearCondition: item.wear_condition || 'unspecified', sourceAssessmentId: item.source_assessment_id })), latest, latestByCondition });
     }
     if (request.method === 'GET' && shoulderHandLengthRoute) {
       const clientId = shoulderHandLengthRoute[1];
@@ -483,7 +504,7 @@ Deno.serve(async request => {
       if (answersError) throw answersError;
       const { data: measurements, error: measurementsError } = await db.from('assessment_measurements').select('measurement_code,side,value_cm').eq('assessment_id', assessment.assessment_id);
       if (measurementsError) throw measurementsError;
-      const { data: fieldMeasurements, error: fieldMeasurementsError } = await db.from('assessment_field_measurements').select('test_field_id,side,attempt_number,numeric_value,unit').eq('assessment_id', assessment.assessment_id);
+      const { data: fieldMeasurements, error: fieldMeasurementsError } = await db.from('assessment_field_measurements').select('test_field_id,side,attempt_number,numeric_value,unit,measurement_condition').eq('assessment_id', assessment.assessment_id);
       if (fieldMeasurementsError) throw fieldMeasurementsError;
       const measurementValue = (code: string, side: string) => (measurements || []).find(item => item.measurement_code === code && item.side === side)?.value_cm ?? null;
       const shoulderMeasurements = { handLengthCm: measurementValue('shoulder_hand_length', 'none'), leftDistanceCm: measurementValue('shoulder_fist_gap', 'left'), rightDistanceCm: measurementValue('shoulder_fist_gap', 'right') };
@@ -660,7 +681,8 @@ Deno.serve(async request => {
         const measure = (fieldCode: string) => {
           const field = (steps || []).flatMap((step: any) => step.test_fields || []).find((item: any) => item.code === fieldCode);
           const saved = (fieldMeasurements || []).find((item: any) => item.test_field_id === field?.test_field_id);
-          return saved ? { value: Number(saved.numeric_value), unit: saved.unit } : { value: null, unit: field?.measurement_unit || null };
+          const tracksWearCondition = fieldCode === 'fms_hurdle_step_tibia_length' || fieldCode === 'fms_lower_body_mcs_foot_length' || fieldCode === 'fms_upper_body_mcs_foot_length';
+          return saved ? { value: Number(saved.numeric_value), unit: saved.unit, wearCondition: tracksWearCondition ? saved.measurement_condition || 'unspecified' : null } : { value: null, unit: field?.measurement_unit || null, wearCondition: tracksWearCondition ? 'unspecified' : null };
         };
         const scoreState: Record<string, any> = {};
         for (const protocolTest of FmsProtocol.MAIN_TESTS) {
@@ -682,7 +704,7 @@ Deno.serve(async request => {
             .flatMap((field: any) => (answers || []).filter((answer: any) => answer.test_field_id === field.test_field_id && answer.answer_option_id === 'option_fms_yes')
               .map((answer: any) => ({ label: field.label_pl, side: answer.side })));
           const fmsMeasurements = (step?.test_fields || []).filter((field: any) => field.field_type === 'measurement').flatMap((field: any) =>
-            (fieldMeasurements || []).filter((saved: any) => saved.test_field_id === field.test_field_id).map((saved: any) => ({ label: field.label_pl, value: Number(saved.numeric_value), unit: saved.unit, side: saved.side, role: field.measurement_role || 'value' })));
+            (fieldMeasurements || []).filter((saved: any) => saved.test_field_id === field.test_field_id).map((saved: any) => ({ label: field.label_pl, value: Number(saved.numeric_value), unit: saved.unit, side: saved.side, role: field.measurement_role || 'value', wearCondition: /tibia_length|foot_length/.test(field.code) ? saved.measurement_condition || 'unspecified' : null })));
           return { ...item, leftScore: raw.left ?? null, rightScore: raw.right ?? null, score: raw.score ?? null, pain: item.pain ? item.key === 'trunkStabilityPushUp' ? raw.pain : raw.painLeft || raw.painRight : false, clearing, issues, measurements: fmsMeasurements };
         });
         const tibiaLength = measure('fms_hurdle_step_tibia_length');
@@ -735,6 +757,7 @@ Deno.serve(async request => {
           ? await db.rpc('edit_assessment_v2', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
           : await db.rpc('edit_assessment_v3', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
       if (error) throw error;
+      await persistAssessmentMeasurementConditions(db, assessmentRoute[1], input.fieldMeasurements || []);
       return response(data);
     }
 
@@ -755,6 +778,7 @@ Deno.serve(async request => {
             ? await db.rpc('submit_assessment_sfma', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_protocol_data: input.protocolData })
             : await db.rpc('submit_assessment_v3', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
       if (error) throw error;
+      await persistAssessmentMeasurementConditions(db, input.assessmentId, input.fieldMeasurements || []);
       return response(data);
     }
 
