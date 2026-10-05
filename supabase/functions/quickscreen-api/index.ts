@@ -72,6 +72,45 @@ function validateSfmaV2(input: any, measurementRules: Record<string, any> = {}) 
 
 async function sfmaMeasurementRules(db:any){const {data,error}=await db.from('sfma_measurement_rules').select('measurement_key,unit,operator,threshold,result_code,otherwise_result_code').eq('is_active',true);if(error)throw error;return Object.fromEntries((data||[]).map((rule:any)=>[rule.measurement_key,{unit:rule.unit,operator:rule.operator,threshold:Number(rule.threshold),result:rule.result_code,otherwiseResult:rule.otherwise_result_code}]));}
 
+async function validateAdditionalTests(db: any, items: any[]) {
+  if (!Array.isArray(items) || items.length > 100) throw new Error('Nieprawidłowa lista testów dodatkowych.');
+  const protocols = new Set(['quick_screen', 'fms', 'sfma']);
+  const ordinary = items.filter(item => item?.protocolCode !== 'sfma');
+  let definitions: any[] = [];
+  if (ordinary.length) {
+    if (ordinary.some(item => !protocols.has(item.protocolCode))) throw new Error('Nieznany protokół testu dodatkowego.');
+    const { data: types, error: typesError } = await db.from('screen_types').select('screen_type_id,code').in('code', [...new Set(ordinary.map(item => item.protocolCode))]);
+    if (typesError) throw typesError;
+    const { data, error } = await db.from('screen_tests').select('screen_type_id,tests!inner(code),test_fields(*,answer_sets(*,answer_options(*)))').in('screen_type_id', (types || []).map((item: any) => item.screen_type_id)).eq('is_active', true);
+    if (error) throw error;
+    definitions = (data || []).map((step: any) => ({ protocolCode: (types || []).find((item: any) => item.screen_type_id === step.screen_type_id)?.code, code: step.tests.code, fields: step.test_fields || [] }));
+  }
+  for (const item of items) {
+    if (!protocols.has(item?.protocolCode) || typeof item.testCode !== 'string' || typeof item.sourceVersion !== 'string' || !item.sourceVersion || !['left','right','none'].includes(item.side) || typeof item.note !== 'string' || item.note.length > 2000 || !item.result || typeof item.result !== 'object' || !item.result.fields || typeof item.result.fields !== 'object') throw new Error('Nieprawidłowy zapis testu dodatkowego.');
+    const fields = item.protocolCode === 'sfma'
+      ? (SfmaProtocol.topTier.some((test: any) => item.testCode === `sfma_${test.id}`) ? [{ code: item.testCode, field_type: 'choice', side_mode: SfmaProtocol.topTier.find((test: any) => item.testCode === `sfma_${test.id}`).sides === 'bilateral' ? 'bilateral' : 'none', is_required: true, is_scoring_input: true, answer_sets: { answer_options: ['FN','FP','DN','DP'].map(code => ({ code, is_active: true })) } }] : null)
+      : definitions.find((definition: any) => definition.protocolCode === item.protocolCode && definition.code === item.testCode)?.fields;
+    if (!fields) throw new Error('Kod testu dodatkowego nie występuje w katalogu.');
+    const submitted = item.result.fields;
+    for (const field of fields.filter((field: any) => field.is_scoring_input || field.is_wizard_input || field.field_type === 'measurement')) {
+      const side = field.side_mode === 'bilateral' ? item.side : 'none';
+      if (field.is_required && !Object.hasOwn(submitted, field.code)) throw new Error(`Brak wymaganego pola: ${field.label_pl || field.code}.`);
+    }
+    for (const [code, value] of Object.entries(submitted) as [string, any][]) {
+      const field = fields.find((candidate: any) => candidate.code === code);
+      if (!field || (field.side_mode === 'bilateral' && item.side === 'none')) throw new Error('Nieprawidłowe pole lub strona testu dodatkowego.');
+      if (field.field_type === 'measurement') {
+        const numeric = Number(value?.value);
+        if (!Number.isFinite(numeric) || value.unit !== field.measurement_unit || (field.measurement_min != null && numeric < Number(field.measurement_min)) || (field.measurement_max != null && numeric > Number(field.measurement_max))) throw new Error('Nieprawidłowy pomiar testu dodatkowego.');
+      } else {
+        const option = (field.answer_sets?.answer_options || []).find((answer: any) => answer.code === value?.valueCode && answer.is_active);
+        if (!option || (item.protocolCode === 'sfma' && !SfmaProtocol.classifications[value.valueCode])) throw new Error('Nieprawidłowa odpowiedź testu dodatkowego.');
+        if (field.answer_sets?.code === 'score_0_3' && Number(value.numericValue) !== Number(option.numeric_value)) throw new Error('Wynik liczbowy nie odpowiada wybranej odpowiedzi.');
+      }
+    }
+  }
+}
+
 function assessmentIndicator(answers: any[] = []) {
   let hasPain = false;
   let needsAttention = false;
@@ -338,6 +377,17 @@ Deno.serve(async request => {
       return response({ handLengthCm });
     }
 
+    const additionalHistoryRoute = route.match(/^\/clients\/([^/]+)\/additional-tests\/history$/);
+    if (request.method === 'GET' && additionalHistoryRoute) {
+      const { data: client, error: clientError } = await db.from('clients').select('client_id').eq('client_id', additionalHistoryRoute[1]).eq('owner_id', ownerId).single();
+      if (clientError) throw clientError;
+      const testCode = new URL(request.url).searchParams.get('testCode');
+      if (!testCode || testCode.length > 120) return response({ error: 'invalid_test_code' }, 400);
+      const { data, error } = await db.from('assessment_additional_tests').select('protocol_code,test_code,source_version,result,side,measurements,note,assessments!inner(assessment_id,assessment_date,status,client_id,owner_id)').eq('test_code', testCode).eq('assessments.client_id', client.client_id).eq('assessments.owner_id', ownerId).eq('assessments.status', 'completed');
+      if (error) throw error;
+      return response((data || []).map((item: any) => ({ protocolCode: item.protocol_code, testCode: item.test_code, sourceVersion: item.source_version, result: item.result, side: item.side, measurements: item.measurements, note: item.note, assessmentId: item.assessments.assessment_id, date: item.assessments.assessment_date })).sort((a: any, b: any) => b.date.localeCompare(a.date)));
+    }
+
     const clientRoute = route.match(/^\/clients\/([^/]+)$/);
     if (request.method === 'PATCH' && clientRoute) {
       const input = await request.json();
@@ -376,7 +426,14 @@ Deno.serve(async request => {
       if (assessmentError) throw assessmentError;
       const { data: screenType, error: screenTypeError } = await db.from('screen_types').select('code,name_pl').eq('screen_type_id', assessment.screen_type_id).single();
       if (screenTypeError) throw screenTypeError;
-      if (screenType.code === 'sfma') { const {data:history,error:historyError}=await db.from('assessments').select('assessment_id,assessment_date,protocol_data').eq('client_id',assessment.client_id).eq('screen_type_id',assessment.screen_type_id).eq('owner_id',ownerId).eq('status','completed').neq('assessment_id',assessment.assessment_id).order('assessment_date',{ascending:false}).limit(20);if(historyError)throw historyError;return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, protocolCode: 'sfma', resultKind: 'categorical', scenarioName: 'SFMA', client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: null, maximum: null, sfma: assessment.protocol_data || {}, measurementHistory: (history||[]).map((item:any)=>({assessmentId:item.assessment_id,date:item.assessment_date,measurements:item.protocol_data?.measurements||{}})), rows: SfmaProtocol.topTier.map((test: any, index: number) => { const value = assessment.protocol_data?.topTier?.[test.id] || {}; return { code: test.id, order: index + 1, name: test.name, sides: test.sides, leftClassification: value.left || null, rightClassification: value.right || null, classification: value.score || null, breakout: assessment.protocol_data?.breakouts?.[test.id] || null }; }), history: [], trendHistory: [] }); }
+      const { data: additionalTests, error: additionalTestsError } = await db.from('assessment_additional_tests').select('additional_test_id,protocol_code,test_code,source_version,result,side,measurements,note').eq('assessment_id', assessment.assessment_id).order('created_at');
+      if (additionalTestsError) throw additionalTestsError;
+      const additionalRows = (additionalTests || []).map((item: any, index: number) => {
+        const details = Object.entries(item.result?.fields || {}).map(([label, value]: [string, any]) => ({ label, value: value.numericValue != null ? String(value.numericValue) : value.valueCode ? String(value.label || value.valueCode) : `${value.value ?? ''} ${value.unit || ''}`.trim(), tone: '' }));
+        const scoreValue = Object.values(item.result?.fields || {}).map((value: any) => value.numericValue).find((value: any) => value != null);
+        return { code: item.test_code, name: item.result?.name || item.test_code, protocolCode: item.protocol_code, sourceVersion: item.source_version, side: item.side, measurements: item.measurements, note: item.note, additional: true, order: 1000 + index, kind: 'summary', lDetails: item.side === 'left' ? details : [], rDetails: item.side === 'right' ? details : [], valueDetails: item.side === 'none' ? details : [], merged: item.side === 'none', value: scoreValue == null ? null : String(scoreValue), finalScore: scoreValue == null ? undefined : Number(scoreValue), status: scoreValue === 0 ? 'problem' : scoreValue === 1 ? 'warn' : scoreValue >= 2 ? 'ok' : 'unknown' };
+      });
+      if (screenType.code === 'sfma') { const {data:history,error:historyError}=await db.from('assessments').select('assessment_id,assessment_date,protocol_data').eq('client_id',assessment.client_id).eq('screen_type_id',assessment.screen_type_id).eq('owner_id',ownerId).eq('status','completed').neq('assessment_id',assessment.assessment_id).order('assessment_date',{ascending:false}).limit(20);if(historyError)throw historyError;return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, protocolCode: 'sfma', resultKind: 'categorical', scenarioName: 'SFMA', client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: null, maximum: null, sfma: assessment.protocol_data || {}, measurementHistory: (history||[]).map((item:any)=>({assessmentId:item.assessment_id,date:item.assessment_date,measurements:item.protocol_data?.measurements||{}})), rows: [...SfmaProtocol.topTier.map((test: any, index: number) => { const value = assessment.protocol_data?.topTier?.[test.id] || {}; return { code: test.id, order: index + 1, name: test.name, sides: test.sides, leftClassification: value.left || null, rightClassification: value.right || null, classification: value.score || null, breakout: assessment.protocol_data?.breakouts?.[test.id] || null }; }), ...additionalRows], additionalTests: additionalTests || [], history: [], trendHistory: [] }); }
       const { data: answers, error: answersError } = await db.from('assessment_answers').select('answer_id,test_field_id,side,attempt_number,answer_option_id,numeric_value').eq('assessment_id', assessment.assessment_id);
       if (answersError) throw answersError;
       const { data: measurements, error: measurementsError } = await db.from('assessment_measurements').select('measurement_code,side,value_cm').eq('assessment_id', assessment.assessment_id);
@@ -606,13 +663,15 @@ Deno.serve(async request => {
           upperBodyMcs: { skipped: upperSkipped, footLength: upperLength.value == null ? lowerLength : upperLength, left: upperLeft, right: upperRight, result: upperSkipped ? null : FmsProtocol.mcs(upperLength.value ?? lowerLength.value, upperLeft.value, upperRight.value, upperLength.value == null ? lowerLength.unit : upperLength.unit) },
         };
       }
-      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, protocolCode: screenType.code, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows, tests: reportTests, history, trendHistory, shoulderMeasurements, notes, ...(fms ? { fms } : {}) });
+      return response({ assessmentId: assessment.assessment_id, date: assessment.assessment_date, manualVersion: assessment.manual_version, protocolCode: screenType.code, scenarioName: screenType.name_pl, client: { clientId: assessment.clients.client_id, firstName: assessment.clients.first_name, lastName: assessment.clients.last_name, email: assessment.clients.email }, totalScore: assessment.total_score ?? totalScore, maximum: assessment.max_score ?? Object.keys(finalScores).length * 3, rows: [...rows, ...additionalRows], tests: [...reportTests, ...additionalRows], additionalTests: additionalTests || [], history, trendHistory, shoulderMeasurements, notes, ...(fms ? { fms } : {}) });
     }
 
     if (request.method === 'GET' && assessmentRoute) {
       const { data, error } = await db.from('assessments').select('*,clients!inner(client_id,first_name,last_name,email),assessment_answers(*),applied_effects(*),assessment_test_notes(*),assessment_measurements(*),assessment_field_measurements(*)').eq('assessment_id', assessmentRoute[1]).eq('owner_id', ownerId).single();
       if (error) throw error;
-      return response(data);
+      const { data: additionalTests, error: additionalError } = await db.from('assessment_additional_tests').select('protocol_code,test_code,source_version,result,side,measurements,note').eq('assessment_id', assessmentRoute[1]).order('created_at');
+      if (additionalError) throw additionalError;
+      return response({ ...data, additional_tests: additionalTests || [] });
     }
 
     if (request.method === 'PATCH' && assessmentRoute) {
@@ -624,8 +683,9 @@ Deno.serve(async request => {
       const isQuickScreen = assessment.screen_types?.code === 'quick_screen';
       if (assessment.screen_types?.code === 'fms') await validateFmsMcsPayload(db, assessment.screen_type_id, input, true);
       if (assessment.screen_types?.code === 'sfma') validateSfmaV2(input, await sfmaMeasurementRules(db));
-      const { data, error } = assessment.screen_types?.code === 'sfma'
-        ? await db.rpc('edit_assessment_sfma', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_protocol_data: input.protocolData })
+      if (Array.isArray(input.additionalTests)) await validateAdditionalTests(db, input.additionalTests);
+      const { data, error } = Array.isArray(input.additionalTests)
+        ? await db.rpc('write_assessment_additional_tests', { p_assessment_id: assessmentRoute[1], p_client_id: null, p_screen_type_id: assessment.screen_type_id, p_assessment_date: input.date, p_manual_version: null, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [], p_field_measurements: input.fieldMeasurements || [], p_protocol_data: input.protocolData || {}, p_additional_tests: input.additionalTests, p_is_edit: true, p_correction_note: input.correctionNote })
         : isQuickScreen
           ? await db.rpc('edit_assessment_v2', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
           : await db.rpc('edit_assessment_v3', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
@@ -641,11 +701,14 @@ Deno.serve(async request => {
       if (protocolError) throw protocolError;
       if (protocol.code === 'fms') await validateFmsMcsPayload(db, input.scenarioId, input);
       if (protocol.code === 'sfma') validateSfmaV2(input, await sfmaMeasurementRules(db));
-      const { data, error } = protocol.code === 'quick_screen'
-        ? await db.rpc('submit_assessment_v2', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
-        : protocol.code === 'sfma'
-          ? await db.rpc('submit_assessment_sfma', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_protocol_data: input.protocolData })
-          : await db.rpc('submit_assessment_v3', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
+      if (Array.isArray(input.additionalTests)) await validateAdditionalTests(db, input.additionalTests);
+      const { data, error } = Array.isArray(input.additionalTests)
+        ? await db.rpc('write_assessment_additional_tests', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [], p_field_measurements: input.fieldMeasurements || [], p_protocol_data: input.protocolData || {}, p_additional_tests: input.additionalTests, p_is_edit: false, p_correction_note: null })
+        : protocol.code === 'quick_screen'
+          ? await db.rpc('submit_assessment_v2', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
+          : protocol.code === 'sfma'
+            ? await db.rpc('submit_assessment_sfma', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_protocol_data: input.protocolData })
+            : await db.rpc('submit_assessment_v3', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
       if (error) throw error;
       return response(data);
     }

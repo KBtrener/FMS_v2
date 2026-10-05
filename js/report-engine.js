@@ -61,7 +61,8 @@
     return { type: candidates.length ? 'movement' : 'none', items: candidates.slice(0, 1), all: candidates };
   }
   function buildReport(assessment, options = {}) {
-    const tests = (assessment.tests || assessment.rows || []).map((test, index) => ({ ...test, order: test.order ?? index + 1 })).sort((a, b) => a.order - b.order);
+    const allTests = (assessment.tests || assessment.rows || []).map((test, index) => ({ ...test, order: test.order ?? index + 1 })).sort((a, b) => a.order - b.order);
+    const tests = allTests.filter(test => !test.additional);
     const selected = new Set(options.selectedBlocks || BLOCKS.map(block => block.id));
     const available = options.blockVisibility || Object.fromEntries(BLOCKS.map(block => [block.id, true]));
     const visibleBlocks = BLOCKS.filter(block => selected.has(block.id) && available[block.id] !== false);
@@ -176,7 +177,7 @@
       ? `Super, że w Twoim teście nie ma: ${absentFindings.join(', ')}.`
       : null;
     return {
-      generatorVersion: '5.0.0', assessmentId: assessment.assessmentId, client: assessment.client || {}, assessmentDate: assessment.date || '',
+      generatorVersion: '5.0.0', assessmentId: assessment.assessmentId, client: assessment.client || {}, assessmentDate: assessment.date || '', additionalTests: assessment.additionalTests || [],
       assessmentName, sport, profile, totalScore: assessment.totalScore ?? null, maximum: assessment.maximum ?? null, trendHistory: assessment.trendHistory || [],
       visibleBlocks: visibleBlocks.map(block => block.id), blocks: {
         intro: { title: 'Hej! Oto Twój raport z badania.', text: 'Badanie sprawdza podstawowe wzorce ruchu, różnice między stronami i ból, aby pomóc ustalić kolejność dalszej pracy.' },
