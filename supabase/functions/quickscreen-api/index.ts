@@ -541,7 +541,8 @@ Deno.serve(async request => {
           const field = measurementFields.find(item => item.test_field_id === answer.test_field_id);
           const numericValue = Number(answer.numeric_value);
           const formatted = Number.isFinite(numericValue) ? numericValue.toLocaleString('pl-PL', { maximumFractionDigits: 4 }) : String(answer.numeric_value);
-          return { label: field?.label_pl || field?.code || 'Pomiar', value: `${formatted} ${answer.unit}`, tone: '' };
+          const wearCondition = answer.measurement_condition === 'with_shoes' ? ' · W bucie' : answer.measurement_condition === 'without_shoes' ? ' · Bez buta' : '';
+          return { label: field?.label_pl || field?.code || 'Pomiar', value: `${formatted} ${answer.unit}${wearCondition}`, tone: '' };
         });
         const measurementReportFields = measured.map(answer => {
           const field = measurementFields.find(item => item.test_field_id === answer.test_field_id);
