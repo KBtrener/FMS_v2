@@ -11,7 +11,7 @@ const allowedEmail = 'info@kbtrener.pl';
 const headers = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
-  'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
   'Content-Type': 'application/json; charset=utf-8',
 };
 
@@ -487,6 +487,11 @@ Deno.serve(async request => {
 
     const assessmentRoute = route.match(/^\/assessments\/([^/]+)$/);
     const resultsRoute = route.match(/^\/assessments\/([^/]+)\/results$/);
+    if (request.method === 'DELETE' && assessmentRoute) {
+      const { error } = await db.rpc('delete_completed_assessment', { p_assessment_id: assessmentRoute[1] });
+      if (error) throw error;
+      return response({ assessmentId: assessmentRoute[1], deleted: true });
+    }
     if (request.method === 'GET' && resultsRoute) {
       const { data: assessment, error: assessmentError } = await db.from('assessments').select('assessment_id,assessment_date,manual_version,client_id,screen_type_id,total_score,max_score,protocol_data,clients!inner(client_id,first_name,last_name,email)').eq('assessment_id', resultsRoute[1]).eq('owner_id', ownerId).eq('status', 'completed').single();
       if (assessmentError) throw assessmentError;
