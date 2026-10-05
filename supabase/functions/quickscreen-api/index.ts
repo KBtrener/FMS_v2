@@ -333,7 +333,7 @@ Deno.serve(async request => {
     }
 
     if (request.method === 'GET' && route === '/clients') {
-      const { data, error } = await db.from('clients').select('client_id,first_name,last_name,email,is_archived,created_at,client_disciplines(discipline,is_primary),assessments(assessment_id,assessment_date,created_at,status,total_score,max_score,screen_types(code))').eq('owner_id', ownerId).order('last_name').order('first_name');
+      const { data, error } = await db.from('clients').select('client_id,first_name,last_name,email,is_archived,created_at,client_disciplines(discipline,is_primary),assessments(assessment_id,assessment_date,created_at,status,total_score,max_score,screen_types(code)),client_anthropometry(anthropometry_id,measurement_code,value,unit,measured_at,source_assessment_id,created_at)').eq('owner_id', ownerId).order('last_name').order('first_name');
       if (error) throw error;
       const assessmentIds = (data || []).flatMap(client => (client.assessments || []).filter(item => item.status === 'completed').map(item => item.assessment_id));
       const indicators = new Map<string, string>();
@@ -348,7 +348,7 @@ Deno.serve(async request => {
       return response((data || []).filter(client => !client.is_archived && (!term || `${client.first_name} ${client.last_name} ${client.email}`.toLocaleLowerCase('pl').includes(term))).map(client => {
         const byRecentAssessment = (a: any, b: any) => b.assessment_date.localeCompare(a.assessment_date) || b.created_at.localeCompare(a.created_at);
         const latest = [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment)[0];
-        return { clientId: client.client_id, firstName: client.first_name, lastName: client.last_name, email: client.email, isArchived: client.is_archived, createdAt: client.created_at, discipline: [...(client.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', latestAssessment: latest ? { id: latest.assessment_id, date: latest.assessment_date, status: latest.status, indicator: indicators.get(latest.assessment_id) || 'ok', score: latest.total_score, maximum: latest.max_score } : null, history: [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, status: item.status, indicator: indicators.get(item.assessment_id) || 'ok', score: item.total_score, maximum: item.max_score, protocolCode: item.screen_types?.code || 'quick_screen' })) };
+        return { clientId: client.client_id, firstName: client.first_name, lastName: client.last_name, email: client.email, isArchived: client.is_archived, createdAt: client.created_at, discipline: [...(client.client_disciplines || [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))[0]?.discipline || '', anthropometry: (client.client_anthropometry || []).sort((a:any,b:any)=>b.measured_at.localeCompare(a.measured_at)||b.created_at.localeCompare(a.created_at)).map((item:any)=>({measurementId:item.anthropometry_id,measurementCode:item.measurement_code,value:Number(item.value),unit:item.unit,measuredAt:item.measured_at,sourceAssessmentId:item.source_assessment_id})), latestAssessment: latest ? { id: latest.assessment_id, date: latest.assessment_date, status: latest.status, indicator: indicators.get(latest.assessment_id) || 'ok', score: latest.total_score, maximum: latest.max_score } : null, history: [...(client.assessments || [])].filter(item => item.status === 'completed').sort(byRecentAssessment).map(item => ({ assessmentId: item.assessment_id, date: item.assessment_date, status: item.status, indicator: indicators.get(item.assessment_id) || 'ok', score: item.total_score, maximum: item.max_score, protocolCode: item.screen_types?.code || 'quick_screen' })) };
       }));
     }
 
@@ -384,6 +384,28 @@ Deno.serve(async request => {
     }
 
     const shoulderHandLengthRoute = route.match(/^\/clients\/([^/]+)\/shoulder-hand-length$/);
+    const anthropometryRoute = route.match(/^\/clients\/([^/]+)\/anthropometry$/);
+    if (anthropometryRoute && (request.method === 'GET' || request.method === 'POST')) {
+      const clientId = anthropometryRoute[1];
+      const { data: client, error: clientError } = await db.from('clients').select('client_id').eq('client_id', clientId).eq('owner_id', ownerId).single();
+      if (clientError || !client) return response({ error: 'client_not_found' }, 404);
+      if (request.method === 'POST') {
+        const input = await request.json();
+        const measurementCode = String(input.measurementCode || '');
+        const value = Number(input.value);
+        const unit = String(input.unit || '');
+        const measuredAt = String(input.measuredAt || '');
+        if (!['hand_length','tibia_length','foot_length'].includes(measurementCode) || !Number.isFinite(value) || value <= 0 || value > 100 || !['cm','in'].includes(unit) || !/^\d{4}-\d{2}-\d{2}$/.test(measuredAt)) return response({ error: 'invalid_anthropometry' }, 422);
+        const { data, error } = await db.from('client_anthropometry').insert({ client_id: client.client_id, owner_id: ownerId, measurement_code: measurementCode, value, unit, measured_at: measuredAt }).select('anthropometry_id,measurement_code,value,unit,measured_at,source_assessment_id,created_at').single();
+        if (error) throw error;
+        return response({ measurementId: data.anthropometry_id, measurementCode: data.measurement_code, value: Number(data.value), unit: data.unit, measuredAt: data.measured_at, sourceAssessmentId: data.source_assessment_id }, 201);
+      }
+      const { data, error } = await db.from('client_anthropometry').select('anthropometry_id,measurement_code,value,unit,measured_at,source_assessment_id,created_at').eq('client_id', client.client_id).order('measured_at', { ascending: false }).order('created_at', { ascending: false });
+      if (error) throw error;
+      const latest: Record<string, any> = {};
+      for (const item of data || []) if (!latest[item.measurement_code]) latest[item.measurement_code] = { value: Number(item.value), unit: item.unit, measuredAt: item.measured_at };
+      return response({ history: (data || []).map((item: any) => ({ measurementId: item.anthropometry_id, measurementCode: item.measurement_code, value: Number(item.value), unit: item.unit, measuredAt: item.measured_at, sourceAssessmentId: item.source_assessment_id })), latest });
+    }
     if (request.method === 'GET' && shoulderHandLengthRoute) {
       const clientId = shoulderHandLengthRoute[1];
       const { data: client, error: clientError } = await db.from('clients').select('client_id').eq('client_id', clientId).eq('owner_id', ownerId).single();
