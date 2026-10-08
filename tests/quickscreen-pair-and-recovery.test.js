@@ -47,9 +47,25 @@ test('zmiana klienta przenosi badanie wraz z raportami i rekomendacjami w transa
   assert.match(app, /data-edit-client/);
 });
 
-test('rozszerzenie wyprostu szyi zachowuje dotychczasowy test clearingowy', () => {
+test('szyja pokazuje zakres, ból przy rotacji i ból przy wyproście po obu stronach', () => {
   const app = read('js/app.js');
   assert.match(app, /testFields=function\(test,index\).*neck_extension_clearing/);
-  assert.match(app, /baseTestFields\(clearing,index\)/);
+  assert.match(app, /field=clearing\?\.definition\.fields\.find\(item=>item\.code==='neck_extension_pain'\)/);
+  assert.match(app, /renderRow\('left'\)/);
+  assert.match(app, /renderRow\('right'\)/);
   assert.match(app, /data-note="\$\{tests\.indexOf\(clearing\)\+1\}"/);
+});
+
+test('Dodaj klienta tworzy profil bez przejścia do kreatora badania', () => {
+  const app = read('js/app.js');
+  assert.match(app, /function addClientPage\(\)/);
+  assert.match(app, /data-action="save-client"/);
+  assert.match(app, /route\(\)==='add-client'\)app\.innerHTML=addClientPage\(\)/);
+  assert.match(app, /if\(action\.dataset\.action==='add-client'\)\{setRoute\('add-client'\)/);
+});
+
+test('otwarcie zapisanego wyniku ładuje się także przy aktywnym szkicu', () => {
+  const app = read('js/app.js');
+  assert.match(app, /if \(activeAssessment && \(route\(\) === 'results' \|\| route\(\)\.startsWith\('assessment\/'\)\)\)/);
+  assert.match(app, /const pendingResults=loadResults\(decodeURIComponent\(route\(\)\.split\('\/'\)\[1\]\)\)/);
 });

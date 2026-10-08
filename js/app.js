@@ -265,6 +265,7 @@
     } catch (error) { window.alert(`Nie udało się zapisać zmian: ${error.message}`); }
   }  async function loadResults(assessmentId) {
     resultsLoadError = '';
+    resultsLoading = true;
     selectedAssessment = null;
     results = [];
     try {
@@ -282,6 +283,8 @@
     } catch (error) {
       resultsLoadError = error.message || 'Nie uda\u0142o si\u0119 pobra\u0107 wynik\u00f3w.';
       throw error;
+    } finally {
+      resultsLoading = false;
     }
   }
   async function editAssessment(assessmentId) {
@@ -350,6 +353,7 @@
   let latestActivity = [];
   let results = [];
   let resultsLoadError = '';
+  let resultsLoading = false;
   let currentScenario = null;
   let trendProtocol = 'quick_screen';
   let trainer = null;
@@ -472,6 +476,8 @@
     const content=selectProtocol?`<h2>Wybierz test</h2><p>Wybierz protokół badania dla klienta: <strong>${esc(selectedClient?.name||'')}</strong>.</p>${protocolChoices}${pairControl}`:`${invalidNotice}${clientFields}`;
     return shell(`<main class="page page-narrow"><div class="page-heading"><div><h1>Nowe badanie</h1><p>${selectProtocol?'Wybierz protokół':'Dane klienta'}</p></div></div><section class="new-card card">${content}</section></main>${footer()}`,selectProtocol?'#/new-assessment':`#/new-assessment${selectedClient?`/${encodeURIComponent(selectedClient.id)}`:''}`,{subtitle:selectProtocol?'Krok 2 — Wybór protokołu':'Krok 1 — Dane klienta'});
   }
+  function addClientPage(){return shell(`<main class="page page-narrow"><div class="page-heading"><div><h1>Dodaj klienta</h1><p>Utwórz profil klienta. Badanie możesz rozpocząć później z jego profilu.</p></div></div><section class="new-card card"><div class="field"><label for="client-first">Imię *</label><input id="client-first" autocomplete="given-name"></div><div class="field"><label for="client-last">Nazwisko *</label><input id="client-last" autocomplete="family-name"></div><div class="field"><label for="client-email">E-mail *</label><input id="client-email" type="email" placeholder="email@example.com"></div><div class="field"><label for="client-sport">Dyscyplina wiodąca</label><input id="client-sport" placeholder="np. Piłka nożna, Bieganie"></div><div class="new-footer"><a class="btn" href="#/clients">Anuluj</a><button class="btn btn-primary" data-action="save-client">Zapisz klienta</button></div></section></main>${footer()}`,'#/clients',{subtitle:'Nowy profil klienta'});}
+  async function saveClient(){const firstName=$('#client-first')?.value.trim()||'';const lastName=$('#client-last')?.value.trim()||'';const email=$('#client-email')?.value.trim()||'';const discipline=$('#client-sport')?.value.trim()||'';const resolved=await apiRequest('/clients/resolve',{method:'POST',body:JSON.stringify({firstName,lastName,email,discipline})});await loadQuickScreenData();setRoute(`client/${encodeURIComponent(resolved.client.clientId)}`);render();}
   function scoreOptions(step,side){const val=scores[`${step}-${side}`];return `<span class="score-label">Wybierz wynik (score)</span><div class="score-options">${[['0','Ból'],['1','Słabo'],['2','W normie'],['3','Super!']].map(([n,label])=>`<button type="button" class="score-option ${String(val)===n?'selected':''}" data-score="${n}" data-key="${step}-${side}"><span class="n">${n}</span><span>${label}</span></button>`).join('')}</div>`;}
   function binaryOptions(step,key,label,kind){const val=scores[`${step}-${key}`];return `<span class="field-label">${label}</span><div class="binary-options">${(kind==='pain'?[['no','Brak bólu'],['yes','Ból']]:[['pass','Pass'],['fail','Fail']]).map(([v,text])=>`<button class="binary-option ${val===v?`selected ${v==='yes'||v==='fail'?'pain':'pass'}`:''}" data-value="${v}" data-key="${step}-${key}">${text}</button>`).join('')}</div>`;}
   function sideScore(step,side){return `<article class="side-card"><h3>${side==='left'?'Lewa strona':'Prawa strona'}</h3>${scoreOptions(step,side)}</article>`;}
@@ -536,7 +542,7 @@
     return `${handLengthInput}<div class="sides ${groups.length===1?'single-field':''}">${groups.map(side=>`<article class="side-card"><h3>${side==='left'?'Lewa strona':side==='right'?'Prawa strona':'Wynik testu'}</h3>${fields.map(field=>field.sideMode==='bilateral'?renderField(field,side):renderField(field,'none')).join('')}${test.key==='shoulder_mobility'&&side!=='none'?`<label class="shoulder-distance-field">Odległość między pięściami — ${side==='left'?'lewa':'prawa'} strona (cm)<input type="number" min="0" max="100" step="0.1" inputmode="decimal" data-shoulder-measurement="gap" data-side="${side}" value="${esc(shoulderMeasurements.gaps[side])}"></label>`:''}</article>`).join('')}</div>`;
   }  function criteriaMarkup(test){const items=test.criteria||[];if(items.length)return `<div class="criteria-list">${items.map(([label,detail])=>`<div class="criteria-point"><b>${esc(label)}</b><span>${esc(detail)}</span></div>`).join('')}</div>`;const summary=test.definition.test.criteriaSummary||'';if(!summary)return '<p>Kryteria nie są dostępne dla tego testu.</p>';const points=summary.split(/\s+(?=(?:Strona(?:\s+L)?\s+oznacza|Strona oceniana:|[0-3]:))/i).map(point=>point.trim()).filter(Boolean);return `<ul class="criteria-summary-list">${points.map(point=>`<li>${esc(point)}</li>`).join('')}</ul>`; }
   const baseTestFields=testFields;
-  testFields=function(test,index){if(test.key==='neck_extension_clearing')return '';const base=baseTestFields(test,index);if(test.key!=='cervical_rotation_extension')return base;const clearing=tests.find(item=>item.key==='neck_extension_clearing');if(!clearing)return base;return `${base}<section class="neck-extension-inline"><h2>Ocena bólu przy wyproście szyi</h2>${baseTestFields(clearing,index)}<div class="notes"><label for="neck-extension-note">Notatka / uwagi do wyprostu szyi (opcjonalnie)</label><textarea id="neck-extension-note" data-note="${tests.indexOf(clearing)+1}">${esc(notes[String(tests.indexOf(clearing)+1)]||'')}</textarea></div></section>`;};
+  testFields=function(test,index){if(test.key==='neck_extension_clearing')return '';const base=baseTestFields(test,index);if(test.key!=='cervical_rotation_extension')return base;const clearing=tests.find(item=>item.key==='neck_extension_clearing');const field=clearing?.definition.fields.find(item=>item.code==='neck_extension_pain');if(!field)return base;const renderRow=side=>`<div class="field-control neck-extension-field"><span class="field-label">${esc(field.label)}</span><div class="binary-options">${field.answers.map(answer=>{const key=`${field.code}:${side}`;const selected=scores[key]===answer.code;return `<button type="button" class="binary-option ${selected?`selected ${/positive|pain|yes|fail/i.test(answer.code)?'pain':'pass'}`:''}" data-key="${esc(key)}" data-value="${esc(answer.code)}" aria-pressed="${selected}">${esc(answer.label)}</button>`;}).join('')}</div></div>`;const withLeft=base.replace('</article>',`${renderRow('left')}</article>`);const withBoth=withLeft.replace('</article>',`${renderRow('right')}</article>`);return `${withBoth}<div class="notes"><label for="neck-extension-note">Notatka / uwagi do wyprostu szyi (opcjonalnie)</label><textarea id="neck-extension-note" data-note="${tests.indexOf(clearing)+1}">${esc(notes[String(tests.indexOf(clearing)+1)]||'')}</textarea></div>`;};
   const pairStateKeys=['assessment','client','scores','fieldMeasurements','fieldMeasurementUnits','fieldMeasurementConditions','notes','shoulderMeasurements','shoulderAutoScores','protocolData','additionalTests','wizardIndex'];
   function getCurrentPairState(){return Object.fromEntries(pairStateKeys.map(key=>[key,({assessment:activeAssessment,client:selectedClient,scores,fieldMeasurements,fieldMeasurementUnits,fieldMeasurementConditions,notes,shoulderMeasurements,shoulderAutoScores,protocolData,additionalTests,wizardIndex})[key]]));}
   function setCurrentPairState(state){activeAssessment=state.assessment;selectedClient=state.client;scores=state.scores||{};fieldMeasurements=state.fieldMeasurements||{};fieldMeasurementUnits=state.fieldMeasurementUnits||{};fieldMeasurementConditions=state.fieldMeasurementConditions||{};notes=state.notes||{};shoulderMeasurements=state.shoulderMeasurements||{handLengthCm:'',gaps:{left:'',right:''}};shoulderAutoScores=state.shoulderAutoScores||{};protocolData=state.protocolData||{};additionalTests=state.additionalTests||[];wizardIndex=state.wizardIndex||0;}
@@ -812,11 +818,12 @@
   const standardRender=render;
   render=function(){if(route().startsWith('sfma-report/')){document.body.classList.add('is-report');const id=decodeURIComponent(route().split('/')[1]||'');if(!selectedAssessment||selectedAssessment.assessmentId!==id||selectedAssessment.protocolCode!=='sfma')app.innerHTML=shell('<main class="page"><section class="card"><h1>Otwieram raport SFMA…</h1><p>Ładuję zapisane klasyfikacje.</p></section></main>','#/clients',{report:true});else app.innerHTML=shell(window.SfmaReportUI.report(selectedAssessment,backAction(route())),'#/clients',{report:true});return;}if(route().startsWith('fms-report/')){document.body.classList.add('is-report');const id=decodeURIComponent(route().split('/')[1]||'');if(!selectedAssessment||selectedAssessment.assessmentId!==id||selectedAssessment.protocolCode!=='fms')app.innerHTML=shell('<main class="page"><section class="card"><h1>Otwieram raport FMS…</h1><p>Ładuję zapisane wyniki badania.</p></section></main>','#/clients',{report:true});else app.innerHTML=shell(window.FmsReportUI.report(selectedAssessment,backAction(route())),'#/clients',{report:true});return;}if(!route().startsWith('fms-report/')&&!route().startsWith('sfma-report/'))document.body.classList.remove('is-report');standardRender();};
   const renderWithPair=render;
-  render=function(){renderWithPair();if(!pairedDraft||!route().startsWith('assessment/')||currentScenario?.code!=='quick_screen')return;const card=$('.test-card');const test=tests[wizardIndex];if(!card||!test)return;const grid=document.createElement('div');grid.className='pair-assessment-panels';const primary=document.createElement('section');primary.className='pair-client-panel';primary.innerHTML=`<h2>${esc(selectedClient?.name||'Pierwszy klient')}</h2>`;const movable=[...card.children].filter(node=>node.matches('.shoulder-measurement-fields,.sides,.neck-extension-inline,.notes'));if(!movable.length)return;movable[0].before(grid);for(const node of movable)primary.append(node);grid.append(primary);grid.insertAdjacentHTML('beforeend',pairedPanelMarkup(test,wizardIndex));const actions=card.querySelector('.test-actions');if(actions)grid.after(actions);};
+  app.addEventListener('click',event=>{const action=event.target.closest('[data-action="add-client"],[data-action="save-client"]');if(!action)return;event.preventDefault();event.stopImmediatePropagation();if(action.dataset.action==='add-client'){setRoute('add-client');render();return;}action.disabled=true;saveClient().catch(error=>{action.disabled=false;window.alert(`Nie udało się dodać klienta: ${error.message}`);});},true);
+  render=function(){if(route()==='add-client')app.innerHTML=addClientPage();else renderWithPair();if(resultsLoading){const pending=app.querySelector('.results-load-error');if(pending){pending.querySelector('h1').textContent='Wczytywanie wyników';pending.querySelector('p').textContent='Pobieram zapisane wyniki badania…';}}if(!pairedDraft||!route().startsWith('assessment/')||currentScenario?.code!=='quick_screen')return;const card=$('.test-card');const test=tests[wizardIndex];if(!card||!test)return;const grid=document.createElement('div');grid.className='pair-assessment-panels';const primary=document.createElement('section');primary.className='pair-client-panel';primary.innerHTML=`<h2>${esc(selectedClient?.name||'Pierwszy klient')}</h2>`;const movable=[...card.children].filter(node=>node.matches('.shoulder-measurement-fields,.sides,.neck-extension-inline,.notes'));if(!movable.length)return;movable[0].before(grid);for(const node of movable)primary.append(node);grid.append(primary);grid.insertAdjacentHTML('beforeend',pairedPanelMarkup(test,wizardIndex));const actions=card.querySelector('.test-actions');if(actions)grid.after(actions);};
   window.addEventListener('hashchange', async event => {
     if (route() === 'report') { const id=routePath().match(/^report\/([^/]+)$/)?.[1];if(id){try{const record=await loadResults(decodeURIComponent(id));if(record.protocolCode==='sfma'){skipRouteTrailUpdate=true;setRoute(`sfma-report/${encodeURIComponent(id)}`);render();return;}}catch{}}render(); await generateReport(); return; }
     if (isEditingAssessment && route() !== editReturnRoute && route() !== 'additional-tests') { isEditingAssessment = false; activeAssessment = null; editReturnRoute = null; removeLocalDraft(); document.body.classList.remove('has-assessment-modal'); }
-    if (activeAssessment) {
+    if (activeAssessment && (route() === 'results' || route().startsWith('assessment/'))) {
       try {
         if (route() === 'results') {
           const invalidMeasurement=invalidMeasurementMessage();if(invalidMeasurement){window.alert(invalidMeasurement);setRoute(`assessment/${tests.length}`);return;}
@@ -840,8 +847,10 @@
         if (route() === 'results') { window.alert(error.message); setRoute(`assessment/${tests.length}`); return; }
       }
     } else if (route().startsWith('results/') && route().split('/')[1]) {
-      try { await loadResults(route().split('/')[1]); }
-      catch (error) { window.alert(error.message); }
+      const pendingResults=loadResults(decodeURIComponent(route().split('/')[1]));
+      render();
+      try { await pendingResults; }
+      catch {}
     } else if (route() === 'results' && !selectedAssessment) {
       try { const latest = await apiRequest('/assessments/latest'); if (latest?.assessmentId) await loadResults(latest.assessmentId); }
       catch (error) { window.alert(error.message); }
