@@ -253,7 +253,7 @@ Deno.serve(async request => {
       if (assessment.status !== 'completed') return response({ error: 'assessment_not_complete' }, 409);
       const { data: screenType, error: screenTypeError } = await db.from('screen_types').select('code,name_pl').eq('screen_type_id', assessment.screen_type_id).single();
       if (screenTypeError) throw screenTypeError;
-      if (screenType.code !== 'quick_screen') return response({ error: 'unsupported_report_protocol' }, 422);
+      if (!['quick_screen','bunkie'].includes(screenType.code)) return response({ error: 'unsupported_report_protocol' }, 422);
       if (input.resourceIds !== undefined && !Array.isArray(input.resourceIds)) return response({ error: 'invalid_report_resources' }, 400);
       const resources = [...new Set(input.resourceIds || [])];
       if (resources.length) {
@@ -261,7 +261,7 @@ Deno.serve(async request => {
         if (resourcesError) throw resourcesError;
         if ((owned || []).length !== resources.length) return response({ error: 'invalid_report_resources' }, 403);
       }
-      const snapshot = { ...input.snapshot, assessmentName: screenType.name_pl, visibleBlocks: blockIds, clientVisibleBlocks: selected, manualVersion: assessment.manual_version, generatorVersion: '5.0.0', snapshotVersion: 1 };
+      const snapshot = { ...input.snapshot, assessmentName: screenType.name_pl, visibleBlocks: blockIds, clientVisibleBlocks: selected, manualVersion: assessment.manual_version, generatorVersion: screenType.code==='bunkie'?'bunkie-1.0.0':'5.0.0', snapshotVersion: 1 };
       const { data: report, error: reportError } = await db.from('report_instances').insert({ client_id: assessment.client_id, assessment_id: assessment.assessment_id, trainer_id: ownerId, report_profile_code: 'full_coaching_report', manual_version: assessment.manual_version, generator_version: '5.0.0', snapshot, document_status: 'generating' }).select('report_instance_id').single();
       if (reportError) throw reportError;
       if (selected.length) {
@@ -302,6 +302,22 @@ Deno.serve(async request => {
       const { data: scenario, error: scenarioError } = await db.from('screen_types').select('*').eq('screen_type_id', definition[1]).eq('is_active', true).single();
       if (scenarioError) throw scenarioError;
       if (scenario.code === 'sfma') { const rules=await sfmaMeasurementRules(db);return response({ id: scenario.screen_type_id, code: 'sfma', name: 'SFMA', manualVersion: SfmaProtocol.version, measurementRules: rules, steps: SfmaProtocol.topTier.map((test: any, index: number) => ({ id: `sfma-step-${test.id}`, order: index + 1, calculation: 'categorical', parentId: null, test: { id: `sfma-test-${test.id}`, code: `sfma_${test.id}`, name: test.name, originalEnglishName: test.name, description: { scoring_criteria: test.description, manual_version: SfmaProtocol.version } }, fields: [{ id: `sfma-field-${test.id}`, code: `sfma_${test.id}`, label: test.name, fieldType: 'choice', sideMode: test.sides === 'bilateral' ? 'bilateral' : 'none', attemptMode: 'single', scoring: true, wizardInput: true, controlType: 'choices', required: true, helpText: test.standards.join(' · ') || '', answerSet: { id: 'sfma-classification', code: 'sfma_classification', valueKind: 'discrete_text' }, answers: ['FN','FP','DN','DP'].map(code => ({ id: `sfma-${code}`, code, label: code, value: null })) }] })) }); }
+      if (scenario.code === 'bunkie') {
+        const [{ data: catalog, error: catalogError }, { data: means, error: meansError }, { data: descriptionRow, error: descriptionError }] = await Promise.all([
+          db.from('bunkie_protocol_catalog').select('*').order('figure_number'),
+          db.from('bunkie_research_means').select('*'),
+          db.from('bunkie_settings').select('setting_value').eq('setting_key','description').maybeSingle(),
+        ]);
+        if (catalogError) throw catalogError; if (meansError) throw meansError; if(descriptionError)throw descriptionError;
+        const { data: steps, error } = await db.from('screen_tests').select('*,tests(*),test_fields(*,answer_sets(*,answer_options(*)))').eq('screen_type_id', definition[1]).eq('is_active', true).order('sort_order');
+        if (error) throw error;
+        const ids=(steps||[]).map((step:any)=>step.tests.test_id);
+        const {data:descriptions,error:descriptionError}=await db.from('test_descriptions').select('*').in('test_id',ids).eq('locale',locale).eq('is_active',true);
+        if(descriptionError)throw descriptionError;
+        const byTest=new Map((descriptions||[]).map((item:any)=>[item.test_id,item]));
+        const meansByCode=new Map<string,any[]>();for(const row of means||[])meansByCode.set(row.test_code,[...(meansByCode.get(row.test_code)||[]),row]);
+        return response({id:scenario.screen_type_id,code:'bunkie',name:locale==='en'?scenario.name_en:scenario.name_pl,manualVersion:'BUNKIE-BRUMITT-2015-APP-1',description:descriptionRow?.setting_value||'',restSeconds:60,steps:(steps||[]).map((step:any)=>{const c=(catalog||[]).find((item:any)=>item.test_code===step.tests.code);return{id:step.screen_test_id,order:step.sort_order,calculation:'descriptive',parentId:null,test:{id:step.tests.test_id,code:step.tests.code,name:step.tests.name,originalEnglishName:step.tests.name,description:byTest.get(step.tests.test_id)||null,bunkie:{...c,description:descriptionRow?.setting_value||'',goalSeconds:Number(c.active_goal_seconds),imageUrl:db.storage.from('bunkie-reference').getPublicUrl(`${c.storage_path}.jpg`).data.publicUrl,researchMeans:meansByCode.get(c.test_code)||[]}},fields:(step.test_fields||[]).map((field:any)=>({id:field.test_field_id,code:field.code,label:field.label_pl,fieldType:field.field_type,sideMode:field.side_mode,attemptMode:field.attempt_mode,scoring:false,wizardInput:false,required:false,measurementUnit:field.measurement_unit,measurementMin:field.measurement_min,measurementMax:field.measurement_max,measurementStep:field.measurement_step,helpText:field.help_text}))};})});
+      }
       const { data: steps, error: stepsError } = await db.from('screen_tests').select('*,tests(*),test_fields(*,answer_sets(*,answer_options(*)))').eq('screen_type_id', definition[1]).eq('is_active', true).order('sort_order');
       if (stepsError) throw stepsError;
       const testIds = (steps || []).map(step => step.tests?.test_id).filter(Boolean);
@@ -541,6 +557,18 @@ Deno.serve(async request => {
       if (testNotesError) throw testNotesError;
       const { data: steps, error: stepsError } = await db.from('screen_tests').select('*,tests(*),test_fields(*,answer_sets(*,answer_options(*)))').eq('screen_type_id', assessment.screen_type_id).eq('is_active', true).order('sort_order');
       if (stepsError) throw stepsError;
+      if (screenType.code === 'bunkie') {
+        const [{data:catalog,error:catalogError},{data:means,error:meansError},{data:description,error:descriptionError},{data:prior,error:priorError}] = await Promise.all([
+          db.from('bunkie_protocol_catalog').select('*').order('figure_number'),
+          db.from('bunkie_research_means').select('*'),
+          db.from('bunkie_settings').select('setting_value').eq('setting_key','description').maybeSingle(),
+          db.from('assessments').select('assessment_id,assessment_date,protocol_data,assessment_field_measurements(numeric_value,side,test_fields(code))').eq('owner_id',ownerId).eq('client_id',assessment.client_id).eq('screen_type_id',assessment.screen_type_id).eq('status','completed').neq('assessment_id',assessment.assessment_id).order('assessment_date',{ascending:false}).limit(10),
+        ]);
+        if(catalogError)throw catalogError;if(meansError)throw meansError;if(descriptionError)throw descriptionError;if(priorError)throw priorError;
+        const data=(steps||[]).map((step:any)=>{const meta=(catalog||[]).find((item:any)=>item.test_code===step.tests.code);const field=(step.test_fields||[]).find((item:any)=>item.field_type==='measurement');const read=(side:string)=>{const saved=(fieldMeasurements||[]).find((item:any)=>item.test_field_id===field?.test_field_id&&item.side===side);return saved?Number(saved.numeric_value):null;};const snapshot=assessment.protocol_data?.targets?.[step.tests.code]||{};const goalLeft=Number(snapshot.left??meta?.active_goal_seconds),goalRight=Number(snapshot.right??meta?.active_goal_seconds);const pain=assessment.protocol_data?.pain?.[step.tests.code]||{};return{code:step.tests.code,short:String(step.tests.code).replace('bunkie_','').toUpperCase(),en:step.tests.name,name:step.tests.name,pl:step.tests.description_short,left:read('left'),right:read('right'),goalLeft,goalRight,painLeft:Boolean(pain.left),painRight:Boolean(pain.right),figure:Number(meta?.figure_number),protocolPl:meta?.protocol_pl,imageSource:meta?.image_source,imageAuthor:meta?.image_author,imageLicense:meta?.image_license,imageUrl:db.storage.from('bunkie-reference').getPublicUrl(`${meta?.storage_path}.jpg`).data.publicUrl,researchMeans:(means||[]).filter((item:any)=>item.test_code===step.tests.code)};});
+        const oldHistory=(prior||[]).map((entry:any)=>({assessmentId:entry.assessment_id,date:entry.assessment_date,tests:(steps||[]).map((step:any)=>{const code=step.tests.code;const fieldCode=`bunkie_time_${code}`;const values=(entry.assessment_field_measurements||[]).filter((item:any)=>item.test_fields?.code===fieldCode);return{code,left:values.find((item:any)=>item.side==='left')?.numeric_value??null,right:values.find((item:any)=>item.side==='right')?.numeric_value??null};})}));
+        return response({assessmentId:assessment.assessment_id,date:assessment.assessment_date,manualVersion:assessment.manual_version,protocolCode:'bunkie',resultKind:'duration',scenarioName:screenType.name_pl,client:{clientId:assessment.clients.client_id,firstName:assessment.clients.first_name,lastName:assessment.clients.last_name,email:assessment.clients.email},totalScore:null,maximum:null,bunkie:{description:description?.setting_value||'',targets:assessment.protocol_data?.targets||{},tests:data,researchNote:'Brumitt (2015), Table 2: wartości opisowe z próby badawczej (81 kobiet, 31 mężczyzn; średni wiek 25,9 roku). Średnie nie stanowią progów zaliczenia.'},rows:data.map((item:any,index:number)=>({code:item.code,order:index+1,name:`${item.short} · ${item.pl} (${item.en})`,kind:'summary',merged:false,l:item.left==null?'—':`${item.left} s`,r:item.right==null?'—':`${item.right} s`,status:'unknown'})),tests:data.map((item:any,index:number)=>({code:item.code,order:index+1,name:`${item.short} · ${item.pl} (${item.en})`,description:item.protocolPl,finalScore:null,fields:[]})),additionalTests:additionalTests||[],history:[],trendHistory:[],notes:(testNotes||[]).map((item:any)=>({testId:item.test_id,testName:(steps||[]).find((step:any)=>step.tests.test_id===item.test_id)?.tests.name_pl||'Test',note:item.note})),measurementHistory:oldHistory});
+      }
       const finalScores: Record<string, number> = {};
       const rows: Record<string, unknown>[] = [];
       const reportTests: Record<string, unknown>[] = [];
@@ -783,6 +811,8 @@ Deno.serve(async request => {
       if (Array.isArray(input.additionalTests)) await validateAdditionalTests(db, input.additionalTests);
       const { data, error } = Array.isArray(input.additionalTests)
         ? await db.rpc('write_assessment_additional_tests', { p_assessment_id: assessmentRoute[1], p_client_id: null, p_screen_type_id: assessment.screen_type_id, p_assessment_date: input.date, p_manual_version: null, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [], p_field_measurements: input.fieldMeasurements || [], p_protocol_data: input.protocolData || {}, p_additional_tests: input.additionalTests, p_is_edit: true, p_correction_note: input.correctionNote })
+        : assessment.screen_types?.code === 'bunkie'
+          ? await db.rpc('edit_assessment_bunkie', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_notes: notes, p_field_measurements: input.fieldMeasurements || [], p_protocol_data: input.protocolData || {} })
         : isQuickScreen
           ? await db.rpc('edit_assessment_v2', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
           : await db.rpc('edit_assessment_v3', { p_assessment_id: assessmentRoute[1], p_assessment_date: input.date, p_correction_note: input.correctionNote, p_answers: answers, p_notes: notes, p_field_measurements: input.fieldMeasurements || [] });
@@ -802,7 +832,9 @@ Deno.serve(async request => {
       if (Array.isArray(input.additionalTests)) await validateAdditionalTests(db, input.additionalTests);
       const { data, error } = Array.isArray(input.additionalTests)
         ? await db.rpc('write_assessment_additional_tests', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [], p_field_measurements: input.fieldMeasurements || [], p_protocol_data: input.protocolData || {}, p_additional_tests: input.additionalTests, p_is_edit: false, p_correction_note: null })
-        : protocol.code === 'quick_screen'
+          : protocol.code === 'bunkie'
+            ? await db.rpc('submit_assessment_bunkie', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_notes: notes, p_field_measurements: input.fieldMeasurements || [], p_protocol_data: input.protocolData || {} })
+          : protocol.code === 'quick_screen'
           ? await db.rpc('submit_assessment_v2', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_answers: answers, p_notes: notes, p_measurements: input.measurements || [] })
           : protocol.code === 'sfma'
             ? await db.rpc('submit_assessment_sfma', { p_assessment_id: input.assessmentId, p_client_id: input.clientId, p_screen_type_id: input.scenarioId, p_assessment_date: input.date, p_manual_version: input.manualVersion, p_protocol_data: input.protocolData })
